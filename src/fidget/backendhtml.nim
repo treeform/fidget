@@ -59,6 +59,22 @@ proc draw*(group: Group) =
     dom.style.fontWeight = $current.textStyle.fontWeight
     dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
+  if cacheGroup.editableText != current.editableText:
+    cacheGroup.editableText = current.editableText
+    while dom.firstChild != nil:
+      dom.removeChild(dom.firstChild)
+    var inputDiv = document.createElement("input")
+    dom.appendChild(inputDiv)
+    cacheGroup.text = current.text
+    inputDiv.setAttribute("placeholder", current.text)
+    inputDiv.setAttribute("type", "text")
+    inputDiv.style.border = "none"
+    inputDiv.style.outline = "none"
+    inputDiv.style.fontFamily = current.textStyle.fontFamily
+    inputDiv.style.fontSize = $current.textStyle.fontSize & "px"
+    inputDiv.style.fontWeight = $current.textStyle.fontWeight
+    inputDiv.style.lineHeight = $current.textStyle.lineHeight & "px"
+
   if cacheGroup.text != current.text:
     inc perf.numLowLevelCalls
     cacheGroup.text = current.text
@@ -73,9 +89,16 @@ proc draw*(group: Group) =
       # group has text, add text
       var textDom = document.createTextNode(current.text)
       textDiv.appendChild(textDom)
+
+    #   if current.editableText:
+    #     textDiv.setAttribute("contenteditable", $current.editableText)
+    #     # css-hax "outline: none" does not work because it does not show cursor when
+    #     # there are no characters
+    #     textDiv.style.outline = "1px solid transparent"
+    #   dom.style.overflow = "hidden"
+
     textDiv.style.whiteSpace = "pre"
     textDiv.style.position = "absolute"
-
 
     case current.textStyle.textAlignHorizontal:
       of -1:
@@ -120,6 +143,8 @@ proc draw*(group: Group) =
       $current.cornerRadius[2] & "px " &
       $current.cornerRadius[3] & "px"
     )
+
+
 
   inc numGroups
 
