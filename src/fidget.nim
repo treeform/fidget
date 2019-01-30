@@ -6,7 +6,7 @@ import print
 
 import fidget/uibase
 import fidget/backendhtml
-export uibase, backendhtml
+export uibase, backendhtml, chroma
 
 
 proc between*(value, min, max: float): bool =
@@ -43,19 +43,36 @@ proc `$`*(g: Group): string =
   result &= " screenBox:" & $g.box
 
 
-template def(name: string, kind: string, inner: untyped): untyped =
+template def(kindStr: string, name: string, inner: untyped): untyped =
   ## Base temaptle for group, frame, rectange ...
+
+  # we should draw the parent first as we are drawing the a child now
+  parent = groupStack[^1]
+  if not parent.wasDrawn:
+    parent.draw()
+    parent.wasDrawn = true
+
   current = Group()
-  current.id = groupName
-  current.kind = type
+  current.id = name
+  current.kind = kindStr
+  current.wasDrawn = false
   groupStack.add(current)
-  parent = groupStack[^2]
 
   inner
 
-  current.draw()
+  if not current.wasDrawn:
+    current.draw()
+    current.wasDrawn = true
 
   discard groupStack.pop()
+  if groupStack.len > 1:
+    current = groupStack[^1]
+  else:
+    current = nil
+  if groupStack.len > 2:
+    parent = groupStack[^2]
+  else:
+    parent = nil
 
 
 template group*(name: string, inner: untyped): untyped =
@@ -71,6 +88,16 @@ template frame*(name: string, inner: untyped): untyped =
 template rectangle*(name: string, inner: untyped): untyped =
   ## Starts a new rectangle.
   def("rectangle", name, inner)
+
+
+template text*(name: string, inner: untyped): untyped =
+  ## Starts a new text element.
+  def("text", name, inner)
+
+
+template component*(name: string, inner: untyped): untyped =
+  ## Starts a new component.
+  def("component", name, inner)
 
 
 template rectangle*(color: string) =
@@ -106,22 +133,38 @@ template onHover*(inner: untyped) =
     inner
 
 
+template onDown*(inner: untyped) =
+  ## Code in the block will run when this box is hovered.
+  if mouse.pos.inside(current.screenBox) and mouse.down:
+    inner
+
+
 proc id*(id: string) =
   ## Sets ID.
   current.id = id
 
 
-proc textAlign*(textAlign: TextAlign) =
-  ## Aligns text right, left or center.
-  current.textAlign = textAlign
+proc font*(fontFamily: string, fontSize, fontWeight, lineHeight, textAlignHorizontal, textAlignVertical: float) =
+  ## Sets the font
+  current.textStyle.fontFamily = fontFamily
+  current.textStyle.fontSize = fontSize
+  current.textStyle.fontWeight = fontWeight
+  current.textStyle.lineHeight = lineHeight
+  current.textStyle.textAlignHorizontal = textAlignHorizontal
+  current.textStyle.textAlignVertical = textAlignVertical
 
 
-proc text*(text: string) =
+proc characters*(text: string) =
   ## Adds text to the group.
   if current.text == "":
     current.text = text
   else:
     current.text &= text
+
+
+proc image*(imageName: string) =
+  ## Adds text to the group.
+  current.imageName = imageName
 
 
 proc box*(x, y, w, h: float) =
@@ -157,14 +200,14 @@ proc fill*(color: string) =
   current.fill = parseHtmlColor(color)
 
 
-proc textColor*(color: Color) =
-  ## Sets background color.
-  current.textColor = color
+proc stroke*(color: Color) =
+  ## Sets stroke/border color.
+  current.stroke = color
 
 
-proc textColor*(color: string) =
-  ## Sets background color.
-  current.textColor = parseHtmlColor(color)
+proc strokeWeight*(weight: int) =
+  ## Sets stroke/border weight.
+  current.strokeWeight = weight
 
 
 proc zLevel*(zLevel: int) =
@@ -172,3 +215,16 @@ proc zLevel*(zLevel: int) =
   current.zLevel = zLevel
 
 
+proc cornerRadius*(a, b, c, d: int) =
+  ## Sets all radius of all 4 corners
+  current.cornerRadius = (a, b, c, d)
+
+
+proc cornerRadius*(radius: int) =
+  ## Sets all radius of all 4 corners
+  cornerRadius(radius, radius, radius, radius)
+
+
+proc code*(code: string) =
+  ## Sets the code for this group
+  current.code = code

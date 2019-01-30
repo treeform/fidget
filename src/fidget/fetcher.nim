@@ -1,18 +1,14 @@
 #nim c -r -d:ssl --verbosity:0 "c:\Users\me\Dropbox\p\istrolid2\fidget\fetcher.nim" > fidget/generated.nim; tools\dos2unix fidget/generated.nim
 
-import httpclient, strutils, json
-import strformat
+import httpclient, strutils, json, os, strformat, tables
 
 type
   Rect* = object
     x*, y*, w*, h*: float
 
-
-const
-  fimgaKey = "1336-2b96c87f-d570-41a9-84b5-5c48ece497f8"
-  #fileKey = "PVQmOAUJLZ17rMBPH6GvDSWr"
-  fileKey = "DS5aZAZof8pqXGe9lMICWVtU"
-
+let
+  fimgaKey = paramStr(1)
+  fileKey = paramStr(2)
 
 var client = newHttpClient()
 client.headers = newHttpHeaders({"X-FIGMA-TOKEN": fimgaKey})
@@ -26,10 +22,21 @@ var boxStack = newSeq[Rect]()
 writeFile("fidget/ui.json", pretty jsonDoc)
 
 
+proc f(js: JsonNode): string =
+  var n = js.getFloat()
+  fmt"{n:<0.3f}"
+
 proc pathToName(path: string): string =
   result = ""
   for p in path.split("/"):
     result.add p.capitalizeAscii()
+
+
+var codeIdTable = newTable[string, string]()
+proc walkerCode(jsonDoc: JsonNode) =
+  for frame in jsonDoc["children"][0]["children"]:
+    if frame["name"].getStr().startsWith("code:"):
+      codeIdTable[frame["id"].getStr()] = frame["children"][0]["characters"].getStr()
 
 
 proc walker(node: JsonNode, indent: string = "") =
@@ -73,16 +80,23 @@ proc walker(node: JsonNode, indent: string = "") =
       # frame inside a frame?
       nodeType = "component"
 
+  if node["name"].getStr().startsWith("code:"):
+    return
+
+  if indent == "" and (nodeType != "frame" or nodeType != "component"):
+    say "# skipping " & nodeType & " " & $node["name"]
+    return
+
   say nodeType & " " & $node["name"] & ":" #, " & $node["id"] & ":"
   indent.add "  "
+
+  if "cornerRadius" in node:
+    say "cornerRadius " & $node["cornerRadius"]
 
   if "fills" in node:
     for fill in node["fills"]:
       if "color" in fill:
         let colorNode = fill["color"]
-        proc f(js: JsonNode): string =
-          var n = js.getFloat()
-          fmt"{n:<0.3f}"
         var opacity = "1.0"
         if "opacity" in fill:
           opacity = f(fill["opacity"])
@@ -91,6 +105,34 @@ proc walker(node: JsonNode, indent: string = "") =
           f(colorNode["g"]) & ", " &
           f(colorNode["b"]) & ", " &
           opacity & ")"
+
+  if "backgroundColor" in node:
+    let colorNode = node["backgroundColor"]
+    say "fill color(" &
+      f(colorNode["r"]) & ", " &
+      f(colorNode["g"]) & ", " &
+      f(colorNode["b"]) & ", " &
+      f(colorNode["a"]) & ")"
+
+  if "strokes" in node:
+    for stroke in node["strokes"]:
+      if "color" in stroke:
+        let colorNode = stroke["color"]
+        var opacity = "1.0"
+        if "opacity" in stroke:
+          opacity = f(stroke["opacity"])
+        say "stroke color(" &
+          f(colorNode["r"]) & ", " &
+          f(colorNode["g"]) & ", " &
+          f(colorNode["b"]) & ", " &
+          opacity & ")"
+  if "strokeWeight" in node:
+    if node["strokes"].len > 0:
+      say "strokeWeight " & $node["strokeWeight"]
+
+  if "transitionNodeID" in node:
+    #say "transitionNodeID " & $node["transitionNodeID"]
+    say "code \"\"\"" & codeIdTable[node["transitionNodeID"].getStr()] & "\"\"\""
 
   if "absoluteBoundingBox" in node:
     var
@@ -212,9 +254,10 @@ proc walker(node: JsonNode, indent: string = "") =
       textAlignVertical = asNum(node["style"]["textAlignVertical"].getStr())
       fontFamily = $node["style"]["fontFamily"]
       fontSize = $node["style"]["fontSize"].getFloat()
+      fontWeight = $node["style"]["fontWeight"].getFloat()
       lineHeightPx = $int(node["style"]["lineHeightPx"].getFloat() - 3)
 
-    say "font " & fontFamily & ", " & $fontSize & ", " & $lineHeightPx & ", " & $textAlignHorizontal & ", " & $textAlignVertical
+    say "font " & fontFamily & ", " & $fontSize & ", " & fontWeight & ", " & $lineHeightPx & ", " & $textAlignHorizontal & ", " & $textAlignVertical
 
     if "characters" in node:
       say "characters " & $node["characters"]
@@ -231,5 +274,8 @@ proc walker(node: JsonNode, indent: string = "") =
 
   discard boxStack.pop()
 
-echo "import fidget"
+
+
+echo "import ../../fidget/src/fidget"
+walkerCode(jsonDoc)
 walker(jsonDoc)

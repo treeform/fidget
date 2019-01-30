@@ -1,59 +1,25 @@
-import uibase, dom2, chroma, strutils
+import uibase, dom2, chroma, strutils, math
 
 
-var divCache*: seq[Group]
-
+var
+  divCache*: seq[Group]
+  rootDomNode: Element
 
 proc draw*(group: Group) =
 
-
-  # while document.body.childNodes.len <= numGroups:
-  #   document.body.appendChild(document.createElement("div"))
-
-  # var dom = document.body.childNodes[numGroups]
-  # let id: cstring = current.id
-  # asm "`dom`.id = `id`"
-  # print "draw", current.id
-
-  # dom.style.position = "absolute"
-  # dom.style.left = $current.screenBox.x & "px"
-  # dom.style.top = $current.screenBox.y & "px"
-  # dom.style.width = $current.screenBox.w & "px"
-  # dom.style.height = $current.screenBox.h & "px"
-
-  # dom.style.backgroundColor = $current.fill.toHtmlRgba()
-  # dom.style.color = $current.textColor.toHtmlRgba()
-
-  # if current.text != "":
-  #   # remove old text
-  #   while dom.firstChild != nil:
-  #     dom.removeChild(dom.firstChild)
-  #   # group has text, add text
-  #   var textDom = document.createTextNode(current.text)
-  #   dom.appendChild(textDom)
-
-  # inc numGroups
-
   while divCache.len <= numGroups:
-    document.body.appendChild(document.createElement("div"))
+    rootDomNode.appendChild(document.createElement("div"))
     inc perf.numLowLevelCalls
     divCache.add(Group())
-
   var
-    dom = document.body.childNodes[numGroups]
+    dom = rootDomNode.childNodes[numGroups]
     cacheGroup = divCache[numGroups]
 
-  # if current.fill.a == 0.0 and current.text == "":
-  #   if cacheGroup.text != "":
-  #     while dom.firstChild != nil:
-  #       dom.removeChild(dom.firstChild)
-  #   return
 
   if cacheGroup.id != current.id:
     inc perf.numLowLevelCalls
     cacheGroup.id = current.id
-    let id: cstring = current.id
-    asm "`dom`.id = `id`"
+    dom.id = current.kind & " " & current.id
 
   if cacheGroup.screenBox != current.screenBox:
     inc perf.numLowLevelCalls
@@ -67,17 +33,31 @@ proc draw*(group: Group) =
   if cacheGroup.fill != current.fill:
     inc perf.numLowLevelCalls
     cacheGroup.fill = current.fill
-    dom.style.backgroundColor = $current.fill.toHtmlRgba()
+    if current.kind == "text":
+      dom.style.color = $current.fill.toHtmlRgba()
+      dom.style.backgroundColor = "rgba(0,0,0,0)"
+    else:
+      dom.style.backgroundColor = $current.fill.toHtmlRgba()
+      dom.style.color = "rgba(0,0,0,0)"
 
-  if cacheGroup.textColor != current.textColor:
+  if cacheGroup.stroke != current.stroke:
     inc perf.numLowLevelCalls
-    cacheGroup.textColor = current.textColor
-    dom.style.color = $current.textColor.toHtmlRgba()
+    cacheGroup.stroke = current.stroke
+    if current.strokeWeight > 0:
+      dom.style.borderStyle = "solid"
+      dom.style.boxSizing = "border-box"
+      dom.style.borderColor = $current.stroke.toHtmlRgba()
+      dom.style.borderWidth = $current.strokeWeight
+    else:
+      dom.style.borderStyle = "none"
 
-  if cacheGroup.textAlign != current.textAlign:
+  if cacheGroup.textStyle != current.textStyle:
     inc perf.numLowLevelCalls
-    cacheGroup.textAlign = current.textAlign
-    dom.style.textAlign = toLowerAscii($current.textAlign)
+    cacheGroup.textStyle = current.textStyle
+    dom.style.fontFamily = current.textStyle.fontFamily
+    dom.style.fontSize = $current.textStyle.fontSize & "px"
+    dom.style.fontWeight = $current.textStyle.fontWeight
+    dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
   if cacheGroup.text != current.text:
     inc perf.numLowLevelCalls
@@ -86,12 +66,60 @@ proc draw*(group: Group) =
     while dom.firstChild != nil:
       dom.removeChild(dom.firstChild)
 
+    var textDiv = document.createElement("span")
+    dom.appendChild(textDiv)
+
     if current.text != "":
       # group has text, add text
       var textDom = document.createTextNode(current.text)
-      dom.appendChild(textDom)
+      textDiv.appendChild(textDom)
+    textDiv.style.whiteSpace = "pre"
+    textDiv.style.position = "absolute"
 
-    dom.style.whiteSpace = "pre"
+
+    case current.textStyle.textAlignHorizontal:
+      of -1:
+        textDiv.style.left = "0px"
+      of 1:
+        textDiv.style.right = "0px"
+      else:
+        textDiv.style.left = "50%"
+
+    case current.textStyle.textAlignVertical:
+      of -1:
+        textDiv.style.top = "0px"
+      of 1:
+        textDiv.style.bottom = "0px"
+      else:
+        textDiv.style.bottom = "50%"
+
+    if current.textStyle.textAlignVertical == 0:
+      if current.textStyle.textAlignHorizontal == 0:
+        textDiv.style.transform = "translate(-50%,-50%)"
+        textDiv.style.top = "50%"
+        textDiv.style.bottom = ""
+      else:
+        textDiv.style.transform = "translate(0, -50%)"
+        textDiv.style.top = "50%"
+        textDiv.style.bottom = ""
+    else:
+      if current.textStyle.textAlignHorizontal == 0:
+        textDiv.style.transform = "translate(-50%, 0)"
+
+  if cacheGroup.imageName != current.imageName:
+    cacheGroup.imageName = current.imageName
+    echo current.imageName & ".png"
+    dom.style.backgroundImage = "url(" & current.imageName & ".png)"
+    dom.style.backgroundSize = "100% 100%"
+
+  if cacheGroup.cornerRadius != current.cornerRadius:
+    cacheGroup.cornerRadius = current.cornerRadius
+    dom.style.borderRadius = (
+      $current.cornerRadius[0] & "px " &
+      $current.cornerRadius[1] & "px " &
+      $current.cornerRadius[2] & "px " &
+      $current.cornerRadius[3] & "px"
+    )
 
   inc numGroups
 
@@ -114,20 +142,20 @@ proc drawStart*() =
   scrollBox.h = float document.body.clientHeight
 
   document.body.style.overflowX = "hidden"
-  document.body.style.overflowY = "scroll"
+  document.body.style.overflowY = "auto"
 
 
 proc drawFinish*() =
 
   perf.drawMain = window.performance.now() - startTime
 
-  # print perf.drawMain
-  # print numGroups
-  # print perf.numLowLevelCalls
+  #echo perf.drawMain
+  #echo numGroups
+  #echo perf.numLowLevelCalls
 
   # remove left over nodes
-  while document.body.childNodes.len > numGroups:
-    document.body.removeChild(document.body.lastChild)
+  while rootDomNode.childNodes.len > numGroups:
+    rootDomNode.removeChild(rootDomNode.lastChild)
     discard divCache.pop()
 
 
@@ -152,9 +180,8 @@ proc redraw*() =
 window.addEventListener "load", proc(event: Event) =
   redraw()
 
-  # clear body of any html nodes
-  while document.body.firstChild != nil:
-    document.body.removeChild(document.body.firstChild)
+  rootDomNode = document.createElement("div")
+  document.body.appendChild(rootDomNode)
 
 
 window.addEventListener "resize", proc(event: Event) =

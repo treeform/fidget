@@ -2,15 +2,15 @@
 
 It is an absolute travesty that there is no good and easy way to design cross platform UIs. The HTML5 + electron + mobile webviews is the only reasonable way to do it, but it sux. HTML/CSS is just so complex and confusing, and JS can be really slow!
 
-It is also an absolute travesty that programmers have to code UIs by hand from flat design mockups. Fidget leverages the Figma - an app that is taking design world by storm - by taking Figma files and converting them to code. No more counting stupid pixels. Want to change some spaces? Change it Figma.
+It is also an absolute travesty that programmers have to code UIs by hand from flat design mockups. Fidget leverages the Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels. Want to change some spaces? Change it Figma and reload.
 
 HTML5 has a ton of layout primitives, margin, padding, float, absolute, relative, border box, flex and friends. I want to simplify this to just the most basic way to lay something out. Because Fidget leverages Figma, I am adopting their system, because it simple and visual:
 
-Everything is a Group.
-Groups are positions relative to the parent
-Groups have width and height.
-Left, Width and Right can be marked as fixed and will not resize.
-Top, Height and Bottom can be marked as fixed and will not resize.
+* Everything is a Group.
+* Groups are positions relative to the parent
+* Groups have width and height.
+* Left, Width and Right can be marked as fixed and will not resize.
+* Top, Height and Bottom can be marked as fixed and will not resize.
 
 Figma also has a concept of Symbol, which is basically a function call for UI work. Most of the time you will be calling these symbols to draw UI.
 

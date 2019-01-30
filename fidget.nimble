@@ -2,7 +2,7 @@
 
 version       = "0.1.0"
 author        = "treeform"
-description   = "3d sound API"
+description   = "Fidget - UI Library"
 license       = "MIT"
 srcDir        = "src"
 
