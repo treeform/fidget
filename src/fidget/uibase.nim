@@ -46,6 +46,7 @@ type
     imageName*: string
     cornerRadius*: (int, int, int, int)
     wasDrawn*: bool # was group drawn or it still needs to be drawn
+    editableText*: bool
 
   KeyState* = enum
     Empty
