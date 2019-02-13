@@ -43,7 +43,7 @@ proc `$`*(g: Group): string =
   result &= " screenBox:" & $g.box
 
 
-template def(kindStr: string, name: string, inner: untyped): untyped =
+template node(kindStr: string, name: string, inner: untyped): untyped =
   ## Base temaptle for group, frame, rectange ...
 
   # we should draw the parent first as we are drawing the a child now
@@ -77,27 +77,32 @@ template def(kindStr: string, name: string, inner: untyped): untyped =
 
 template group*(name: string, inner: untyped): untyped =
   ## Starts a new group.
-  def("group", name, inner)
+  node("group", name, inner)
 
 
 template frame*(name: string, inner: untyped): untyped =
   ## Starts a new frame.
-  def("frame", name, inner)
+  node("frame", name, inner)
 
 
 template rectangle*(name: string, inner: untyped): untyped =
   ## Starts a new rectangle.
-  def("rectangle", name, inner)
+  node("rectangle", name, inner)
 
 
 template text*(name: string, inner: untyped): untyped =
   ## Starts a new text element.
-  def("text", name, inner)
+  node("text", name, inner)
 
 
 template component*(name: string, inner: untyped): untyped =
   ## Starts a new component.
-  def("component", name, inner)
+  node("component", name, inner)
+
+
+template instance*(name: string, inner: untyped): untyped =
+  ## Starts a new instance of a component.
+  node("component", name, inner)
 
 
 template rectangle*(color: string) =
@@ -126,6 +131,23 @@ template onKey*(inner: untyped) =
   if keyboard.state == Press:
     inner
 
+
+template onKeyUp*(inner: untyped) =
+  ## This is called when key is pressed.
+  if keyboard.state == Up:
+    inner
+
+
+template onKeyDown*(inner: untyped) =
+  ## This is called when key is pressed.
+  if keyboard.state == Down:
+    inner
+
+
+template onInput*(inner: untyped) =
+  ## This is called when key is pressed and this element has focus
+  if keyboard.state == Up and keyboard.inputFocusId == current.id:
+    inner
 
 template onHover*(inner: untyped) =
   ## Code in the block will run when this box is hovered.
@@ -173,9 +195,7 @@ proc box*(x, y, w, h: float) =
   current.box.y = y
   current.box.w = w
   current.box.h = h
-
   current.screenBox = current.box
-
   if parent != nil:
     current.screenBox = current.box + parent.screenBox
 
@@ -225,6 +245,21 @@ proc cornerRadius*(radius: int) =
   cornerRadius(radius, radius, radius, radius)
 
 
-proc code*(code: string) =
+proc editableText*(editableText: bool) =
   ## Sets the code for this group
-  current.code = code
+  current.editableText = editableText
+
+
+template binding*(stringVarible: untyped) =
+  ## Makes the current object text-editable and binds it to the
+  ## stringVarible
+  editableText true
+  onInput:
+    stringVarible = keyboard.input
+    redraw()
+
+
+template override*(name: string, inner: untyped) =
+  template `name`(): untyped =
+    inner
+

@@ -106,6 +106,7 @@ type
 
   Document* = ref DocumentObj
   DocumentObj {.importc.} = object of NodeObj
+    activeElement*: Element
     alinkColor*: cstring
     bgColor*: cstring
     body*: Element
@@ -135,6 +136,7 @@ type
     defaultValue*: cstring
     disabled*: bool
     form*: FormElement
+    parentElement*: Element
     name*: cstring
     readOnly*: bool
     options*: seq[OptionElement]
@@ -184,6 +186,11 @@ type
     selectionStart*, selectionEnd*: int
     selectionDirection*: cstring
     rows*, cols*: int
+
+  InputElement* = ref object of ElementObj
+    value*: cstring
+    selectionStart*, selectionEnd*: int
+    selectionDirection*: cstring
 
   FormElement* = ref FormObj
   FormObj {.importc.} = object of ElementObj

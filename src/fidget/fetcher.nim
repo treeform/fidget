@@ -35,8 +35,11 @@ proc pathToName(path: string): string =
 var codeIdTable = newTable[string, string]()
 proc walkerCode(jsonDoc: JsonNode) =
   for frame in jsonDoc["children"][0]["children"]:
-    if frame["name"].getStr().startsWith("code:"):
-      codeIdTable[frame["id"].getStr()] = frame["children"][0]["characters"].getStr()
+    let frameName = frame["name"].getStr().toLowerAscii()
+    if frameName.endsWith(".code"):
+      var code = frame["children"][0]["characters"].getStr()
+      code = code.replace("“", "\"").replace("”", "\"")
+      codeIdTable[frame["id"].getStr()] = code
 
 
 proc walker(node: JsonNode, indent: string = "") =
@@ -50,6 +53,12 @@ proc walker(node: JsonNode, indent: string = "") =
 
   var nodeType = node["type"].getStr().toLowerAscii()
   var isInstance = nodeType == "instance"
+
+  # SKIP .code and .noexport frames
+  let frameName = node["name"].getStr().toLowerAscii()
+  if nodeType == "frame" and (frameName.endsWith(".code") or
+      frameName.endsWith(".noexport")):
+    return
 
   if nodeType == "document" or nodeType == "canvas":
     for kid in node["children"]:
@@ -80,11 +89,8 @@ proc walker(node: JsonNode, indent: string = "") =
       # frame inside a frame?
       nodeType = "component"
 
-  if node["name"].getStr().startsWith("code:"):
-    return
-
   if indent == "" and (nodeType != "frame" or nodeType != "component"):
-    say "# skipping " & nodeType & " " & $node["name"]
+    #say "# skipping " & nodeType & " " & $node["name"]
     return
 
   say nodeType & " " & $node["name"] & ":" #, " & $node["id"] & ":"
@@ -129,10 +135,6 @@ proc walker(node: JsonNode, indent: string = "") =
   if "strokeWeight" in node:
     if node["strokes"].len > 0:
       say "strokeWeight " & $node["strokeWeight"]
-
-  if "transitionNodeID" in node:
-    #say "transitionNodeID " & $node["transitionNodeID"]
-    say "code \"\"\"" & codeIdTable[node["transitionNodeID"].getStr()] & "\"\"\""
 
   if "absoluteBoundingBox" in node:
     var
@@ -227,7 +229,7 @@ proc walker(node: JsonNode, indent: string = "") =
       # TODO: This should go away once components are handled better
       say "image " & componentId
     else:
-      say "componentId " & componentId
+      say "# componentId " & componentId
 
   if nodeType == "text":
 
@@ -267,6 +269,15 @@ proc walker(node: JsonNode, indent: string = "") =
       say "image " & $node["name"]
       discard boxStack.pop()
       return
+
+  if "transitionNodeID" in node:
+    #say "transitionNodeID " & $node["transitionNodeID"]
+    #say "code \"\"\"" & codeIdTable[node["transitionNodeID"].getStr()] & "\"\"\""
+
+    var code = codeIdTable[node["transitionNodeID"].getStr()]
+    say "# code"
+    for line in code.split("\n"):
+      say line
 
   if "children" in node:
     for kid in node["children"]:

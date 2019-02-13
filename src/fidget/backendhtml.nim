@@ -19,7 +19,7 @@ proc draw*(group: Group) =
   if cacheGroup.id != current.id:
     inc perf.numLowLevelCalls
     cacheGroup.id = current.id
-    dom.id = current.kind & " " & current.id
+    dom.id = current.id
 
   if cacheGroup.screenBox != current.screenBox:
     inc perf.numLowLevelCalls
@@ -57,7 +57,8 @@ proc draw*(group: Group) =
     dom.style.fontFamily = current.textStyle.fontFamily
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
-    dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+
+    #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
   if cacheGroup.editableText != current.editableText:
     cacheGroup.editableText = current.editableText
@@ -70,10 +71,14 @@ proc draw*(group: Group) =
     inputDiv.setAttribute("type", "text")
     inputDiv.style.border = "none"
     inputDiv.style.outline = "none"
+    inputDiv.style.width = $current.screenBox.w & "px"
+    inputDiv.style.backgroundColor = "transparent"
     inputDiv.style.fontFamily = current.textStyle.fontFamily
     inputDiv.style.fontSize = $current.textStyle.fontSize & "px"
     inputDiv.style.fontWeight = $current.textStyle.fontWeight
-    inputDiv.style.lineHeight = $current.textStyle.lineHeight & "px"
+    # inputDiv.style.lineHeight = $max(
+    #   current.textStyle.lineHeight,
+    #   current.textStyle.fontSize + 2) & "px"
 
   if cacheGroup.text != current.text:
     inc perf.numLowLevelCalls
@@ -143,9 +148,6 @@ proc draw*(group: Group) =
       $current.cornerRadius[2] & "px " &
       $current.cornerRadius[3] & "px"
     )
-
-
-
   inc numGroups
 
 var startTime: float
@@ -282,3 +284,28 @@ window.addEventListener "keypress", proc(event: Event) =
     keyboard.use()
   else:
     event.preventDefault()
+
+window.addEventListener "input", proc(event: Event) =
+  ## When INPUT element has keyboard input this is called
+  if document.activeElement.nodeName == "INPUT":
+    keyboard.input = $(cast[InputElement](document.activeElement).value)
+    keyboard.inputFocusId = $document.activeElement.parentElement.id
+    redraw()
+    echo "input"
+
+window.addEventListener "focusin", proc(event: Event) =
+  ## When INPUT element gets focus this is called, set the keyboard.input and
+  ## the keyboard.inputFocusId
+  ## Note: "focus" does not bubble, so its not used here.
+  if document.activeElement.nodeName == "INPUT":
+    keyboard.input = $(cast[InputElement](document.activeElement).value)
+    keyboard.inputFocusId = $document.activeElement.parentElement.id
+    redraw()
+
+window.addEventListener "focusout", proc(event: Event) =
+  ## When INPUT element looses focus this is called, clear keyboard.input and
+  ## the keyboard.inputFocusId
+  ## Note: "blur" does not bubble, so its not used here.
+  keyboard.input = ""
+  keyboard.inputFocusId = ""
+  redraw()
