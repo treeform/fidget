@@ -67,11 +67,12 @@ type
     altKey*: bool
     ctrlKey*: bool
     shiftKey*: bool
+    inputFocusId*: string
+    input*: string
 
   Perf* = object
     drawMain*: float
     numLowLevelCalls*: int
-
 
 var
   parent*: Group
