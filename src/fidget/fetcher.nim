@@ -1,6 +1,6 @@
 #nim c -r -d:ssl --verbosity:0 "c:\Users\me\Dropbox\p\istrolid2\fidget\fetcher.nim" > fidget/generated.nim; tools\dos2unix fidget/generated.nim
 
-import httpclient, strutils, json, os, strformat, tables
+import httpclient, strutils, json, os, strformat, tables, chroma
 
 type
   Rect* = object
@@ -25,6 +25,22 @@ writeFile("fidget/ui.json", pretty jsonDoc)
 proc f(js: JsonNode): string =
   var n = js.getFloat()
   fmt"{n:<0.3f}"
+
+
+proc colorFmt(colorNode: JsonNode, opacity: float = 1.0): string =
+  var colorValue = color(
+    colorNode["r"].getFloat(),
+    colorNode["g"].getFloat(),
+    colorNode["b"].getFloat())
+
+  if opacity == 1.0:
+    # just the hex color then
+    return fmt""""{colorValue.toHtmlHex()}""""
+  else:
+    # opacity later
+    return fmt""""{colorValue.toHtmlHex()}", {opacity:<0.3f}"""
+
+
 
 proc pathToName(path: string): string =
   result = ""
@@ -96,46 +112,6 @@ proc walker(node: JsonNode, indent: string = "") =
   say nodeType & " " & $node["name"] & ":" #, " & $node["id"] & ":"
   indent.add "  "
 
-  if "cornerRadius" in node:
-    say "cornerRadius " & $node["cornerRadius"]
-
-  if "fills" in node:
-    for fill in node["fills"]:
-      if "color" in fill:
-        let colorNode = fill["color"]
-        var opacity = "1.0"
-        if "opacity" in fill:
-          opacity = f(fill["opacity"])
-        say "fill color(" &
-          f(colorNode["r"]) & ", " &
-          f(colorNode["g"]) & ", " &
-          f(colorNode["b"]) & ", " &
-          opacity & ")"
-
-  if "backgroundColor" in node:
-    let colorNode = node["backgroundColor"]
-    say "fill color(" &
-      f(colorNode["r"]) & ", " &
-      f(colorNode["g"]) & ", " &
-      f(colorNode["b"]) & ", " &
-      f(colorNode["a"]) & ")"
-
-  if "strokes" in node:
-    for stroke in node["strokes"]:
-      if "color" in stroke:
-        let colorNode = stroke["color"]
-        var opacity = "1.0"
-        if "opacity" in stroke:
-          opacity = f(stroke["opacity"])
-        say "stroke color(" &
-          f(colorNode["r"]) & ", " &
-          f(colorNode["g"]) & ", " &
-          f(colorNode["b"]) & ", " &
-          opacity & ")"
-  if "strokeWeight" in node:
-    if node["strokes"].len > 0:
-      say "strokeWeight " & $node["strokeWeight"]
-
   if "absoluteBoundingBox" in node:
     var
       constraintsVertical = "TOP"
@@ -153,7 +129,10 @@ proc walker(node: JsonNode, indent: string = "") =
     box.h = boxNode["height"].getFloat()
     boxStack[^1] = box
 
-    let comment =  "# " & constraintsVertical & " " & constraintsHorizontal
+    var comment =  "# " & constraintsVertical & " " & constraintsHorizontal
+    if comment == "# TOP LEFT":
+      # top left is most comment don't spam it everywhere
+      comment = ""
 
     proc f(n: float): string =
       $int(n)
@@ -230,6 +209,53 @@ proc walker(node: JsonNode, indent: string = "") =
       say "image " & componentId
     else:
       say "# componentId " & componentId
+
+  if "cornerRadius" in node:
+    say "cornerRadius " & $node["cornerRadius"]
+
+  if "fills" in node:
+    for fill in node["fills"]:
+      if "color" in fill:
+        let colorNode = fill["color"]
+        var opacity = 1.0
+        if "opacity" in fill:
+          opacity = fill["opacity"].getFloat()
+        # say "fill color(" &
+        #   f(colorNode["r"]) & ", " &
+        #   f(colorNode["g"]) & ", " &
+        #   f(colorNode["b"]) & ", " &
+        #   opacity & ")"
+        say "fill " & colorFmt(colorNode, opacity)
+      break
+
+  if "backgroundColor" in node:
+    let colorNode = node["backgroundColor"]
+    if colorNode["a"].getFloat() > 0:
+      # only say fill color if its not transperant
+      say "fill color(" &
+        f(colorNode["r"]) & ", " &
+        f(colorNode["g"]) & ", " &
+        f(colorNode["b"]) & ", " &
+        f(colorNode["a"]) & ")"
+
+  if "strokeWeight" in node:
+    var hasStroke = false
+    if node["strokeWeight"].getFloat() > 0:
+      if "strokes" in node:
+        for stroke in node["strokes"]:
+          if "color" in stroke:
+            let colorNode = stroke["color"]
+            var opacity = "1.0"
+            if "opacity" in stroke:
+              opacity = f(stroke["opacity"])
+            say "stroke color(" &
+              f(colorNode["r"]) & ", " &
+              f(colorNode["g"]) & ", " &
+              f(colorNode["b"]) & ", " &
+              opacity & ")"
+            hasStroke = true
+    if hasStroke:
+      say "strokeWeight " & $node["strokeWeight"]
 
   if nodeType == "text":
 
