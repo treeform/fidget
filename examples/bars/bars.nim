@@ -1,5 +1,4 @@
 import ../../src/fidget
-import ../../src/fidget/dom2
 
 import print
 import random
@@ -12,13 +11,13 @@ for i, bar in bars:
 
 
 drawMain = proc() =
-  let h: int = bars.len * 60 + 20
+  let h = bars.len * 60 + 20
   frame "main":
-    box 0, 0, window.innerWidth, max(window.innerHeight, h)
+    box 0, 0, int root.box.w, max(int root.box.h, h)
     rectangle "#F7F7F9"
 
     group "center":
-      box (parent.box.w - 1000) / 2, 0, 1000, float max(window.innerHeight, h)
+      box (parent.box.w - 1000) / 2, 0, 1000, float max(int root.box.h, h)
       rectangle "#FFFFFF"
 
       for i, bar in bars.mpairs:
@@ -57,3 +56,6 @@ drawMain = proc() =
               rectangle "barFg":
                 box 0, 0, 20*bar, 40
                 fill "#46D15F"
+
+
+startFidget()

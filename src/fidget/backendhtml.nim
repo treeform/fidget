@@ -1,4 +1,4 @@
-import uibase, dom2, chroma, strutils, math
+import uibase, dom2, chroma, strutils, math, tables
 
 
 var
@@ -15,7 +15,6 @@ proc draw*(group: Group) =
     dom = rootDomNode.childNodes[numGroups]
     cacheGroup = divCache[numGroups]
 
-
   if cacheGroup.id != current.id:
     inc perf.numLowLevelCalls
     cacheGroup.id = current.id
@@ -30,9 +29,10 @@ proc draw*(group: Group) =
     dom.style.width = $current.screenBox.w & "px"
     dom.style.height = $current.screenBox.h & "px"
 
-  if cacheGroup.fill != current.fill:
+  if cacheGroup.fill != current.fill or cacheGroup.kind != current.kind:
     inc perf.numLowLevelCalls
     cacheGroup.fill = current.fill
+    cacheGroup.kind = current.kind
     if current.kind == "text":
       dom.style.color = $current.fill.toHtmlRgba()
       dom.style.backgroundColor = "rgba(0,0,0,0)"
@@ -50,6 +50,11 @@ proc draw*(group: Group) =
       dom.style.borderWidth = $current.strokeWeight
     else:
       dom.style.borderStyle = "none"
+
+  if cacheGroup.transparency != current.transparency:
+    inc perf.numLowLevelCalls
+    cacheGroup.transparency = current.transparency
+    dom.style.opacity = $current.transparency
 
   if cacheGroup.textStyle != current.textStyle:
     inc perf.numLowLevelCalls
@@ -136,9 +141,11 @@ proc draw*(group: Group) =
 
   if cacheGroup.imageName != current.imageName:
     cacheGroup.imageName = current.imageName
-    echo current.imageName & ".png"
-    dom.style.backgroundImage = "url(" & current.imageName & ".png)"
-    dom.style.backgroundSize = "100% 100%"
+    if current.imageName != "":
+      dom.style.backgroundImage = "url(" & current.imageName & ".png)"
+      dom.style.backgroundSize = "100% 100%"
+    else:
+      dom.style.backgroundImage = ""
 
   if cacheGroup.cornerRadius != current.cornerRadius:
     cacheGroup.cornerRadius = current.cornerRadius
@@ -152,10 +159,12 @@ proc draw*(group: Group) =
 
 var startTime: float
 
-proc drawStart*() =
+proc drawStart() =
   startTime = window.performance.now()
   numGroups = 0
   perf.numLowLevelCalls = 0
+
+  rootUrl = $window.location.search
 
   # set up root HTML
   root.box.x = 0
@@ -172,7 +181,7 @@ proc drawStart*() =
   document.body.style.overflowY = "auto"
 
 
-proc drawFinish*() =
+proc drawFinish() =
 
   perf.drawMain = window.performance.now() - startTime
 
@@ -186,7 +195,7 @@ proc drawFinish*() =
     discard divCache.pop()
 
 
-proc hardRedraw*() =
+proc hardRedraw() =
   setupRoot()
 
   drawStart()
@@ -194,7 +203,7 @@ proc hardRedraw*() =
   drawFinish()
 
 
-proc requestHardRedraw*(time: float = 0.0) =
+proc requestHardRedraw(time: float = 0.0) =
   requestedFrame = false
   hardRedraw()
 
@@ -250,17 +259,6 @@ proc set*(keyboard: Keyboard, state: KeyState, event: Event) =
   keyboard.ctrlKey = event.ctrlKey
   keyboard.shiftKey = event.shiftKey
 
-proc use*(keyboard: Keyboard) =
-  keyboard.state = Empty
-  keyboard.keyCode = 0
-  keyboard.keyString = ""
-  keyboard.altKey = false
-  keyboard.ctrlKey = false
-  keyboard.shiftKey = false
-
-proc use*(mouse: Mouse) =
-  mouse.click = false
-
 window.addEventListener "keydown", proc(event: Event) =
   keyboard.set(Down, event)
   hardRedraw()
@@ -309,3 +307,17 @@ window.addEventListener "focusout", proc(event: Event) =
   keyboard.input = ""
   keyboard.inputFocusId = ""
   redraw()
+
+
+proc goto*(url: string) =
+  ## Goes to a new URL, inserts it into history so that back button works
+  type dummy = object
+  window.history.pushState(dummy(), "", url)
+  redraw()
+
+
+proc openBrowser*(url: string) =
+  ## Opens a URL in a browser
+  discard window.open("https://reddit.atlassian.net/wiki/spaces/EX/pages/399114580/Experiment+Analysis+UI", "_blank")
+
+

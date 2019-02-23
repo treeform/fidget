@@ -37,6 +37,7 @@ type
     box*: Box
     screenBox*: Box
     fill*: Color
+    transparency*: float32
     strokeWeight*: int
     stroke*: Color
     zLevel*: int
@@ -87,6 +88,7 @@ var
   perf*: Perf
   requestedFrame*: bool
   numGroups*: int
+  rootUrl*: string
 
 mouse = Mouse()
 mouse.pos = Pos()
@@ -98,3 +100,16 @@ proc setupRoot*() =
   groupStack = @[root]
   current = root
   root.id = "root"
+
+proc use*(keyboard: Keyboard) =
+  keyboard.state = Empty
+  keyboard.keyCode = 0
+  keyboard.keyString = ""
+  keyboard.altKey = false
+  keyboard.ctrlKey = false
+  keyboard.shiftKey = false
+
+
+proc use*(mouse: Mouse) =
+  mouse.click = false
+
