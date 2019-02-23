@@ -6,4 +6,6 @@
 # normal ignores:
 .*
 *.exe
+*.js
 nimcache
+cairo

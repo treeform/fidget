@@ -1,12 +1,17 @@
-import macros
-import json
-import strutils
-import chroma
-import print
-
+import macros, tables, json, strutils, chroma, print
 import fidget/uibase
-import fidget/backendhtml
-export uibase, backendhtml, chroma
+when defined(JS):
+  import fidget/backendhtml
+  export backendhtml
+when defined(cairo):
+  import fidget/backendcairo
+  export backendcairo
+else:
+  import fidget/backendnull
+  export backendnull
+  #import fidget/backendopengl
+  #export backendopengl
+export uibase, chroma
 
 
 proc between*(value, min, max: float): bool =
@@ -56,6 +61,7 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   current.id = name
   current.kind = kindStr
   current.wasDrawn = false
+  current.transparency = 1.0
   groupStack.add(current)
 
   inner
@@ -219,6 +225,15 @@ proc fill*(color: string) =
   ## Sets background color.
   current.fill = parseHtmlColor(color)
 
+proc fill*(color: string, alpha: float32) =
+  ## Sets background color.
+  current.fill = parseHtmlColor(color)
+  current.fill.a = alpha
+
+proc transparency*(transparency: float32) =
+  ## Sets transparency.
+  current.transparency = transparency
+
 
 proc stroke*(color: Color) =
   ## Sets stroke/border color.
@@ -262,4 +277,22 @@ template binding*(stringVarible: untyped) =
 template override*(name: string, inner: untyped) =
   template `name`(): untyped =
     inner
+
+
+# Navigation and URL functions
+# proc goto*(url: string)
+# proc openBrowser*(url: string)
+
+
+proc parseParams*(): TableRef[string, string] =
+  ## Parses the params of the main URL
+  result = newTable[string, string]()
+  if rootUrl.len > 0:
+    for pair in rootUrl[1..^1].split("&"):
+      let
+        arr = pair.split("=")
+        key = arr[0]
+        val = arr[1]
+      result[key] = val
+
 

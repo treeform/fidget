@@ -276,6 +276,7 @@ type
     maxWidth*: cstring
     minHeight*: cstring
     minWidth*: cstring
+    opacity*: cstring
     outline*: cstring
     overflow*: cstring
     overflowX*: cstring
