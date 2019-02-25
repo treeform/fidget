@@ -11,6 +11,9 @@ for i, bar in bars:
 
 
 drawMain = proc() =
+
+  window.title = "Fidget Bars Example"
+
   let h = bars.len * 60 + 20
   frame "main":
     box 0, 0, int root.box.w, max(int root.box.h, h)

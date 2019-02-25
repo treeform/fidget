@@ -1,4 +1,4 @@
-import chroma
+import chroma, vmath
 
 const
   clearColor* = color(0,0,0,0)
@@ -6,9 +6,6 @@ const
   blackColor* = color(0,0,0,1)
 
 type
-  Pos* = object
-    x*: float
-    y*: float
 
   Box* = object
     x*: float
@@ -57,7 +54,7 @@ type
 
   Mouse* = ref object
     state: KeyState
-    pos*: Pos
+    pos*: Vec2
     click*: bool # mouse button just got held down
     down*: bool # mouse button is held down
 
@@ -75,7 +72,12 @@ type
     drawMain*: float
     numLowLevelCalls*: int
 
+  Window* = ref object
+    innerTitle*: string
+    innerUrl*: string
+
 var
+  window* = Window()
   parent*: Group
   root*: Group
   prevRoot*: Group
@@ -91,7 +93,7 @@ var
   rootUrl*: string
 
 mouse = Mouse()
-mouse.pos = Pos()
+mouse.pos = Vec2()
 
 
 proc setupRoot*() =

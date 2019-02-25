@@ -1,4 +1,4 @@
-import macros, tables, json, strutils, chroma, print
+import macros, tables, json, strutils, chroma, print, vmath
 import fidget/uibase
 when defined(JS):
   import fidget/backendhtml
@@ -19,7 +19,7 @@ proc between*(value, min, max: float): bool =
   (value >= min) and (value <= max)
 
 
-proc inside*(p: Pos, b: Box): bool =
+proc inside*(p: Vec2, b: Box): bool =
   ## Return true if position is inside the box.
   return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
 
