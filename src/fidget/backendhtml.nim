@@ -1,4 +1,4 @@
-import uibase, dom2, chroma, strutils, math, tables
+import uibase, dom2 as dom, chroma, strutils, math, tables
 
 
 var
@@ -160,11 +160,11 @@ proc draw*(group: Group) =
 var startTime: float
 
 proc drawStart() =
-  startTime = window.performance.now()
+  startTime = dom.window.performance.now()
   numGroups = 0
   perf.numLowLevelCalls = 0
 
-  rootUrl = $window.location.search
+  uibase.window.innerUrl = $dom.window.location.search
 
   # set up root HTML
   root.box.x = 0
@@ -172,8 +172,8 @@ proc drawStart() =
   root.box.w = float document.body.clientWidth
   root.box.h = float document.body.clientHeight
 
-  scrollBox.x = float window.scrollX
-  scrollBox.y = float window.scrollY
+  scrollBox.x = float dom.window.scrollX
+  scrollBox.y = float dom.window.scrollY
   scrollBox.w = float document.body.clientWidth
   scrollBox.h = float document.body.clientHeight
 
@@ -183,7 +183,7 @@ proc drawStart() =
 
 proc drawFinish() =
 
-  perf.drawMain = window.performance.now() - startTime
+  perf.drawMain = dom.window.performance.now() - startTime
 
   #echo perf.drawMain
   #echo numGroups
@@ -196,6 +196,9 @@ proc drawFinish() =
 
 
 proc hardRedraw() =
+  if rootDomNode == nil: # check if we have loaded
+    return
+
   setupRoot()
 
   drawStart()
@@ -211,42 +214,7 @@ proc requestHardRedraw(time: float = 0.0) =
 proc redraw*() =
   if not requestedFrame:
     requestedFrame = true
-    discard window.requestAnimationFrame(requestHardRedraw)
-
-window.addEventListener "load", proc(event: Event) =
-  redraw()
-
-  rootDomNode = document.createElement("div")
-  document.body.appendChild(rootDomNode)
-
-
-window.addEventListener "resize", proc(event: Event) =
-  redraw()
-
-
-window.addEventListener "scroll", proc(event: Event) =
-  redraw()
-
-
-window.addEventListener "mousedown", proc(event: Event) =
-  mouse.pos.x = float event.pageX
-  mouse.pos.y = float event.pageY
-  mouse.click = true
-  mouse.down = true
-  hardRedraw()
-  mouse.click = false
-
-
-window.addEventListener "mouseup", proc(event: Event) =
-  redraw()
-  mouse.down = false
-
-
-window.addEventListener "mousemove", proc(event: Event) =
-  # don't redraw(), too heavy
-  mouse.pos.x = float event.pageX
-  mouse.pos.y = float event.pageY
-  redraw()
+    discard dom.window.requestAnimationFrame(requestHardRedraw)
 
 
 proc set*(keyboard: Keyboard, state: KeyState, event: Event) =
@@ -259,65 +227,120 @@ proc set*(keyboard: Keyboard, state: KeyState, event: Event) =
   keyboard.ctrlKey = event.ctrlKey
   keyboard.shiftKey = event.shiftKey
 
-window.addEventListener "keydown", proc(event: Event) =
-  keyboard.set(Down, event)
-  hardRedraw()
-  if keyboard.state != Empty:
-    keyboard.use()
-  else:
-    event.preventDefault()
 
-window.addEventListener "keyup", proc(event: Event) =
-  keyboard.set(Up, event)
-  hardRedraw()
-  if keyboard.state != Empty:
-    keyboard.use()
-  else:
-    event.preventDefault()
+proc startFidget*() =
+  ## Start the Fidget UI
 
-window.addEventListener "keypress", proc(event: Event) =
-  keyboard.set(Press, event)
-  hardRedraw()
-  if keyboard.state != Empty:
-    keyboard.use()
-  else:
-    event.preventDefault()
-
-window.addEventListener "input", proc(event: Event) =
-  ## When INPUT element has keyboard input this is called
-  if document.activeElement.nodeName == "INPUT":
-    keyboard.input = $(cast[InputElement](document.activeElement).value)
-    keyboard.inputFocusId = $document.activeElement.parentElement.id
-    redraw()
-    echo "input"
-
-window.addEventListener "focusin", proc(event: Event) =
-  ## When INPUT element gets focus this is called, set the keyboard.input and
-  ## the keyboard.inputFocusId
-  ## Note: "focus" does not bubble, so its not used here.
-  if document.activeElement.nodeName == "INPUT":
-    keyboard.input = $(cast[InputElement](document.activeElement).value)
-    keyboard.inputFocusId = $document.activeElement.parentElement.id
+  dom.window.addEventListener "load", proc(event: Event) =
+    ## called when html page loads and JS can start running
+    echo "load"
+    rootDomNode = document.createElement("div")
+    document.body.appendChild(rootDomNode)
     redraw()
 
-window.addEventListener "focusout", proc(event: Event) =
-  ## When INPUT element looses focus this is called, clear keyboard.input and
-  ## the keyboard.inputFocusId
-  ## Note: "blur" does not bubble, so its not used here.
-  keyboard.input = ""
-  keyboard.inputFocusId = ""
-  redraw()
+  dom.window.addEventListener "resize", proc(event: Event) =
+    ## Resize does not need to do anything special in HTML mode
+    redraw()
+
+  dom.window.addEventListener "scroll", proc(event: Event) =
+    ## Scroll does not need to do anything special in HTML mode
+    redraw()
+
+  dom.window.addEventListener "mousedown", proc(event: Event) =
+    ## When mouse button is pressed
+    mouse.pos.x = float event.pageX
+    mouse.pos.y = float event.pageY
+    mouse.click = true
+    mouse.down = true
+    hardRedraw()
+    mouse.click = false
+
+  dom.window.addEventListener "mouseup", proc(event: Event) =
+    ## When mouse button is released
+    redraw()
+    mouse.down = false
+
+  dom.window.addEventListener "mousemove", proc(event: Event) =
+    # When mouse moves
+    mouse.pos.x = float event.pageX
+    mouse.pos.y = float event.pageY
+    redraw()
+
+  dom.window.addEventListener "keydown", proc(event: Event) =
+    ## When keyboards key is pressed down
+    ## Used together with keyup for continuous things like scroll or games
+    keyboard.set(Down, event)
+    hardRedraw()
+    if keyboard.state != Empty:
+      keyboard.use()
+    else:
+      event.preventDefault()
+
+  dom.window.addEventListener "keyup", proc(event: Event) =
+    ## When keyboards key is pressed down
+    ## Used together with keydown
+    keyboard.set(Up, event)
+    hardRedraw()
+    if keyboard.state != Empty:
+      keyboard.use()
+    else:
+      event.preventDefault()
+
+  dom.window.addEventListener "keypress", proc(event: Event) =
+    ## When keyboards key is pressed
+    ## Used for typing because of key repeats
+    keyboard.set(Press, event)
+    hardRedraw()
+    if keyboard.state != Empty:
+      keyboard.use()
+    else:
+      event.preventDefault()
+
+  dom.window.addEventListener "input", proc(event: Event) =
+    ## When INPUT element has keyboard input this is called
+    if document.activeElement.nodeName == "INPUT":
+      keyboard.input = $(cast[InputElement](document.activeElement).value)
+      keyboard.inputFocusId = $document.activeElement.parentElement.id
+      redraw()
+      echo "input"
+
+  dom.window.addEventListener "focusin", proc(event: Event) =
+    ## When INPUT element gets focus this is called, set the keyboard.input and
+    ## the keyboard.inputFocusId
+    ## Note: "focus" does not bubble, so its not used here.
+    if document.activeElement.nodeName == "INPUT":
+      keyboard.input = $(cast[InputElement](document.activeElement).value)
+      keyboard.inputFocusId = $document.activeElement.parentElement.id
+      redraw()
+
+  dom.window.addEventListener "focusout", proc(event: Event) =
+    ## When INPUT element looses focus this is called, clear keyboard.input and
+    ## the keyboard.inputFocusId
+    ## Note: "blur" does not bubble, so its not used here.
+    keyboard.input = ""
+    keyboard.inputFocusId = ""
+    redraw()
 
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   type dummy = object
-  window.history.pushState(dummy(), "", url)
+  dom.window.history.pushState(dummy(), "", url)
+  uibase.window.innerUrl = url
   redraw()
 
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
-  discard window.open("https://reddit.atlassian.net/wiki/spaces/EX/pages/399114580/Experiment+Analysis+UI", "_blank")
+  discard dom.window.open("https://reddit.atlassian.net/wiki/spaces/EX/pages/399114580/Experiment+Analysis+UI", "_blank")
 
 
+proc `title=`*(win: uibase.Window, title: string) =
+  ## Sets window title
+  if win.innerTitle != title:
+    dom.document.title = title
+
+
+proc `title`*(win: uibase.Window): string =
+  ## Gets window title
+  win.innerTitle
