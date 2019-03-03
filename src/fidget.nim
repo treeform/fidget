@@ -3,7 +3,7 @@ import fidget/uibase
 when defined(JS):
   import fidget/backendhtml
   export backendhtml
-when defined(cairo):
+elif defined(cairo):
   import fidget/backendcairo
   export backendcairo
 else:
@@ -287,8 +287,8 @@ template override*(name: string, inner: untyped) =
 proc parseParams*(): TableRef[string, string] =
   ## Parses the params of the main URL
   result = newTable[string, string]()
-  if rootUrl.len > 0:
-    for pair in rootUrl[1..^1].split("&"):
+  if window.innerUrl.len > 0:
+    for pair in window.innerUrl[1..^1].split("&"):
       let
         arr = pair.split("=")
         key = arr[0]

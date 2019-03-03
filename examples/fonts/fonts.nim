@@ -22,7 +22,7 @@ drawMain = proc() =
     text "t":
       box 10, 10, 300, 50
       fill "#46D15F"
-      font "Sans", 50, 200, 16, -1, -1
+      font "Helvetica Neue", 50, 200, 16, -1, -1
       characters "Font Features"
 
     group "box":
@@ -32,55 +32,55 @@ drawMain = proc() =
       text "tl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, -1, -1
+        font "Helvetica Neue", 12, 200, 16, -1, -1
         characters "top left"
 
       text "tr":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, 1, -1
+        font "Helvetica Neue", 12, 200, 16, 1, -1
         characters "top right"
 
       text "tm":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, 0, -1
+        font "Helvetica Neue", 12, 200, 16, 0, -1
         characters "top middle"
 
       text "cl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, -1, 0
+        font "Helvetica Neue", 12, 200, 16, -1, 0
         characters "center left"
 
       text "cr":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, 1, 0
+        font "Helvetica Neue", 12, 200, 16, 1, 0
         characters "center right"
 
       text "cm":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, 0, 0
+        font "Helvetica Neue", 12, 200, 16, 0, 0
         characters "center middle"
 
       text "bl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, -1, 1
+        font "Helvetica Neue", 12, 200, 16, -1, 1
         characters "bottom left"
 
       text "br":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, 1, 1
+        font "Helvetica Neue", 12, 200, 16, 1, 1
         characters "bottom right"
 
       text "bm":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        font "Sans", 12, 200, 16, 0, 1
+        font "Helvetica Neue", 12, 200, 16, 0, 1
         characters "bottom middle"
 
 startFidget()
