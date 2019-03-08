@@ -34,3 +34,23 @@ proc startFidget*() =
   setupRoot()
   drawMain()
   echo "drawMain walk took: ", epochTime() - startTime, "ms"
+
+
+proc `title=`*(win: uibase.Window, title: string) =
+  ## Sets window url
+  win.innerTitle = title
+
+
+proc `title`*(win: uibase.Window): string =
+  ## Gets window url
+  return win.innerTitle
+
+
+proc `url=`*(win: uibase.Window, url: string) =
+  ## Sets window url
+  win.innerUrl = url
+
+
+proc `url`*(win: uibase.Window): string =
+  ## Gets window url
+  return win.innerUrl
