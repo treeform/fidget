@@ -1,6 +1,7 @@
 import typography, chroma
-include ../engine/all
-import ../client/common
+# TODO: fix dependencies
+include ../../../engine/all
+import ../../../client/common
 
 
 export color, print, HAlignMode, VAlignMode
