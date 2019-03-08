@@ -29,6 +29,7 @@ type
     id*: string
     kind*: string
     text*: string
+    placeholder*: string
     code*: string
     kids*: seq[Group]
     box*: Box
@@ -52,11 +53,16 @@ type
     Down
     Press
 
+  MouseCursorStyle* = enum
+    Default
+    Pointer
+
   Mouse* = ref object
     state: KeyState
     pos*: Vec2
     click*: bool # mouse button just got held down
     down*: bool # mouse button is held down
+    cursorStyle*: MouseCursorStyle # sets the mouse cursor icon
 
   Keyboard* = ref object
     state*: KeyState
