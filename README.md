@@ -2,11 +2,13 @@
 
 # Fidget - UI library for nim
 
-It is an absolute travesty that there is no good and easy way to design cross platform UIs. The HTML5 + electron + mobile webviews is the only reasonable way to do it, but it sux. HTML/CSS is just so complex and confusing, and JS can be really slow!
+It is an absolute travesty that there is no good and easy way to design cross platform UIs. The HTML5 + Electron + mobile webviews is the only reasonable way to do it, but it sux. HTML/CSS is just so complex and confusing, and JS can be really painful. - but with Fidget compile for web, desktop and mobile!
 
-It is also an absolute travesty that programmers have to code UIs by hand from flat design mockups. Fidget leverages the Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels. Want to change some spaces? Change it Figma and reload.
+Programmers still have to code UIs by hand from flat design mockups. Fidget leverages Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it Figma and reload.
 
-HTML5 has a ton of layout primitives, margin, padding, float, absolute, relative, border box, flex and friends. I want to simplify this to just the most basic way to lay something out. Because Fidget leverages Figma, I am adopting their system, because it simple and visual:
+Nim is the great language for UI design because of the templates and macros can make a really good DSL (domain specific language) - that makes writing UIs straightforward and intuitive.
+
+Other UI systems like, HTML5 has a ton of layout primitives, margin, padding, float, absolute, relative, border box, flex and friends. I want to simplify this to just the most basic way to lay something out. Because Fidget leverages Figma, I am adopting their system, because it simple and visual:
 
 * Everything is a Group.
 * Groups are positions relative to the parent
@@ -15,6 +17,9 @@ HTML5 has a ton of layout primitives, margin, padding, float, absolute, relative
 
 <p align="center">
   <img src="examples/uiExampleIce.png">
+</p>
+<p align="center" style='font-size:12px'>
+  <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Avalible for hire.</a>
 </p>
 
 Figma also has a concept of Symbol, which is basically a function call for UI work. Most of the time you will be calling these symbols to draw UI.
