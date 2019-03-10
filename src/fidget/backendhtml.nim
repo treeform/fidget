@@ -5,6 +5,12 @@ var
   divCache*: seq[Group]
   rootDomNode: Element
 
+
+proc removeAllChildren(dom: Node) =
+  while dom.firstChild != nil:
+    dom.removeChild(dom.firstChild)
+
+
 proc draw*(group: Group) =
 
   while divCache.len <= numGroups:
@@ -47,7 +53,7 @@ proc draw*(group: Group) =
       dom.style.borderStyle = "solid"
       dom.style.boxSizing = "border-box"
       dom.style.borderColor = $current.stroke.toHtmlRgba()
-      dom.style.borderWidth = $current.strokeWeight
+      dom.style.borderWidth = $current.strokeWeight & "px"
     else:
       dom.style.borderStyle = "none"
 
@@ -62,82 +68,88 @@ proc draw*(group: Group) =
     dom.style.fontFamily = current.textStyle.fontFamily
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
-
     #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
-  if cacheGroup.editableText != current.editableText:
-    cacheGroup.editableText = current.editableText
-    while dom.firstChild != nil:
-      dom.removeChild(dom.firstChild)
-    var inputDiv = document.createElement("input")
-    dom.appendChild(inputDiv)
-    cacheGroup.text = current.text
-    inputDiv.setAttribute("placeholder", current.text)
-    inputDiv.setAttribute("type", "text")
-    inputDiv.style.border = "none"
-    inputDiv.style.outline = "none"
-    inputDiv.style.width = $current.screenBox.w & "px"
-    inputDiv.style.backgroundColor = "transparent"
-    inputDiv.style.fontFamily = current.textStyle.fontFamily
-    inputDiv.style.fontSize = $current.textStyle.fontSize & "px"
-    inputDiv.style.fontWeight = $current.textStyle.fontWeight
-    # inputDiv.style.lineHeight = $max(
-    #   current.textStyle.lineHeight,
-    #   current.textStyle.fontSize + 2) & "px"
-
-  if cacheGroup.text != current.text:
-    inc perf.numLowLevelCalls
-    cacheGroup.text = current.text
-    # remove old text
-    while dom.firstChild != nil:
-      dom.removeChild(dom.firstChild)
-
-    var textDiv = document.createElement("span")
-    dom.appendChild(textDiv)
-
-    if current.text != "":
-      # group has text, add text
-      var textDom = document.createTextNode(current.text)
-      textDiv.appendChild(textDom)
-
-    #   if current.editableText:
-    #     textDiv.setAttribute("contenteditable", $current.editableText)
-    #     # css-hax "outline: none" does not work because it does not show cursor when
-    #     # there are no characters
-    #     textDiv.style.outline = "1px solid transparent"
-    #   dom.style.overflow = "hidden"
-
-    textDiv.style.whiteSpace = "pre"
-    textDiv.style.position = "absolute"
-
-    case current.textStyle.textAlignHorizontal:
-      of -1:
-        textDiv.style.left = "0px"
-      of 1:
-        textDiv.style.right = "0px"
-      else:
-        textDiv.style.left = "50%"
-
-    case current.textStyle.textAlignVertical:
-      of -1:
-        textDiv.style.top = "0px"
-      of 1:
-        textDiv.style.bottom = "0px"
-      else:
-        textDiv.style.bottom = "50%"
-
-    if current.textStyle.textAlignVertical == 0:
-      if current.textStyle.textAlignHorizontal == 0:
-        textDiv.style.transform = "translate(-50%,-50%)"
-        textDiv.style.top = "50%"
-        textDiv.style.bottom = ""
-      else:
-        textDiv.style.transform = "translate(0, -50%)"
-        textDiv.style.top = "50%"
-        textDiv.style.bottom = ""
+  if current.editableText:
+    # input element were you can type
+    var inputDiv: Node
+    if cacheGroup.editableText == false or dom.childNodes.len != 1:
+      dom.removeAllChildren()
+      inputDiv = document.createElement("input")
+      inputDiv.setAttribute("type", "text")
+      inputDiv.style.border = "none"
+      inputDiv.style.outline = "none"
+      inputDiv.style.width = "100%"
+      inputDiv.style.backgroundColor = "transparent"
+      inputDiv.style.fontFamily = "inherit"
+      inputDiv.style.fontSize = "inherit"
+      inputDiv.style.fontWeight = "inherit"
+      dom.appendChild(inputDiv)
+      cacheGroup.text = ""
     else:
-      if current.textStyle.textAlignHorizontal == 0:
-        textDiv.style.transform = "translate(-50%, 0)"
+      inputDiv = dom.childNodes[0]
+
+    cacheGroup.editableText = true
+
+    if cacheGroup.text != current.text:
+      cacheGroup.text = current.text
+      inputDiv.setAttribute("value", current.text)
+
+    if cacheGroup.placeholder != current.placeholder:
+      cacheGroup.placeholder = current.placeholder
+      inputDiv.setAttribute("placeholder", current.placeholder)
+
+  else:
+    # normal text element
+    if cacheGroup.editableText == true:
+      dom.removeAllChildren()
+
+    if cacheGroup.text != current.text:
+      inc perf.numLowLevelCalls
+      cacheGroup.text = current.text
+      # remove old text
+      while dom.firstChild != nil:
+        dom.removeChild(dom.firstChild)
+
+      var textDiv = document.createElement("span")
+      dom.appendChild(textDiv)
+
+      if current.text != "":
+        # group has text, add text
+        var textDom = document.createTextNode(current.text)
+        textDiv.appendChild(textDom)
+
+      textDiv.style.whiteSpace = "pre"
+      textDiv.style.position = "absolute"
+
+      case current.textStyle.textAlignHorizontal:
+        of -1:
+          textDiv.style.left = "0px"
+        of 1:
+          textDiv.style.right = "0px"
+        else:
+          textDiv.style.left = "50%"
+
+      case current.textStyle.textAlignVertical:
+        of -1:
+          textDiv.style.top = "0px"
+        of 1:
+          textDiv.style.bottom = "0px"
+        else:
+          textDiv.style.bottom = "50%"
+
+      if current.textStyle.textAlignVertical == 0:
+        if current.textStyle.textAlignHorizontal == 0:
+          textDiv.style.transform = "translate(-50%,-50%)"
+          textDiv.style.top = "50%"
+          textDiv.style.bottom = ""
+        else:
+          textDiv.style.transform = "translate(0, -50%)"
+          textDiv.style.top = "50%"
+          textDiv.style.bottom = ""
+      else:
+        if current.textStyle.textAlignHorizontal == 0:
+          textDiv.style.transform = "translate(-50%, 0)"
 
   if cacheGroup.imageName != current.imageName:
     cacheGroup.imageName = current.imageName
@@ -158,6 +170,7 @@ proc draw*(group: Group) =
   inc numGroups
 
 var startTime: float
+var prevMouseCursorStyle: MouseCursorStyle
 
 proc drawStart() =
   startTime = dom.window.performance.now()
@@ -177,9 +190,10 @@ proc drawStart() =
   scrollBox.w = float document.body.clientWidth
   scrollBox.h = float document.body.clientHeight
 
-  document.body.style.overflowX = "hidden"
+  document.body.style.overflowX = "auto"
   document.body.style.overflowY = "auto"
 
+  mouse.cursorStyle = Default
 
 proc drawFinish() =
 
@@ -193,6 +207,15 @@ proc drawFinish() =
   while rootDomNode.childNodes.len > numGroups:
     rootDomNode.removeChild(rootDomNode.lastChild)
     discard divCache.pop()
+
+  # only set mouse style when it changes
+  if prevMouseCursorStyle != mouse.cursorStyle:
+    prevMouseCursorStyle = mouse.cursorStyle
+    case mouse.cursorStyle:
+      of Default:
+        rootDomNode.style.cursor = "default"
+      of Pointer:
+        rootDomNode.style.cursor = "pointer"
 
 
 proc hardRedraw() =
@@ -231,9 +254,11 @@ proc set*(keyboard: Keyboard, state: KeyState, event: Event) =
 proc startFidget*() =
   ## Start the Fidget UI
 
+  uibase.window.innerUrl = $dom.window.location.pathname
+  echo "uibase.window.innerUrl ", uibase.window.innerUrl
+
   dom.window.addEventListener "load", proc(event: Event) =
     ## called when html page loads and JS can start running
-    echo "load"
     rootDomNode = document.createElement("div")
     document.body.appendChild(rootDomNode)
     redraw()
@@ -326,21 +351,36 @@ proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   type dummy = object
   dom.window.history.pushState(dummy(), "", url)
+  echo "goto ", url
   uibase.window.innerUrl = url
   redraw()
 
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
-  discard dom.window.open("https://reddit.atlassian.net/wiki/spaces/EX/pages/399114580/Experiment+Analysis+UI", "_blank")
+  discard dom.window.open(url, "_blank")
 
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window title
   if win.innerTitle != title:
     dom.document.title = title
+    redraw()
 
 
 proc `title`*(win: uibase.Window): string =
   ## Gets window title
   win.innerTitle
+
+
+proc `url=`*(win: uibase.Window, url: string) =
+  ## Sets window url
+  if win.innerUrl != url:
+    win.innerUrl = url
+    redraw()
+
+
+proc `url`*(win: uibase.Window): string =
+  ## Gets window url
+  #win.innerUrl
+  return $dom.window.location.pathname

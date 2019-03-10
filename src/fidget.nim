@@ -190,6 +190,11 @@ proc characters*(text: string) =
     current.text &= text
 
 
+proc placeholder*(text: string) =
+  ## Adds placeholder text to the group.
+  current.placeholder = text
+
+
 proc image*(imageName: string) =
   ## Adds text to the group.
   current.imageName = imageName
@@ -272,7 +277,7 @@ template binding*(stringVarible: untyped) =
   onInput:
     stringVarible = keyboard.input
     redraw()
-
+  characters stringVarible
 
 template override*(name: string, inner: untyped) =
   template `name`(): untyped =
