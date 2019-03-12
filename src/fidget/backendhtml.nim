@@ -350,6 +350,9 @@ proc startFidget*() =
     keyboard.inputFocusId = ""
     redraw()
 
+  dom.window.addEventListener "popstate", proc(event: Event) =
+    ## Called when users presses back or forward buttons.
+    redraw()
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
