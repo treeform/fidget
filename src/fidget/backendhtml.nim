@@ -70,86 +70,91 @@ proc draw*(group: Group) =
     dom.style.fontWeight = $current.textStyle.fontWeight
     #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
-  if current.editableText:
-    # input element were you can type
-    var inputDiv: Node
-    if cacheGroup.editableText == false or dom.childNodes.len != 1:
-      dom.removeAllChildren()
-      inputDiv = document.createElement("input")
-      inputDiv.setAttribute("type", "text")
-      inputDiv.style.border = "none"
-      inputDiv.style.outline = "none"
-      inputDiv.style.width = "100%"
-      inputDiv.style.backgroundColor = "transparent"
-      inputDiv.style.fontFamily = "inherit"
-      inputDiv.style.fontSize = "inherit"
-      inputDiv.style.fontWeight = "inherit"
-      dom.appendChild(inputDiv)
-      cacheGroup.text = ""
-    else:
-      inputDiv = dom.childNodes[0]
-
-    cacheGroup.editableText = true
-
-    if cacheGroup.text != current.text:
-      cacheGroup.text = current.text
-      inputDiv.setAttribute("value", current.text)
-
-    if cacheGroup.placeholder != current.placeholder:
-      cacheGroup.placeholder = current.placeholder
-      inputDiv.setAttribute("placeholder", current.placeholder)
-
-  else:
-    # normal text element
-    if cacheGroup.editableText == true:
-      dom.removeAllChildren()
-
-    if cacheGroup.text != current.text:
-      inc perf.numLowLevelCalls
-      cacheGroup.text = current.text
-      # remove old text
-      while dom.firstChild != nil:
-        dom.removeChild(dom.firstChild)
-
-      var textDiv = document.createElement("span")
-      dom.appendChild(textDiv)
-
-      if current.text != "":
-        # group has text, add text
-        var textDom = document.createTextNode(current.text)
-        textDiv.appendChild(textDom)
-
-      textDiv.style.whiteSpace = "pre"
-      textDiv.style.position = "absolute"
-
-      case current.textStyle.textAlignHorizontal:
-        of -1:
-          textDiv.style.left = "0px"
-        of 1:
-          textDiv.style.right = "0px"
-        else:
-          textDiv.style.left = "50%"
-
-      case current.textStyle.textAlignVertical:
-        of -1:
-          textDiv.style.top = "0px"
-        of 1:
-          textDiv.style.bottom = "0px"
-        else:
-          textDiv.style.bottom = "50%"
-
-      if current.textStyle.textAlignVertical == 0:
-        if current.textStyle.textAlignHorizontal == 0:
-          textDiv.style.transform = "translate(-50%,-50%)"
-          textDiv.style.top = "50%"
-          textDiv.style.bottom = ""
-        else:
-          textDiv.style.transform = "translate(0, -50%)"
-          textDiv.style.top = "50%"
-          textDiv.style.bottom = ""
+  if current.kind == "text":
+    if current.editableText:
+      # input element were you can type
+      var inputDiv: Node
+      if cacheGroup.editableText == false:
+        dom.removeAllChildren()
+        inputDiv = document.createElement("input")
+        inputDiv.setAttribute("type", "text")
+        inputDiv.style.border = "none"
+        inputDiv.style.outline = "none"
+        inputDiv.style.width = "100%"
+        inputDiv.style.backgroundColor = "transparent"
+        inputDiv.style.fontFamily = "inherit"
+        inputDiv.style.fontSize = "inherit"
+        inputDiv.style.fontWeight = "inherit"
+        inputDiv.style.padding = "0px"
+        dom.appendChild(inputDiv)
+        cacheGroup.text = ""
+        cacheGroup.editableText = current.editableText
       else:
-        if current.textStyle.textAlignHorizontal == 0:
-          textDiv.style.transform = "translate(-50%, 0)"
+        inputDiv = dom.childNodes[0]
+
+      cacheGroup.editableText = true
+
+      if cacheGroup.text != current.text:
+        cacheGroup.text = current.text
+        inputDiv.setAttribute("value", current.text)
+
+      if cacheGroup.placeholder != current.placeholder:
+        cacheGroup.placeholder = current.placeholder
+        inputDiv.setAttribute("placeholder", current.placeholder)
+
+    else:
+      # normal text element
+      if cacheGroup.editableText == true:
+        dom.removeAllChildren()
+        cacheGroup.text = ""
+        cacheGroup.editableText = current.editableText
+
+      if cacheGroup.text != current.text:
+        inc perf.numLowLevelCalls
+        cacheGroup.text = current.text
+        # remove old text
+        while dom.firstChild != nil:
+          dom.removeChild(dom.firstChild)
+
+        var textDiv = document.createElement("span")
+        dom.appendChild(textDiv)
+
+        if current.text != "":
+          # group has text, add text
+          var textDom = document.createTextNode(current.text)
+          textDiv.appendChild(textDom)
+
+        textDiv.style.whiteSpace = "pre"
+        textDiv.style.position = "absolute"
+
+        case current.textStyle.textAlignHorizontal:
+          of -1:
+            textDiv.style.left = "0px"
+          of 1:
+            textDiv.style.right = "0px"
+          else:
+            textDiv.style.left = "50%"
+
+        case current.textStyle.textAlignVertical:
+          of -1:
+            textDiv.style.top = "0px"
+          of 1:
+            textDiv.style.bottom = "0px"
+          else:
+            textDiv.style.bottom = "50%"
+
+        if current.textStyle.textAlignVertical == 0:
+          if current.textStyle.textAlignHorizontal == 0:
+            textDiv.style.transform = "translate(-50%,-50%)"
+            textDiv.style.top = "50%"
+            textDiv.style.bottom = ""
+          else:
+            textDiv.style.transform = "translate(0, -50%)"
+            textDiv.style.top = "50%"
+            textDiv.style.bottom = ""
+        else:
+          if current.textStyle.textAlignHorizontal == 0:
+            textDiv.style.transform = "translate(-50%, 0)"
 
   if cacheGroup.imageName != current.imageName:
     cacheGroup.imageName = current.imageName
@@ -255,7 +260,6 @@ proc startFidget*() =
   ## Start the Fidget UI
 
   uibase.window.innerUrl = $dom.window.location.pathname
-  echo "uibase.window.innerUrl ", uibase.window.innerUrl
 
   dom.window.addEventListener "load", proc(event: Event) =
     ## called when html page loads and JS can start running
