@@ -4,9 +4,9 @@
 
 It is an absolute travesty that there is no good and easy way to design cross platform UIs. The HTML5 + Electron + mobile webviews is the only reasonable way to do it, but it sux. HTML/CSS is just so complex and confusing, and JS can be really painful. - but with Fidget compile for web, desktop and mobile!
 
-Programmers still have to code UIs by hand from flat design mockups. Fidget leverages Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it Figma and reload.
+Programmers still have to code UIs by hand from flat design mockups. Fidget leverages Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and reload.
 
-Nim is the great language for UI design because of the templates and macros can make a really good DSL (domain specific language) - that makes writing UIs straightforward and intuitive.
+
 
 Other UI systems like, HTML5 has a ton of layout primitives, margin, padding, float, absolute, relative, border box, flex and friends. I want to simplify this to just the most basic way to lay something out. Because Fidget leverages Figma, I am adopting their system, because it simple and visual:
 
@@ -16,6 +16,7 @@ Other UI systems like, HTML5 has a ton of layout primitives, margin, padding, fl
 * Resizing with left, top, right, bottom, scale or center.
 
 <p align="center">
+  <br>
   <img src="examples/uiExampleIce.png">
 </p>
 <p align="center" style='font-size:12px'>
@@ -36,7 +37,7 @@ But currently only HTML is being worked on.
 
 # Why Nim?
 
-Nim is a great languages because it’s like python, is typed and is perfromant as C. It can also compile to JavaScript, C, C++, ObjC. It has advanced template and macro system which allows UI code to look very nice and simple.
+Nim is a great languages because it’s easy on the eyes like python, but typed and is perfromant as C. It can also compile to JavaScript, C, C++, ObjC. Nim is the great language for UI design because it has advanced templates and macros can make a really good DSL (domain specific language) - that makes writing UIs straightforward, intuitive and crossplatform.
 
 # Imperative UI Style
 
