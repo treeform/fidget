@@ -88,6 +88,7 @@ proc draw*(group: Group) =
         inputDiv.style.padding = "0px"
         dom.appendChild(inputDiv)
         cacheGroup.text = ""
+        cacheGroup.placeholder = ""
         cacheGroup.editableText = current.editableText
       else:
         inputDiv = dom.childNodes[0]
