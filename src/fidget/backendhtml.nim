@@ -369,6 +369,12 @@ proc openBrowser*(url: string) =
   discard dom.window.open(url, "_blank")
 
 
+proc openBrowserWithText*(text: string) =
+  ## Opens a URL in a browser
+  var window = dom.window.open("", "_blank")
+  window.document.write("<code style=display:block;white-space:pre-wrap>" & text & "</code>")
+
+
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window title
   if win.innerTitle != title:
