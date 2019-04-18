@@ -18,8 +18,8 @@ type
     fontSize*: float
     fontWeight*: float
     lineHeight*: float
-    textAlignHorizontal*: float
-    textAlignVertical*:float
+    textAlignHorizontal*: int
+    textAlignVertical*: int
 
   BorderStyle* = object
     color*: Color
@@ -121,3 +121,36 @@ proc use*(keyboard: Keyboard) =
 proc use*(mouse: Mouse) =
   mouse.click = false
 
+
+proc between*(value, min, max: float): bool =
+  ## Returns true if value is between min and max or equals to them.
+  (value >= min) and (value <= max)
+
+
+proc inside*(p: Vec2, b: Box): bool =
+  ## Return true if position is inside the box.
+  return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
+
+
+proc overlap*(a, b: Box): bool =
+  ## Returns true if box a overlaps box b.
+  let
+    xOverlap = between(a.x, b.x, b.x + b.w) or between(b.x, a.x, a.x + a.w)
+    yOverlap = between(a.y, b.y, b.y + b.h) or between(b.y, a.y, a.y + a.h)
+  return xOverlap and yOverlap
+
+
+proc `+`*(a, b: Box): Box =
+  ## Add two boxes together.
+  result.x = a.x + b.x
+  result.y = a.y + b.y
+  result.w = a.w
+  result.h = a.h
+
+
+proc `$`*(g: Group): string =
+  ## Format group is a string.
+  result = "Group"
+  if g.id.len > 0:
+    result &= " id:" & $g.id
+  result &= " screenBox:" & $g.box
