@@ -74,6 +74,10 @@ type
     inputFocusId*: string
     input*: string
 
+    textCursor*: int # at which character in the input string are we
+    selectionCursor*: int # to which character are we selecting to
+
+
   Perf* = object
     drawMain*: float
     numLowLevelCalls*: int

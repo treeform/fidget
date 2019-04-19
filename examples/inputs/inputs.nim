@@ -18,12 +18,11 @@ drawMain = proc() =
     rectangle "#F7F7F9"
 
     text "input":
-      box 4, 5, 500, 30
+      box 0, 0, 500, 30
       fill "#000000"
       font "Helvetica Neue", 16.0, 400.0, 15, -1, -1
       if beEdit:
         placeholder "[Enabled, type here]"
-        editableText true
         binding textValue
       else:
         characters "[Please enabled]"
