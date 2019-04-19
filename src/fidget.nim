@@ -119,6 +119,7 @@ template onKeyDown*(inner: untyped) =
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus
   if keyboard.state == Press and keyboard.inputFocusId == current.id:
+    echo "on input"
     inner
 
 template onHover*(inner: untyped) =

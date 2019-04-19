@@ -8,13 +8,8 @@ import random
 when defined(Windows):
   import windows
   proc GetWin32Window*(window: glfw.Window): pointer {.cdecl, importc: "glfwGetWin32Window", dynlib: "glfw3.dll".}
-elif defined(MacOSX):
-  const GlfwLib = "libglfw.3.dylib"
 else:
   const GlfwLib = "libglfw.so.3"
-
-
-
 
 var
   surface: Surface
@@ -50,12 +45,14 @@ proc draw*(group: Group) =
       if group.text.len > 0 or (group.editableText and group.placeholder.len > 0):
         var text = group.text
         if group.editableText:
+
           if group.text.len == 0 and group.placeholder.len > 0:
              text = group.placeholder
 
           if mouse.click and mouse.pos.inside(current.screenBox):
             echo "gain focus"
             keyboard.inputFocusId = group.id
+            keyboard.input = group.text
             mouse.use()
 
           if mouse.click and not mouse.pos.inside(current.screenBox):
@@ -63,20 +60,16 @@ proc draw*(group: Group) =
             if keyboard.inputFocusId == group.id:
               keyboard.inputFocusId = ""
 
-          print "focus", keyboard.inputFocusId == group.id
-          if keyboard.inputFocusId == group.id:
-            print keyboard.state
-            if keyboard.state == uibase.Press:
-              keyboard.input.add keyboard.keyString
-              echo keyboard.input
-              keyboard.use()
-              text = keyboard.input
-
         ctx.selectFontFace(group.textStyle.fontFamily, FONT_SLANT.normal, FONT_WEIGHT.normal)
         ctx.setFontSize(group.textStyle.fontSize)
         ctx.setSource(group.fill)
         var extents = TextExtents()
         ctx.textExtents(text, extents)
+
+        var fontExtents = FontExtents()
+        ctx.fontExtents(fontExtents)
+        let capHeight = fontExtents.ascent - fontExtents.descent
+        print fontExtents
         var x, y: float
 
         case group.textStyle.textAlignHorizontal:
@@ -90,15 +83,19 @@ proc draw*(group: Group) =
             x = 0
         case group.textStyle.textAlignVertical:
           of -1:
-            y = group.screenBox.y + extents.height
+            y = group.screenBox.y + fontExtents.ascent
           of 0:
-            y = group.screenBox.y + group.screenBox.h/2 + float(extents.height)/2
+            y = group.screenBox.y + group.screenBox.h/2 + float(capHeight)/2
           of 1:
-            y = group.screenBox.y + group.screenBox.h
+            y = group.screenBox.y + group.screenBox.h - fontExtents.descent
           else:
             y = 0
         ctx.moveTo(x, y)
         ctx.showText(text)
+
+        ctx.rectangle(Box(x:x, y:y, w:4, h:4))
+        ctx.setSource(color(1,0,0,1))
+        ctx.stroke()
 
     else:
       ctx.rectangle(group.screenBox)
@@ -122,9 +119,7 @@ proc goto*(url: string) =
   redraw()
 
 proc display() =
-  echo "display"
   ## Called every frame by main while loop
-
   setupRoot()
 
   root.box.x = float 0
@@ -163,10 +158,9 @@ proc display() =
     info.bmiHeader.biCompression = BI_RGB
     discard StretchDIBits(dc, 0, int32 h - 1, int32 w, int32 -h, 0, 0, int32 w, int32 h, dataPtr, info, DIB_RGB_COLORS, SRCCOPY)
     discard ReleaseDC(hwnd, dc)
-
   else:
     # openGL way
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_BGRA, GL_UNSIGNED_BYTE, dataPtr)
     # draw a quad over the whole screen
     glClear(GL_COLOR_BUFFER_BIT)
     glBegin(GL_QUADS)
@@ -180,6 +174,9 @@ proc display() =
     glVertex2d(-1.0, -1.0)
     glEnd()
     glfw.SwapBuffers(window)
+
+  keyboard.use()
+  mouse.use()
 
   inc frameCount
 
@@ -202,6 +199,7 @@ proc resize() =
   viewPort.w = float(cwidth)
   viewPort.h = float(cheight)
   dpi = viewPort.w / windowFrame.w
+
   when defined(windows):
     discard
   else:
@@ -211,10 +209,8 @@ proc resize() =
     w = closestPowerOf2(int viewPort.w)
     h = closestPowerOf2(int viewPort.h)
   if surface == nil or w > surface.width or h > surface.height:
-
-    print "resize", w, h
     # need to resize and re inint everything
-    surface = imageSurfaceCreate(FORMAT.argb32, w, h)
+    surface = imageSurfaceCreate(FORMAT.rgb24, w, h)
     ctx = surface.newContext()
 
     # allocate a texture and bind it
@@ -222,7 +218,7 @@ proc resize() =
     when defined(windows):
       discard
     else:
-      glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+      glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_BGRA, GL_UNSIGNED_BYTE, dataPtr)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
@@ -270,7 +266,11 @@ proc startFidget*() =
     quit("Failed to Initialize GLFW")
   window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)
   glfw.MakeContextCurrent(window)
-  #loadExtensions()
+
+  when defined(windows):
+    discard
+  else:
+    loadExtensions()
 
   glfw.PollEvents()
   resize()
@@ -278,11 +278,28 @@ proc startFidget*() =
   discard SetCursorPosCallback(window, onMouseMove)
   discard SetMouseButtonCallback(window, onMouseButton)
   discard SetFramebufferSizeCallback(window, onResize)
-  proc onSetCharCallback(window: glfw.Window; character: cuint) {.cdecl.} =
+  proc onCharCallback(window: glfw.Window; character: cuint) {.cdecl.} =
     keyboard.state = uibase.Press
     keyboard.keyString = $Rune(character)
+    echo "keyboard.keyString", repr(keyboard.keyString)
+    keyboard.input.add keyboard.keyString
+    echo keyboard.input
     redraw()
-  discard SetCharCallback(window, onSetCharCallback)
+  discard SetCharCallback(window, onCharCallback)
+
+  proc onKeyCallback(window: glfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
+    echo "keyboard.key ", key, " action ", action
+    #keyboard.input.add keyboard.keyString
+    #echo keyboard.input
+    if keyboard.inputFocusId != "" and action != 0:
+      if key == KEY_BACKSPACE:
+        keyboard.state = uibase.Press
+        keyboard.keyString = ""
+        if keyboard.input.len > 0:
+          keyboard.input.setLen(keyboard.input.len - 1)
+    redraw()
+  discard SetKeyCallback(window, onKeyCallback)
+
   requestedFrame = true
 
   while glfw.WindowShouldClose(window) == 0:

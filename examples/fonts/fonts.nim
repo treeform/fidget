@@ -90,4 +90,63 @@ drawMain = proc() =
         textAlign 0, 1
         characters "bottom middle"
 
+    group "box2":
+      box 500, 100, 300, 300
+      fill "#AEB5C0"
+      fontSize 40
+
+      text "tl":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign -1, -1
+        characters "TL"
+
+      text "tr":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign 1, -1
+        characters "TR"
+
+      text "tm":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign 0, -1
+        characters "TM"
+
+      text "cl":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign -1, 0
+        characters "CL"
+
+      text "cr":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign 1, 0
+        characters "CR"
+
+      text "cm":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign 0, 0
+        characters "CM"
+
+      text "bl":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign -1, 1
+        characters "BL"
+
+      text "br":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign 1, 1
+        characters "BR"
+
+      text "bm":
+        box 0, 0, 300, 300
+        fill "#FFFFFF"
+        textAlign 0, 1
+        characters "BM"
+
 startFidget()
