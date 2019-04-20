@@ -158,3 +158,7 @@ proc `$`*(g: Group): string =
   if g.id.len > 0:
     result &= " id:" & $g.id
   result &= " screenBox:" & $g.box
+
+
+proc xy*(b: Box): Vec2 = vec2(b.x, b.y)
+proc wh*(b: Box): Vec2 = vec2(b.w, b.h)
