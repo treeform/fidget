@@ -3,6 +3,9 @@ import fidget/uibase
 when defined(JS):
   import fidget/backendhtml
   export backendhtml
+elif defined(backendflippy):
+  import fidget/backendflippy
+  export backendflippy
 elif defined(backendcairo):
   import fidget/backendcairo
   export backendcairo

@@ -27,7 +27,7 @@ drawMain = proc() =
     rectangle "#F7F7F9"
 
     text "t":
-      box 10, 10, 300, 50
+      box 10, 10, 600, 50
       fill "#46D15F"
       fontSize 50
       characters "Font Features"
