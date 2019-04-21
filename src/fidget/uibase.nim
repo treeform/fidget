@@ -51,7 +51,9 @@ type
     Empty
     Up
     Down
+    Repeat
     Press
+    
 
   MouseCursorStyle* = enum
     Default
@@ -67,10 +69,12 @@ type
   Keyboard* = ref object
     state*: KeyState
     keyCode*: int
+    scanCode*: int
     keyString*: string
     altKey*: bool
     ctrlKey*: bool
     shiftKey*: bool
+    superKey*: bool
     inputFocusId*: string
     input*: string
 
@@ -113,13 +117,16 @@ proc setupRoot*() =
   current = root
   root.id = "root"
 
+
 proc use*(keyboard: Keyboard) =
   keyboard.state = Empty
   keyboard.keyCode = 0
+  keyboard.scanCode = 0
   keyboard.keyString = ""
   keyboard.altKey = false
   keyboard.ctrlKey = false
   keyboard.shiftKey = false
+  keyboard.superKey = false
 
 
 proc use*(mouse: Mouse) =
