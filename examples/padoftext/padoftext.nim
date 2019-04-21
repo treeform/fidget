@@ -13,7 +13,7 @@ bx
 zk
 se
 mn
-mmm
+mmm mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 q!2
 """
 
@@ -22,8 +22,8 @@ drawMain = proc() =
   window.title = "Pad of Text"
 
   frame "main":
-    box 10, 10, parent.box.w, 1000
-    font "Helvetica Neue", 12.0, 400.0, 14, -1, -1
+    box 10, 10, parent.box.w-20, 1000
+    font "Helvetica Neue", 20.0, 400.0, 25, -1, -1
     rectangle "#F7F7F9"
 
     text "input":

@@ -50,6 +50,10 @@ proc drawText(group: Group) =
   let scale = font.size / fontHeight
   let editing = keyboard.inputFocusId == group.id
   let cursorWidth = floor(min(1, font.size/12.0))
+
+  if editing:
+    group.text = keyboard.input
+
   let layout = font.typeset(
     group.text,
     pos=group.screenBox.xy,
@@ -57,6 +61,7 @@ proc drawText(group: Group) =
     hAlignNum(group.textStyle.textAlignHorizontal),
     vAlignNum(group.textStyle.textAlignVertical)
   )
+
   # draw layout boxes
   for pos in layout:
     var font = pos.font
@@ -340,45 +345,52 @@ proc startFidget*() =
   proc onCharCallback(window: glfw.Window; character: cuint) {.cdecl.} =
     keyboard.state = uibase.Press
     keyboard.keyString = $Rune(character)
-    #echo "keyboard.keyString", repr(keyboard.keyString)
-    keyboard.input[keyboard.textCursor..<keyboard.textCursor] = keyboard.keyString
-    inc keyboard.textCursor
-    #echo keyboard.input
+        
+    if keyboard.inputFocusId != "":
+      keyboard.input[keyboard.textCursor..<keyboard.textCursor] = keyboard.keyString
+      inc keyboard.textCursor
+
     redraw()
   discard SetCharCallback(window, onCharCallback)
 
   proc onKeyCallback(window: glfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
-    #echo "keyboard.key ", key, " action ", action
-    #keyboard.input.add keyboard.keyString
-    #echo keyboard.input
-    if keyboard.inputFocusId != "" and action != 0: 
+    if action == 1:
+      keyboard.state = uibase.Down
+    elif action == 0:
+      keyboard.state = uibase.Up
+    elif action == 2:
+      keyboard.state = uibase.Repeat
+    else:
+      return      
+    keyboard.keyCode = key
+    keyboard.scanCode = scancode
+    keyboard.altKey = (modifiers and MOD_ALT) != 0
+    keyboard.ctrlKey = (modifiers and MOD_CONTROL) != 0
+    keyboard.shiftKey = (modifiers and MOD_SHIFT) != 0
+    keyboard.superKey = (modifiers and MOD_SUPER) != 0
 
-      if key == KEY_BACKSPACE:
-        keyboard.state = uibase.Press
-        keyboard.keyString = ""
-        if keyboard.textCursor != 0:
-          dec keyboard.textCursor
-          keyboard.input[keyboard.textCursor..keyboard.textCursor] = ""
 
-      if key == KEY_DELETE:
-        keyboard.state = uibase.Press
-        keyboard.keyString = ""
-        if keyboard.textCursor != keyboard.input.len:         
-          keyboard.input[keyboard.textCursor..keyboard.textCursor] = ""
+    if keyboard.inputFocusId != "":
+      if keyboard.state in {uibase.Down, uibase.Repeat}: 
+        let key = keyboard.keyCode
+        if key == KEY_BACKSPACE:
+          if keyboard.textCursor != 0:
+            dec keyboard.textCursor
+            keyboard.input[keyboard.textCursor..keyboard.textCursor] = ""
 
-      if key == KEY_ENTER:
-        keyboard.state = uibase.Press
-        keyboard.state = uibase.Press
-        keyboard.keyString = "\n"
-        keyboard.input[keyboard.textCursor..<keyboard.textCursor] = "\n"
-        inc keyboard.textCursor
+        if key == KEY_DELETE:
+          if keyboard.textCursor != keyboard.input.len:         
+            keyboard.input[keyboard.textCursor..keyboard.textCursor] = ""
 
-      if key == KEY_LEFT:
-        keyboard.textCursor = max(keyboard.textCursor - 1, 0)
-        
-      if key == KEY_RIGHT:
-        keyboard.textCursor = min(keyboard.textCursor + 1, keyboard.input.len)
+        if key == KEY_ENTER:
+          keyboard.input[keyboard.textCursor..<keyboard.textCursor] = "\n"
+          inc keyboard.textCursor
 
+        if key == KEY_LEFT:
+          keyboard.textCursor = max(keyboard.textCursor - 1, 0)
+
+        if key == KEY_RIGHT:
+          keyboard.textCursor = min(keyboard.textCursor + 1, keyboard.input.len)
 
     redraw()
   discard SetKeyCallback(window, onKeyCallback)
