@@ -105,6 +105,8 @@ var
   requestedFrame*: bool
   numGroups*: int
   rootUrl*: string
+  popupActive*: bool
+  inPopup*: bool
 
 mouse = Mouse()
 mouse.pos = Vec2()

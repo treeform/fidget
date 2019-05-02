@@ -91,14 +91,18 @@ template rectangle*(color: string) =
     fill color
 
 
+proc mouseOverlapLogic(): bool =
+  (not popupActive or inPopup) and mouse.pos.inside(current.screenBox)
+
+
 template onClick*(inner: untyped) =
-  ## OnClick event handler.
-  if mouse.click and mouse.pos.inside(current.screenBox):
+  ## OnClick event handler.  
+  if mouse.click and mouseOverlapLogic():
     inner
 
 template onClickOutside*(inner: untyped) =
   ## On click outside event handler. Usefull for deselecting things.
-  if mouse.click and not mouse.pos.inside(current.screenBox):
+  if mouse.click and not mouseOverlapLogic():
     inner
 
 template onKey*(inner: untyped) =
@@ -126,13 +130,13 @@ template onInput*(inner: untyped) =
 
 template onHover*(inner: untyped) =
   ## Code in the block will run when this box is hovered.
-  if mouse.pos.inside(current.screenBox):
+  if mouseOverlapLogic():
     inner
 
 
 template onDown*(inner: untyped) =
   ## Code in the block will run when this box is hovered.
-  if mouse.pos.inside(current.screenBox) and mouse.down:
+  if mouse.down and mouseOverlapLogic():
     inner
 
 
