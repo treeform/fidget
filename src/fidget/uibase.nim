@@ -18,8 +18,8 @@ type
     fontSize*: float
     fontWeight*: float
     lineHeight*: float
-    textAlignHorizontal*: float
-    textAlignVertical*:float
+    textAlignHorizontal*: int
+    textAlignVertical*: int
 
   BorderStyle* = object
     color*: Color
@@ -51,7 +51,9 @@ type
     Empty
     Up
     Down
+    Repeat
     Press
+    
 
   MouseCursorStyle* = enum
     Default
@@ -67,12 +69,18 @@ type
   Keyboard* = ref object
     state*: KeyState
     keyCode*: int
+    scanCode*: int
     keyString*: string
     altKey*: bool
     ctrlKey*: bool
     shiftKey*: bool
+    superKey*: bool
     inputFocusId*: string
     input*: string
+
+    textCursor*: int # at which character in the input string are we
+    selectionCursor*: int # to which character are we selecting to
+
 
   Perf* = object
     drawMain*: float
@@ -111,15 +119,55 @@ proc setupRoot*() =
   current = root
   root.id = "root"
 
+
 proc use*(keyboard: Keyboard) =
   keyboard.state = Empty
   keyboard.keyCode = 0
+  keyboard.scanCode = 0
   keyboard.keyString = ""
   keyboard.altKey = false
   keyboard.ctrlKey = false
   keyboard.shiftKey = false
+  keyboard.superKey = false
 
 
 proc use*(mouse: Mouse) =
   mouse.click = false
 
+
+proc between*(value, min, max: float): bool =
+  ## Returns true if value is between min and max or equals to them.
+  (value >= min) and (value <= max)
+
+
+proc inside*(p: Vec2, b: Box): bool =
+  ## Return true if position is inside the box.
+  return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
+
+
+proc overlap*(a, b: Box): bool =
+  ## Returns true if box a overlaps box b.
+  let
+    xOverlap = between(a.x, b.x, b.x + b.w) or between(b.x, a.x, a.x + a.w)
+    yOverlap = between(a.y, b.y, b.y + b.h) or between(b.y, a.y, a.y + a.h)
+  return xOverlap and yOverlap
+
+
+proc `+`*(a, b: Box): Box =
+  ## Add two boxes together.
+  result.x = a.x + b.x
+  result.y = a.y + b.y
+  result.w = a.w
+  result.h = a.h
+
+
+proc `$`*(g: Group): string =
+  ## Format group is a string.
+  result = "Group"
+  if g.id.len > 0:
+    result &= " id:" & $g.id
+  result &= " screenBox:" & $g.box
+
+
+proc xy*(b: Box): Vec2 = vec2(b.x, b.y)
+proc wh*(b: Box): Vec2 = vec2(b.w, b.h)

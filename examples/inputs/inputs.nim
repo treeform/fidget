@@ -18,15 +18,14 @@ drawMain = proc() =
     rectangle "#F7F7F9"
 
     text "input":
-      box 4, 5, 500, 30
+      box 0, 0, 500, 30
       fill "#000000"
       font "Helvetica Neue", 16.0, 400.0, 15, -1, -1
       if beEdit:
-        placeholder "[enabled, type here]"
-        editableText true
+        placeholder "[Enabled, type here]"
         binding textValue
       else:
-        characters "[please enabled]"
+        characters "[Please enabled]"
 
   group "button":
     box 100, 20, 160, 30
@@ -35,7 +34,7 @@ drawMain = proc() =
       box 10, 0, parent.box.w, parent.box.h
       fill "#FFFFFF"
       font "Helvetica Neue", 16.0, 400.0, 15, -1, 0
-      characters "switch to input:" & $beEdit
+      characters "Switch to input:" & $beEdit
 
     onHover:
       mouse.cursorStyle = Pointer
