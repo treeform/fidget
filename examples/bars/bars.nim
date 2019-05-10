@@ -5,7 +5,7 @@ import random
 import math
 
 
-var bars = newSeq[int](10)
+var bars = newSeq[int](1000)
 for i, bar in bars:
   bars[i] = rand(40)
 

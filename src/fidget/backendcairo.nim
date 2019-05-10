@@ -2,18 +2,13 @@
 
 import uibase, times
 
-import glfw3 as glfw, quickcairo, math, vmath, opengl, chroma, print, os, unicode
+import glfw3 as glfw, quickcairo, math, vmath, opengl, chroma, print, os
 import random
 
-when defined(Windows):
-  import windows
-  proc GetWin32Window*(window: glfw.Window): pointer {.cdecl, importc: "glfwGetWin32Window", dynlib: "glfw3.dll".}
-else:
-  const GlfwLib = "libglfw.so.3"
 
 var
   surface: Surface
-  ctx: quickcairo.Context
+  ctx: Context
   frameCount = 0
   window: glfw.Window
   dpi*: float = 1.0
@@ -21,15 +16,15 @@ var
   viewPort: Box
 
 
-proc setSource(ctx: quickcairo.Context, color: Color) =
+proc setSource(ctx: Context, color: Color) =
   ctx.setSource(
-    color.r,
-    color.g,
     color.b,
+    color.g,
+    color.r,
     color.a
   )
 
-proc rectangle(ctx: quickcairo.Context, box: Box) =
+proc rectangle(ctx: Context, box: Box) =
   ctx.rectangle(
     floor box.x,
     floor box.y,
@@ -42,36 +37,13 @@ proc draw*(group: Group) =
   if group.fill.a > 0:
 
     if group.kind == "text":
-      if group.text.len > 0 or (group.editableText and group.placeholder.len > 0):
-        var text = group.text
-        if group.editableText:
-
-          if group.text.len == 0 and group.placeholder.len > 0:
-             text = group.placeholder
-
-          if mouse.click and mouse.pos.inside(current.screenBox):
-            echo "gain focus"
-            keyboard.inputFocusId = group.id
-            keyboard.input = group.text
-            mouse.use()
-
-          if mouse.click and not mouse.pos.inside(current.screenBox):
-            echo "loose focus"
-            if keyboard.inputFocusId == group.id:
-              keyboard.inputFocusId = ""
-
+      if group.text.len > 0:
         ctx.selectFontFace(group.textStyle.fontFamily, FONT_SLANT.normal, FONT_WEIGHT.normal)
         ctx.setFontSize(group.textStyle.fontSize)
         ctx.setSource(group.fill)
         var extents = TextExtents()
-        ctx.textExtents(text, extents)
-
-        var fontExtents = FontExtents()
-        ctx.fontExtents(fontExtents)
-        let capHeight = fontExtents.ascent - fontExtents.descent
-        print fontExtents
+        ctx.textExtents(group.text, extents)
         var x, y: float
-
         case group.textStyle.textAlignHorizontal:
           of -1:
             x = group.screenBox.x
@@ -79,24 +51,17 @@ proc draw*(group: Group) =
             x = group.screenBox.x + group.screenBox.w/2 - float(extents.width)/2
           of 1:
             x = group.screenBox.x + group.screenBox.w - extents.width
-          else:
-            x = 0
+
         case group.textStyle.textAlignVertical:
           of -1:
-            y = group.screenBox.y + fontExtents.ascent
+            y = group.screenBox.y + extents.height
           of 0:
-            y = group.screenBox.y + group.screenBox.h/2 + float(capHeight)/2
+            y = group.screenBox.y + group.screenBox.h/2 - float(extents.height)/2
           of 1:
-            y = group.screenBox.y + group.screenBox.h - fontExtents.descent
-          else:
-            y = 0
+            y = group.screenBox.y + group.screenBox.h
+
         ctx.moveTo(x, y)
-        ctx.showText(text)
-
-        ctx.rectangle(Box(x:x, y:y, w:4, h:4))
-        ctx.setSource(color(1,0,0,1))
-        ctx.stroke()
-
+        ctx.showText(group.text)
     else:
       ctx.rectangle(group.screenBox)
       ctx.setSource(group.fill)
@@ -118,8 +83,11 @@ proc goto*(url: string) =
   rootUrl = url
   redraw()
 
+
 proc display() =
+  echo "display"
   ## Called every frame by main while loop
+
   setupRoot()
 
   root.box.x = float 0
@@ -132,10 +100,6 @@ proc display() =
   scrollBox.w = root.box.w
   scrollBox.h = root.box.h
 
-  ctx.rectangle(root.box)
-  ctx.setSource(color(1,1,1,1))
-  ctx.fill()
-
   drawMain()
 
   # update texture with new pixels from surface
@@ -143,42 +107,24 @@ proc display() =
     dataPtr = surface.imageSurfaceGetData()
     w = surface.width
     h = surface.height
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
 
-  when defined(windows):
-    # draw image serface onto window
-    var hwnd = cast[HWND](GetWin32Window(window))
-    var dc = GetDC(hwnd)
-    var info = BITMAPINFO()
-    info.bmiHeader.biBitCount = 32
-    info.bmiHeader.biWidth = int32 w
-    info.bmiHeader.biHeight = int32 h
-    info.bmiHeader.biPlanes = 1
-    info.bmiHeader.biSize = DWORD sizeof(BITMAPINFOHEADER)
-    info.bmiHeader.biSizeImage = int32(w * h * 4)
-    info.bmiHeader.biCompression = BI_RGB
-    discard StretchDIBits(dc, 0, int32 h - 1, int32 w, int32 -h, 0, 0, int32 w, int32 h, dataPtr, info, DIB_RGB_COLORS, SRCCOPY)
-    discard ReleaseDC(hwnd, dc)
-  else:
-    # openGL way
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_BGRA, GL_UNSIGNED_BYTE, dataPtr)
-    # draw a quad over the whole screen
-    glClear(GL_COLOR_BUFFER_BIT)
-    glBegin(GL_QUADS)
-    glTexCoord2d(0.0, 0.0)
-    glVertex2d(-1.0, +1.0)
-    glTexCoord2d(viewPort.w/float(w), 0.0)
-    glVertex2d(+1.0, +1.0)
-    glTexCoord2d(viewPort.w/float(w), viewPort.h/float(h))
-    glVertex2d(+1.0, -1.0)
-    glTexCoord2d(0.0, viewPort.h/float(h))
-    glVertex2d(-1.0, -1.0)
-    glEnd()
-    glfw.SwapBuffers(window)
-
-  keyboard.use()
-  mouse.use()
+  # draw a quad over the whole screen
+  glClear(GL_COLOR_BUFFER_BIT)
+  glBegin(GL_QUADS);
+  glTexCoord2d(0.0, 0.0)
+  glVertex2d(-1.0, +1.0)
+  glTexCoord2d(viewPort.w/float(w), 0.0)
+  glVertex2d(+1.0, +1.0)
+  glTexCoord2d(viewPort.w/float(w), viewPort.h/float(h))
+  glVertex2d(+1.0, -1.0)
+  glTexCoord2d(0.0, viewPort.h/float(h))
+  glVertex2d(-1.0, -1.0)
+  glEnd();
 
   inc frameCount
+  glfw.SwapBuffers(window)
+
 
 proc closestPowerOf2(v: int): int =
   ## returns closets power of 2 ... 2,4,8,16... that is higher then v
@@ -199,36 +145,31 @@ proc resize() =
   viewPort.w = float(cwidth)
   viewPort.h = float(cheight)
   dpi = viewPort.w / windowFrame.w
-
-  when defined(windows):
-    discard
-  else:
-    glViewport(0, 0, cwidth, cheight)
+  glViewport(0, 0, cwidth, cheight)
 
   var
     w = closestPowerOf2(int viewPort.w)
     h = closestPowerOf2(int viewPort.h)
   if surface == nil or w > surface.width or h > surface.height:
+
+    print "resize", w, h
     # need to resize and re inint everything
-    surface = imageSurfaceCreate(FORMAT.rgb24, w, h)
+    surface = imageSurfaceCreate(FORMAT.argb32, w, h)
     ctx = surface.newContext()
 
     # allocate a texture and bind it
     var dataPtr = surface.imageSurfaceGetData()
-    when defined(windows):
-      discard
-    else:
-      glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_BGRA, GL_UNSIGNED_BYTE, dataPtr)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
-      glEnable(GL_TEXTURE_2D)
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+    glEnable(GL_TEXTURE_2D)
 
 
 proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
   resize()
-  display()
+  redraw()
 
 
 proc onMouseButton(window: glfw.Window, button: cint, action: cint, modifiers: cint) {.cdecl.} =
@@ -266,11 +207,7 @@ proc startFidget*() =
     quit("Failed to Initialize GLFW")
   window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)
   glfw.MakeContextCurrent(window)
-
-  when defined(windows):
-    discard
-  else:
-    loadExtensions()
+  loadExtensions()
 
   glfw.PollEvents()
   resize()
@@ -278,29 +215,6 @@ proc startFidget*() =
   discard SetCursorPosCallback(window, onMouseMove)
   discard SetMouseButtonCallback(window, onMouseButton)
   discard SetFramebufferSizeCallback(window, onResize)
-  proc onCharCallback(window: glfw.Window; character: cuint) {.cdecl.} =
-    keyboard.state = uibase.Press
-    keyboard.keyString = $Rune(character)
-    echo "keyboard.keyString", repr(keyboard.keyString)
-    keyboard.input.add keyboard.keyString
-    echo keyboard.input
-    redraw()
-  discard SetCharCallback(window, onCharCallback)
-
-  proc onKeyCallback(window: glfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
-    echo "keyboard.key ", key, " action ", action
-    #keyboard.input.add keyboard.keyString
-    #echo keyboard.input
-    if keyboard.inputFocusId != "" and action != 0:
-      if key == KEY_BACKSPACE:
-        keyboard.state = uibase.Press
-        keyboard.keyString = ""
-        if keyboard.input.len > 0:
-          keyboard.input.setLen(keyboard.input.len - 1)
-    redraw()
-  discard SetKeyCallback(window, onKeyCallback)
-
-  requestedFrame = true
 
   while glfw.WindowShouldClose(window) == 0:
     glfw.PollEvents()

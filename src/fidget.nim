@@ -3,21 +3,49 @@ import fidget/uibase
 when defined(JS):
   import fidget/backendhtml
   export backendhtml
-elif defined(backendflippy):
-  import fidget/backendflippy
-  export backendflippy
-elif defined(backendcairo):
+elif defined(cairo):
   import fidget/backendcairo
   export backendcairo
-elif defined(backendopengl):
-  import fidget/backendopengl
-  export backendopengl
 else:
   import fidget/backendnull
   export backendnull
   #import fidget/backendopengl
   #export backendopengl
 export uibase, chroma
+
+
+proc between*(value, min, max: float): bool =
+  ## Returns true if value is between min and max or equals to them.
+  (value >= min) and (value <= max)
+
+
+proc inside*(p: Vec2, b: Box): bool =
+  ## Return true if position is inside the box.
+  return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
+
+
+proc overlap*(a, b: Box): bool =
+  ## Returns true if box a overlaps box b.
+  let
+    xOverlap = between(a.x, b.x, b.x + b.w) or between(b.x, a.x, a.x + a.w)
+    yOverlap = between(a.y, b.y, b.y + b.h) or between(b.y, a.y, a.y + a.h)
+  return xOverlap and yOverlap
+
+
+proc `+`*(a, b: Box): Box =
+  ## Add two boxes together.
+  result.x = a.x + b.x
+  result.y = a.y + b.y
+  result.w = a.w
+  result.h = a.h
+
+
+proc `$`*(g: Group): string =
+  ## Format group is a string.
+  result = "Group"
+  if g.id.len > 0:
+    result &= " id:" & $g.id
+  result &= " screenBox:" & $g.box
 
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
@@ -34,7 +62,6 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   current.kind = kindStr
   current.wasDrawn = false
   current.transparency = 1.0
-  current.textStyle = parent.textStyle
   groupStack.add(current)
 
   inner
@@ -96,7 +123,7 @@ proc mouseOverlapLogic(): bool =
 
 
 template onClick*(inner: untyped) =
-  ## OnClick event handler.  
+  ## OnClick event handler.
   if mouse.click and mouseOverlapLogic():
     inner
 
@@ -125,7 +152,7 @@ template onKeyDown*(inner: untyped) =
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus
-  if keyboard.state == Press and keyboard.inputFocusId == current.id:
+  if keyboard.state == Up and keyboard.inputFocusId == current.id:
     inner
 
 template onHover*(inner: untyped) =
@@ -145,7 +172,7 @@ proc id*(id: string) =
   current.id = id
 
 
-proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlignHorizontal, textAlignVertical: int) =
+proc font*(fontFamily: string, fontSize, fontWeight, lineHeight, textAlignHorizontal, textAlignVertical: float) =
   ## Sets the font
   current.textStyle.fontFamily = fontFamily
   current.textStyle.fontSize = fontSize
@@ -154,26 +181,6 @@ proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlig
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
 
-proc fontFamily*(fontFamily: string) =
-  ## Sets the font family
-  current.textStyle.fontFamily = fontFamily
-
-proc fontSize*(fontSize: float) =
-  ## Sets the font size in pixels
-  current.textStyle.fontSize = fontSize
-
-proc fontWeight*(fontWeight: float) =
-  ## Sets the font weight
-  current.textStyle.fontWeight = fontWeight
-
-proc lineHeight*(lineHeight: float) =
-  ## Sets the font size
-  current.textStyle.lineHeight = lineHeight
-
-proc textAlign*(textAlignHorizontal, textAlignVertical: int) =
-  ## Sets the horizontal and vertical alignment
-  current.textStyle.textAlignHorizontal = textAlignHorizontal
-  current.textStyle.textAlignVertical = textAlignVertical
 
 proc characters*(text: string) =
   ## Adds text to the group.
