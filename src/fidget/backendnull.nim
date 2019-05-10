@@ -20,11 +20,6 @@ proc openBrowser*(url: string) =
   discard
 
 
-proc openBrowserWithText*(text: string) =
-  ## Opens a new window with just this text on it
-  discard
-
-
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   rootUrl = url

@@ -88,7 +88,6 @@ proc draw*(group: Group) =
         inputDiv.style.padding = "0px"
         dom.appendChild(inputDiv)
         cacheGroup.text = ""
-        cacheGroup.placeholder = ""
         cacheGroup.editableText = current.editableText
       else:
         inputDiv = dom.childNodes[0]
@@ -367,12 +366,6 @@ proc goto*(url: string) =
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard dom.window.open(url, "_blank")
-
-
-proc openBrowserWithText*(text: string) =
-  ## Opens a URL in a browser
-  var window = dom.window.open("", "_blank")
-  window.document.write("<code style=display:block;white-space:pre-wrap>" & text & "</code>")
 
 
 proc `title=`*(win: uibase.Window, title: string) =
