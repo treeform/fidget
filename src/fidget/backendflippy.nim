@@ -6,11 +6,7 @@ import
   glfw3 as glfw, chroma, print, flippy, typography,
   uibase
 
-when defined(Windows):
-  import windows
-  proc GetWin32Window*(window: glfw.Window): pointer {.cdecl, importc: "glfwGetWin32Window", dynlib: "glfw3.dll".}
-else:
-  const GlfwLib = "libglfw.so.3"
+const GlfwLib = "libglfw.so.3"
 
 var
   ctx: flippy.Image
@@ -21,11 +17,10 @@ var
   viewPort: Box
 
 
-var font = readFontSvg("examples/Ubuntu.svg")
-
+# readFontSvg("examples/Ubuntu.svg")
 #var font = readFontTtf("examples/IBMPlexSans-Regular.ttf")
-font.size = 40
-font.lineHeight = 20
+# font.size = 40
+# font.lineHeight = 20
 
 proc hAlignNum(num: int): HAlignMode =
   case num:
@@ -43,7 +38,9 @@ proc vAlignNum(num: int): VAlignMode =
 
 
 proc drawText(group: Group) =
-
+  if group.textStyle.fontFamily notin fonts:
+    quit "font not found: " & group.textStyle.fontFamily
+  var font = fonts[group.textStyle.fontFamily]
   font.size = group.textStyle.fontSize
   font.lineHeight = group.textStyle.lineHeight
   let fontHeight = font.ascent - font.descent
@@ -157,6 +154,8 @@ proc drawText(group: Group) =
           keyboard.inputFocusId = ""
 
 
+var imageCache = newTable[string, flippy.Image]()
+
 proc draw*(group: Group) =
   ## Draw a single group
 
@@ -164,10 +163,19 @@ proc draw*(group: Group) =
     if group.kind == "text":
       drawText(group)
     else:
-      ctx.fillRect(rect(
-        group.screenBox.x, group.screenBox.y,
-        group.screenBox.w, group.screenBox.h
-      ), group.fill.rgba)
+      if group.imageName == "":
+        ctx.fillRect(rect(
+          group.screenBox.x, group.screenBox.y,
+          group.screenBox.w, group.screenBox.h
+        ), group.fill.rgba)
+
+  if group.imageName != "":
+    if group.imageName notin imageCache:
+      echo "load ", group.imageName
+      imageCache[group.imageName] = loadImage("data/" & group.imageName & ".png")
+    let image = imageCache[group.imageName]
+    #ctx.blitWithAlpha(image, translate(vec3(group.screenBox.x, group.screenBox.y, 0)))
+    ctx.blitWithAlpha(image, translate(vec3(group.screenBox.x, group.screenBox.y, 0)))
 
 proc redraw*() =
   ## Request the screen to be redrawn next
@@ -209,36 +217,21 @@ proc display() =
     w = ctx.width
     h = ctx.height
 
-  when defined(windows):
-    # draw image serface onto window
-    var hwnd = cast[HWND](GetWin32Window(window))
-    var dc = GetDC(hwnd)
-    var info = BITMAPINFO()
-    info.bmiHeader.biBitCount = 32
-    info.bmiHeader.biWidth = int32 w
-    info.bmiHeader.biHeight = int32 h
-    info.bmiHeader.biPlanes = 1
-    info.bmiHeader.biSize = DWORD sizeof(BITMAPINFOHEADER)
-    info.bmiHeader.biSizeImage = int32(w * h * 4)
-    info.bmiHeader.biCompression = BI_RGB
-    discard StretchDIBits(dc, 0, int32 h - 1, int32 w, int32 -h, 0, 0, int32 w, int32 h, dataPtr, info, DIB_RGB_COLORS, SRCCOPY)
-    discard ReleaseDC(hwnd, dc)
-  else:
-    # openGL way
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
-    # draw a quad over the whole screen
-    glClear(GL_COLOR_BUFFER_BIT)
-    glBegin(GL_QUADS)
-    glTexCoord2d(0.0, 0.0)
-    glVertex2d(-1.0, +1.0)
-    glTexCoord2d(viewPort.w/float(w), 0.0)
-    glVertex2d(+1.0, +1.0)
-    glTexCoord2d(viewPort.w/float(w), viewPort.h/float(h))
-    glVertex2d(+1.0, -1.0)
-    glTexCoord2d(0.0, viewPort.h/float(h))
-    glVertex2d(-1.0, -1.0)
-    glEnd()
-    glfw.SwapBuffers(window)
+  # openGL way
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+  # draw a quad over the whole screen
+  glClear(GL_COLOR_BUFFER_BIT)
+  glBegin(GL_QUADS)
+  glTexCoord2d(0.0, 0.0)
+  glVertex2d(-1.0, +1.0)
+  glTexCoord2d(viewPort.w/float(w), 0.0)
+  glVertex2d(+1.0, +1.0)
+  glTexCoord2d(viewPort.w/float(w), viewPort.h/float(h))
+  glVertex2d(+1.0, -1.0)
+  glTexCoord2d(0.0, viewPort.h/float(h))
+  glVertex2d(-1.0, -1.0)
+  glEnd()
+  glfw.SwapBuffers(window)
 
   keyboard.use()
   mouse.use()
@@ -265,10 +258,7 @@ proc resize() =
   viewPort.h = float(cheight)
   dpi = viewPort.w / windowFrame.w
 
-  when defined(windows):
-    discard
-  else:
-    glViewport(0, 0, cwidth, cheight)
+  glViewport(0, 0, cwidth, cheight)
 
   var
     w = closestPowerOf2(int viewPort.w)
@@ -279,15 +269,12 @@ proc resize() =
 
     # allocate a texture and bind it
     var dataPtr = addr ctx.data[0]
-    when defined(windows):
-      discard
-    else:
-      glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
-      glEnable(GL_TEXTURE_2D)
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+    glEnable(GL_TEXTURE_2D)
 
 
 proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
@@ -331,10 +318,7 @@ proc startFidget*() =
   window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)
   glfw.MakeContextCurrent(window)
 
-  when defined(windows):
-    discard
-  else:
-    loadExtensions()
+  loadExtensions()
 
   glfw.PollEvents()
   resize()

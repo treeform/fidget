@@ -214,6 +214,11 @@ proc box*(b: Box) =
   box(b.x, b.y, b.w, b.h)
 
 
+proc rotation*(rotationInDeg: float) =
+  ## Sets rotation in degrees
+  current.rotation = rotationInDeg
+
+
 proc fill*(color: Color) =
   ## Sets background color.
   current.fill = color
