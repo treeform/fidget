@@ -6,7 +6,7 @@ import uibase, times
 
 
 proc draw*(group: Group) =
-  ## Redraws the whole screen
+  ## Draws the group
 
 
 proc redraw*() =

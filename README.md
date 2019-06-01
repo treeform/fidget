@@ -2,6 +2,8 @@
 
 # Fidget - UI library for nim
 
+<p style="color: #e74c3c">WARNING: This library is still in heavy development.</p>
+
 It is an absolute travesty that there is no good and easy way to design cross platform UIs. The HTML5 + Electron + mobile webviews is the only reasonable way to do it, but it sux. HTML/CSS is just so complex and confusing, and JS can be really painful. - but with Fidget compile for web, desktop and mobile!
 
 Programmers still have to code UIs by hand from flat design mockups. Fidget leverages Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and reload.
@@ -45,7 +47,13 @@ I like imperative style of programing. This is a style you probably learned to p
 
 Each UI frame is drawn completely from start to finish all in the code you control. Use of callbacks is discouraged. Think liner, think simple. After any event by the user, data or timer, the UI is redrawn. The UI is redrawn in an efficient way as to allow this.
 
+# Fidgetgen
 
+Fidgetgen is a tool to take figma files and turn them into code.
+
+```nim
+fidgetgen figmaURL -o:someuifile.nim
+```
 
 
 

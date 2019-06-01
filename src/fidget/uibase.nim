@@ -1,4 +1,4 @@
-import chroma, vmath
+import chroma, vmath, tables, typography
 
 const
   clearColor* = color(0,0,0,0)
@@ -33,6 +33,7 @@ type
     code*: string
     kids*: seq[Group]
     box*: Box
+    rotation*: float
     screenBox*: Box
     fill*: Color
     transparency*: float32
@@ -53,7 +54,7 @@ type
     Down
     Repeat
     Press
-    
+
 
   MouseCursorStyle* = enum
     Default
@@ -107,6 +108,7 @@ var
   rootUrl*: string
   popupActive*: bool
   inPopup*: bool
+  fonts* = newTable[string, Font]()
 
 mouse = Mouse()
 mouse.pos = Vec2()

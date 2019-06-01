@@ -1,85 +1,168 @@
-## Cairo backend uses cairo and glfw3 libarires to provide graphics and input
-
-import uibase, times
-
-import glfw3 as glfw, math, vmath, opengl, chroma, print, os
-import random
+import times, tables
+import vmath, chroma, typography, print, flippy
+import openglbackend/base, openglbackend/context, openglbackend/input
+import uibase
 
 
 var
-  # surface: Surface
-  # ctx: Context
-  frameCount = 0
-  window: glfw.Window
-  dpi*: float = 1.0
-  windowFrame: Box
-  viewPort: Box
+  ctx: Context
+
+
+proc hAlignNum(num: int): HAlignMode =
+  case num:
+    of -1: HAlignMode.Left
+    of 0: Center
+    of 1: HAlignMode.Right
+    else: HAlignMode.Left
+
+
+proc vAlignNum(num: int): VAlignMode =
+  case num:
+    of -1: Top
+    of 0: Middle
+    of 1: Bottom
+    else: Top
+
+var glyphOffsets = newTable[string, Vec2]()
+
+proc drawText(group: Group) =
+  if group.textStyle.fontFamily notin fonts:
+    quit "font not found: " & group.textStyle.fontFamily
+
+  var font = fonts[group.textStyle.fontFamily]
+  font.size = group.textStyle.fontSize
+  font.lineHeight = group.textStyle.lineHeight
+  let fontHeight = font.ascent - font.descent
+  let scale = font.size / fontHeight
+  let editing = keyboard.inputFocusId == group.id
+  let cursorWidth = floor(min(1, font.size/12.0))
+
+  if editing:
+    group.text = keyboard.input
+
+  let layout = font.typeset(
+    group.text,
+    pos=vec2(0, 0), #group.screenBox.xy,
+    size=group.screenBox.wh,
+    hAlignNum(group.textStyle.textAlignHorizontal),
+    vAlignNum(group.textStyle.textAlignVertical)
+  )
+
+  # draw layout boxes
+  for pos in layout:
+    var font = pos.font
+    # if pos.character == "\n":
+    #   #print pos.selectRect, pos.index
+    #   ctx.strokeRect(pos.selectRect, rgba(0,0,255,255))
+    #   let baseLine = pos.selectRect.y + font.ascent * scale
+    #   ctx.line(
+    #     vec2(pos.selectRect.x, baseLine),
+    #     vec2(pos.selectRect.x + pos.selectRect.w, baseLine),
+    #     rgba(0,0,255,255)
+    #   )
+
+    if pos.character in font.glyphs:
+      let subPixelShift = floor(pos.subPixelShift*10)/10
+
+      let charKey = "tmp/" & group.textStyle.fontFamily & "." & pos.character & "." & $font.size & "." & $subPixelShift & ".png"
+      if charKey notin ctx.entries:
+        var glyph = font.glyphs[pos.character]
+        var glyphOffset: Vec2
+        let img = font.getGlyphImage(glyph, glyphOffset, subPixelShift=subPixelShift)
+        ctx.putImage(charKey, img)
+        glyphOffsets[charKey] = glyphOffset
+
+      let glyphOffset = glyphOffsets[charKey]
+      let charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
+
+      ctx.drawImage(charKey, charPos, group.fill)
+
+    if editing and keyboard.textCursor == pos.index:
+      # draw text cursor at glyph pos
+      ctx.fillRect(rect(
+        pos.selectRect.x,
+        pos.selectRect.y,
+        cursorWidth,
+        font.size
+      ), group.fill)
+
+  # draw text cursor if there is not character
+  if editing and keyboard.input.len == 0:
+    ctx.fillRect(rect(
+      group.screenBox.x,
+      group.screenBox.y,
+      cursorWidth,
+      font.size
+    ), group.fill)
+  # draw text cursor at the last character
+  elif editing and keyboard.input.len == keyboard.textCursor:
+    let pos = layout[^1]
+    if pos.character != "\n":
+      ctx.fillRect(rect(
+        pos.selectRect.x + pos.selectRect.w,
+        pos.selectRect.y,
+        cursorWidth,
+        font.size
+      ), group.fill)
+    else:
+      ctx.fillRect(rect(
+        group.screenBox.x,
+        pos.selectRect.y + font.lineHeight,
+        cursorWidth,
+        font.size
+      ), group.fill)
+
+  if group.text.len > 0 or (group.editableText and group.placeholder.len > 0):
+    var text = group.text
+    if group.editableText:
+
+      if group.text.len == 0 and group.placeholder.len > 0:
+          text = group.placeholder
+
+      if mouse.click and mouse.pos.inside(current.screenBox):
+        echo "gain focus"
+        keyboard.inputFocusId = group.id
+        keyboard.input = group.text
+        keyboard.textCursor = keyboard.input.len
+
+        let pos = layout.pickGlyphAt(mouse.pos)
+        if pos.character != "":
+          keyboard.textCursor = pos.index
+
+        mouse.use()
+
+      if mouse.click and not mouse.pos.inside(current.screenBox):
+        echo "loose focus"
+        if keyboard.inputFocusId == group.id:
+          keyboard.inputFocusId = ""
 
 
 proc draw*(group: Group) =
-  ## Redraws the whole screen
+  ## Draws the group
+  #echo group.id
+
+  ctx.saveTransform()
+  ctx.translate(group.screenBox.xy)
+  if group.rotation != 0:
+    ctx.translate(group.screenBox.wh/2)
+    ctx.rotate(group.rotation/180*PI)
+    ctx.translate(-group.screenBox.wh/2)
+
   if group.fill.a > 0:
-
     if group.kind == "text":
-      if group.text.len > 0:
-        glBegin(GL_QUADS)
-        glColor4f(group.fill.r, group.fill.g, group.fill.b, group.fill.a)
-        proc drawRect(sx, sy, sw, sh: float) =
-          let
-            wf = windowFrame
-            x = sx / wf.w*2 - 1.0
-            y = -sy / wf.h*2 + 1.0
-            w = sw / wf.w*2
-            h = -sh / wf.h*2
-          glVertex2d(x,     y + h)
-          glVertex2d(x + w, y + h)
-          glVertex2d(x + w, y)
-          glVertex2d(x,     y)
-        let b = group.screenBox
-        drawRect(b.x, b.y, b.w, b.h)
-        glEnd()
-        # ctx.selectFontFace(group.textStyle.fontFamily, FONT_SLANT.normal, FONT_WEIGHT.normal)
-        # ctx.setFontSize(group.textStyle.fontSize)
-        # ctx.setSource(group.fill)
-        # var extents = TextExtents()
-        # ctx.textExtents(group.text, extents)
-        # var x, y: float
-        # case group.textStyle.textAlignHorizontal:
-        #   of -1:
-        #     x = group.screenBox.x
-        #   of 0:
-        #     x = group.screenBox.x + group.screenBox.w/2 - float(extents.width)/2
-        #   of 1:
-        #     x = group.screenBox.x + group.screenBox.w - extents.width
-
-        # case group.textStyle.textAlignVertical:
-        #   of -1:
-        #     y = group.screenBox.y + extents.height
-        #   of 0:
-        #     y = group.screenBox.y + group.screenBox.h/2 - float(extents.height)/2
-        #   of 1:
-        #     y = group.screenBox.y + group.screenBox.h
-
-        # ctx.moveTo(x, y)
-        # ctx.showText(group.text)
+      drawText(group)
     else:
-      glBegin(GL_QUADS)
-      glColor4f(group.fill.r, group.fill.g, group.fill.b, group.fill.a)
-      proc drawRect(sx, sy, sw, sh: float) =
-        let
-          wf = windowFrame
-          x = sx / wf.w*2 - 1.0
-          y = -sy / wf.h*2 + 1.0
-          w = sw / wf.w*2
-          h = -sh / wf.h*2
-        glVertex2d(x,     y + h)
-        glVertex2d(x + w, y + h)
-        glVertex2d(x + w, y)
-        glVertex2d(x,     y)
-      let b = group.screenBox
-      drawRect(b.x, b.y, b.w, b.h)
-      glEnd()
+      if group.imageName == "":
+        ctx.fillRect(rect(
+          0, 0,
+          group.screenBox.w, group.screenBox.h
+        ), group.fill)
 
+  if group.imageName != "":
+    let path = "data/" & group.imageName & ".png"
+    ctx.drawImage(path, vec2(0, 0))
+
+  ctx.restoreTransform()
 
 proc redraw*() =
   ## Request the screen to be redrawn next
@@ -92,126 +175,96 @@ proc openBrowser*(url: string) =
   discard
 
 
+proc openBrowserWithText*(text: string) =
+  ## Opens a new window with just this text on it
+  discard
+
+
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   rootUrl = url
   redraw()
 
 
-proc display() =
-  echo "display"
-  ## Called every frame by main while loop
+proc startFidget*() =
+  ## Starts fidget UI library
 
-  setupRoot()
+  base.start("fidget test")
+  ctx = newContext(1024*8)
 
-  root.box.x = float 0
-  root.box.y = float 0
-  root.box.w = windowFrame.w
-  root.box.h = windowFrame.h
+  base.drawFrame = proc() =
+    proj = ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100)
 
-  scrollBox.x = float 0
-  scrollBox.y = float 0
-  scrollBox.w = root.box.w
-  scrollBox.h = root.box.h
+    setupRoot()
 
-  drawMain()
+    root.box.x = float 0
+    root.box.y = float 0
+    root.box.w = windowSize.x
+    root.box.h = windowSize.y
 
-  # # update texture with new pixels from surface
-  # let
-  #   dataPtr = surface.imageSurfaceGetData()
-  #   w = surface.width
-  #   h = surface.height
-  # glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+    scrollBox.x = float 0
+    scrollBox.y = float 0
+    scrollBox.w = root.box.w
+    scrollBox.h = root.box.h
 
+    clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
 
+    ctx.saveTransform()
+    # 4k 3840x2160
+    # 2k 2048×1080
+    # let rez = vec2(2048, 1080)
 
-  inc frameCount
-  glfw.SwapBuffers(window)
-
-
-proc closestPowerOf2(v: int): int =
-  ## returns closets power of 2 ... 2,4,8,16... that is higher then v
-  result = 2
-  while true:
-    if v < result:
-      return
-    result *= 2
+    #ctx.translate(windowFrame/2)
+    # ctx.scale(max(windowFrame.x/rez.x, windowFrame.y/rez.y))
+    # ctx.translate(-rez/2)
 
 
-proc resize() =
-  var cwidth, cheight: cint
-  GetWindowSize(window, addr cwidth, addr cheight)
-  windowFrame.w = float(cwidth)
-  windowFrame.h = float(cheight)
+    # zoom height and window width
+    # let zoom = windowFrame.y/1080
+    # root.box.w = windowSize.x / zoom
+    # root.box.h = 1080
+    # ctx.scale(zoom)
+    # mouse.pos = mousePos / zoom
 
-  GetFramebufferSize(window, addr cwidth, addr cheight)
-  viewPort.w = float(cwidth)
-  viewPort.h = float(cheight)
-  dpi = viewPort.w / windowFrame.w
-  glViewport(0, 0, cwidth, cheight)
+    mouse.pos = mousePos
 
+    drawMain()
 
-proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
-  resize()
-  display()
+    ctx.restoreTransform()
 
+    # ctx.drawImage("mainMenu.png", vec2(0, 0))
+    # ctx.drawImage("fleetA.png", vec2(500, 100))
+    # ctx.saveTransform()
+    # #ctx.translate(vec2(500, 500))
+    # ctx.scale(5.0)
+    # ctx.drawImage("circle100.png")
+    # ctx.restoreTransform()
 
-proc onMouseButton(window: glfw.Window, button: cint, action: cint, modifiers: cint) {.cdecl.} =
-  if action == 0:
-    mouse.down = false
-    mouse.click = false
-  else:
-    mouse.click = true
-    mouse.down = true
-  # let button = button + 1
-  # if button < buttonDown.len:
-  #   if buttonDown[button] == false and setKey == true:
-  #     buttonPress[button] = true
-  #   buttonDown[button] = setKey
-  redraw()
+    ctx.flip()
 
-proc onMouseMove(window: glfw.Window, x: cdouble, y: cdouble) {.cdecl.} =
-  # this does not fire when mouse is not in the window
-  mouse.pos = vec2(x, y) * dpi
-  redraw()
+  useDepthBuffer(false)
+
+  while base.running:
+    base.tick()
+
+  base.exit()
+
 
 proc `title=`*(win: uibase.Window, title: string) =
-  if win.innerTitle != title:
-    win.innerTitle = title
-    window.SetWindowTitle(title)
+  ## Sets window url
+  win.innerTitle = title
 
 
 proc `title`*(win: uibase.Window): string =
-  win.innerTitle
+  ## Gets window url
+  return win.innerTitle
 
 
-proc startFidget*() =
-  ## Starts cairo backend
-  if glfw.Init() == 0:
-    quit("Failed to Initialize GLFW")
-  window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)
-  glfw.MakeContextCurrent(window)
-  loadExtensions()
+proc `url=`*(win: uibase.Window, url: string) =
+  ## Sets window url
+  win.innerUrl = url
 
-  glfw.PollEvents()
-  resize()
 
-  glDisable(GL_CULL_FACE)
-
-  discard SetCursorPosCallback(window, onMouseMove)
-  discard SetMouseButtonCallback(window, onMouseButton)
-  discard SetFramebufferSizeCallback(window, onResize)
-
-  requestedFrame = true
-
-  while glfw.WindowShouldClose(window) == 0:
-    glfw.PollEvents()
-
-    if requestedFrame:
-      requestedFrame = false
-      display()
-    else:
-      sleep(1)
-
-    # reset one off events
-    mouse.click = false
+proc `url`*(win: uibase.Window): string =
+  ## Gets window url
+  return win.innerUrl
