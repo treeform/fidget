@@ -1,20 +1,10 @@
 include system/timers
-import chroma
-import math
-import unicode
-import strutils
-import opengl
-import glfw3
-import random
-import vmath
-import print
-import times
-import input
-import perf
-
+import math, unicode, strutils, random, times
+import chroma, opengl, glfw3, vmath, print, input, perf
+import ../uibase
 
 var
-  window*: Window
+  window*: glfw3.Window
   view*: Mat4
   proj*: Mat4
   windowSize*: Vec2
@@ -54,7 +44,7 @@ proc tick*() =
   PollEvents()
   perfMark("PollEvents")
 
-  if WindowShouldClose(window) != 0:
+  if glfw3.WindowShouldClose(window) != 0:
     running = false
 
   block:
@@ -130,10 +120,10 @@ proc start*(windowTitle="") =
 
   #WindowHint(SAMPLES, 32)
 
-  WindowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
-  WindowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
-  WindowHint(cint CONTEXT_VERSION_MAJOR, 4)
-  WindowHint(cint CONTEXT_VERSION_MINOR, 1)
+  glfw3.WindowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
+  glfw3.WindowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
+  glfw3.WindowHint(cint CONTEXT_VERSION_MAJOR, 4)
+  glfw3.WindowHint(cint CONTEXT_VERSION_MINOR, 1)
 
   # Open a window
   perfMark("start open window")
@@ -179,24 +169,17 @@ proc start*(windowTitle="") =
   echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
   echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
-  echo "GL_MAX_VERTEX_UNIFORM_VECTORS: ", glGetInteger(GL_MAX_VERTEX_UNIFORM_VECTORS)
-  echo "GL_MAX_VERTEX_ATTRIB_BINDINGS: ", glGetInteger(GL_MAX_VERTEX_ATTRIB_BINDINGS)
-
-
-  #glEnable(GL_DEPTH_TEST)
-  #glEnable(GL_MULTISAMPLE)
-
-  proc onResize(handle: Window, w, h: int32) {.cdecl.} =
+  proc onResize(handle: glfw3.Window, w, h: int32) {.cdecl.} =
     onResize()
     tick()
   discard SetFramebufferSizeCallback(window, onResize)
   onResize()
 
-  # proc onRefresh(handle: Window) {.cdecl.} =
+  # proc onRefresh(handle: glfw3.Window) {.cdecl.} =
   #   onResize()
   # discard SetWindowRefreshCallback(window, onRefresh)
 
-  proc onSetKey(window: Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
+  proc onSetKey(window: glfw3.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
     if typingMode and setKey:
       case cast[Button](key):
@@ -216,11 +199,11 @@ proc start*(windowTitle="") =
 
   discard SetKeyCallback(window, onSetKey)
 
-  proc onScroll(window: Window, xoffset: float64, yoffset: float64) {.cdecl.} =
+  proc onScroll(window: glfw3.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
     mouseWheelDelta += yoffset
   discard SetScrollCallback(window, onScroll)
 
-  proc onMouseButton(window: Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
+  proc onMouseButton(window: glfw3.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
     let button = button + 1
     if button < buttonDown.len:
@@ -229,16 +212,23 @@ proc start*(windowTitle="") =
       buttonDown[button] = setKey
   discard SetMouseButtonCallback(window, onMouseButton)
 
-  proc onSetCharCallback(window: Window; character: cuint) {.cdecl.} =
+  proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
     if typingMode:
       print character
       typingRunes.add Rune(character)
       print typingText
       typingText = $typingRunes
+
+    keyboard.state = KeyState.Press
+    # keyboard.altKey = event.altKey
+    # keyboard.ctrlKey = event.ctrlKey
+    # keyboard.shiftKey = event.shiftKey
+    keyboard.keyString = Rune(character).toUTF8()
+
   discard SetCharCallback(window, onSetCharCallback)
 
   # this does not fire when mouse is not in the window
-  # proc onMouseMove(window: Window; x: cdouble; y: cdouble) {.cdecl.} =
+  # proc onMouseMove(window: glfw3.Window; x: cdouble; y: cdouble) {.cdecl.} =
   #   mousePos.x = x
   #   mousePos.y = y
   # discard SetCursorPosCallback(window, onMouseMove)

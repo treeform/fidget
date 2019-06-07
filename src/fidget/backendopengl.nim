@@ -6,6 +6,7 @@ import uibase
 
 var
   ctx: Context
+  fonts* = newTable[string, Font]()
 
 
 proc hAlignNum(num: int): HAlignMode =

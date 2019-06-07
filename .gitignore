@@ -9,3 +9,4 @@
 *.js
 nimcache
 cairo
+*.dylib

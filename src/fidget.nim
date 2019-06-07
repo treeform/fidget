@@ -1,22 +1,14 @@
 import macros, tables, json, strutils, chroma, print, vmath
 import fidget/uibase
-when defined(JS):
+when defined(js):
   import fidget/backendhtml
   export backendhtml
-elif defined(backendflippy):
-  import fidget/backendflippy
-  export backendflippy
-elif defined(backendcairo):
-  import fidget/backendcairo
-  export backendcairo
-elif defined(backendopengl):
-  import fidget/backendopengl
-  export backendopengl
-else:
+elif defined(backendnull):
   import fidget/backendnull
   export backendnull
-  #import fidget/backendopengl
-  #export backendopengl
+else:
+  import fidget/backendopengl
+  export backendopengl
 export uibase, chroma
 
 
