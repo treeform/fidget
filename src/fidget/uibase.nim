@@ -1,4 +1,5 @@
-import chroma, vmath, tables, typography
+import chroma, vmath, tables
+# typography
 
 const
   clearColor* = color(0,0,0,0)
@@ -108,7 +109,7 @@ var
   rootUrl*: string
   popupActive*: bool
   inPopup*: bool
-  fonts* = newTable[string, Font]()
+  #fonts* = newTable[string, Font]()
 
 mouse = Mouse()
 mouse.pos = Vec2()
