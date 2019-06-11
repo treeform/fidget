@@ -1,5 +1,3 @@
-#nim c -r -d:ssl --verbosity:0 "c:\Users\me\Dropbox\p\istrolid2\fidget\fetcher.nim" > fidget/generated.nim; tools\dos2unix fidget/generated.nim
-
 import httpclient, strutils, json, os, ospaths, strformat, tables, chroma, parseopt
 import print, vmath
 
@@ -89,7 +87,7 @@ proc walker(node: JsonNode, indent: string = "") =
   if nodeType == "boolean_operation":
     nodeType = "group"
 
-  if nodeType in ["vector"]:
+  if nodeType in ["vector", "regular_polygon"]:
     return
 
   if indent == "":
