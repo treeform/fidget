@@ -235,7 +235,7 @@ proc stroke*(color: Color) =
   current.stroke = color
 
 
-proc strokeWeight*(weight: int) =
+proc strokeWeight*(weight: float) =
   ## Sets stroke/border weight.
   current.strokeWeight = weight
 
@@ -245,12 +245,12 @@ proc zLevel*(zLevel: int) =
   current.zLevel = zLevel
 
 
-proc cornerRadius*(a, b, c, d: int) =
+proc cornerRadius*(a, b, c, d: float) =
   ## Sets all radius of all 4 corners
   current.cornerRadius = (a, b, c, d)
 
 
-proc cornerRadius*(radius: int) =
+proc cornerRadius*(radius: float) =
   ## Sets all radius of all 4 corners
   cornerRadius(radius, radius, radius, radius)
 

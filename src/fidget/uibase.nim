@@ -37,15 +37,15 @@ type
     rotation*: float
     screenBox*: Box
     fill*: Color
-    transparency*: float32
-    strokeWeight*: int
+    transparency*: float
+    strokeWeight*: float
     stroke*: Color
     zLevel*: int
     resizeDone*: bool
     htmlDone*: bool
     textStyle*: TextStyle
     imageName*: string
-    cornerRadius*: (int, int, int, int)
+    cornerRadius*: (float, float, float, float)
     wasDrawn*: bool # was group drawn or it still needs to be drawn
     editableText*: bool
 
