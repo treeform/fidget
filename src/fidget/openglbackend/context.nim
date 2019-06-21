@@ -1,4 +1,4 @@
-import tables, ospaths, os, times
+import tables, ospaths, os, times, strformat
 import vmath, chroma, flippy
 import base, meshs, textures, slate
 
@@ -252,21 +252,42 @@ proc drawUvRect*(
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy, uvRect.xy + uvRect.wh, color)
 
 
-proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), color=color(1,1,1,1)) =
+proc getOrLoadImageRect(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
     # need to load imagePath
     # check to see if approparte .slate file is around
     echo "[load] ", imagePath
-    let slateImagePath = imagePath.changeFileExt(".slate")
-
-    if not existsFile(slateImagePath) or getLastModificationTime(slateImagePath).toUnix < getLastModificationTime(imagePath).toUnix:
-      # load slate file
+    if not fileExists(imagePath):
+      raise newException(Exception, &"Image '{imagePath}' not found")
+    let
+      slateImagePath = imagePath.changeFileExt(".slate")
+    if not existsFile(slateImagePath):
+      # no slate file generate new one
       pngToSlate(imagePath, slateImagePath)
+    else:
+      let
+        mtSlate = getLastModificationTime(slateImagePath).toUnix
+        mtImage = getLastModificationTime(imagePath).toUnix
+      if mtSlate < mtImage:
+        # slate file too old, regenerate
+        pngToSlate(imagePath, slateImagePath)
     var slate = loadSlate(slateImagePath)
     ctx.putSlate(imagePath, slate)
-  let rect = ctx.entries[imagePath]
+  return ctx.entries[imagePath]
+
+
+proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), color=color(1,1,1,1)) =
+  ## Draws image the UI way - pos at top-left
+  let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
+
+
+proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale=1.0, color=color(1,1,1,1)) =
+  ## Draws image the Game way pos at center
+  let rect = ctx.getOrLoadImageRect(imagePath)
+  let wh = rect.wh * float32(ctx.size) * scale
+  ctx.drawUvRect(pos - wh/2, pos + wh/2, rect.xy, rect.xy + rect.wh, color)
 
 
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
