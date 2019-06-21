@@ -3,9 +3,11 @@ import vmath, chroma, typography, print, flippy
 import openglbackend/base, openglbackend/context, openglbackend/input
 import uibase
 
+export windowFrame
+export input
 
 var
-  ctx: Context
+  ctx*: Context
   fonts* = newTable[string, Font]()
 
 

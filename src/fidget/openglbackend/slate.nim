@@ -24,7 +24,7 @@ proc save*(slate: SlateImage, filePath: string) =
     f.write(uint32 mip.width)
     f.write(uint32 mip.height)
     #f.writeData(unsafeAddr mip.data[0], mip.data.len)
-    let zipped = snappy.encode(mip.data)
+    let zipped = snappy.compress(mip.data)
     f.write(uint32 zipped.len)
     f.writeData(unsafeAddr zipped[0], zipped.len)
   f.close()
@@ -65,7 +65,7 @@ proc loadSlate*(filePath: string): SlateImage =
     let read = f.readData(unsafeAddr zipped[0], zippedLen)
     if read != zippedLen:
       raise newException(Exception, "Slate read error.")
-    mip.data = snappy.decode(zipped)
+    mip.data = snappy.uncompress(zipped)
     slate.mipmaps.add mip
 
   return slate
