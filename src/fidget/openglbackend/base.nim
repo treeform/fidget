@@ -33,6 +33,11 @@ proc onResize() =
   dpi = windowFrame.x / windowSize.x
   glViewport(0, 0, cwidth, cheight)
 
+
+proc setWindowTitle*(title: string) =
+  window.SetWindowTitle(title)
+
+
 proc tick*() =
   perfMark("--- start frame")
 
@@ -63,6 +68,7 @@ proc tick*() =
   perfMark("user draw")
 
   mouseWheelDelta = 0
+  mouse.click = false
 
   if glGetError() != GL_NO_ERROR:
     echo "gl error: "
@@ -106,7 +112,7 @@ proc glGetInteger(what: GLenum): int =
   glGetIntegerv(what, addr val)
   return int val
 
-proc start*(windowTitle="") =
+proc start*() =
 
   perfMark("start base")
 
@@ -128,7 +134,7 @@ proc start*(windowTitle="") =
   # Open a window
   perfMark("start open window")
   #window = CreateWindow(1920, 1080, windowTitle, nil, nil)
-  window = CreateWindow(2000, 1000, windowTitle, nil, nil)
+  window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
   perfMark("open window")
 
   if window.isNil:
@@ -206,6 +212,8 @@ proc start*(windowTitle="") =
   proc onMouseButton(window: glfw3.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
     let button = button + 1
+    if button == 1 and setKey:
+      mouse.click = true
     if button < buttonDown.len:
       if buttonDown[button] == false and setKey == true:
         buttonPress[button] = true

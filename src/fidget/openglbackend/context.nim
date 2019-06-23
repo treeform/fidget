@@ -293,7 +293,6 @@ proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale=
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   let imgKey = "rect"
   if imgKey notin ctx.entries:
-    echo "need to load rect"
     var image = newImage(32, 32, 4)
     image.fill(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)

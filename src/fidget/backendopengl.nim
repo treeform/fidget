@@ -192,7 +192,7 @@ proc goto*(url: string) =
 proc startFidget*() =
   ## Starts fidget UI library
 
-  base.start("fidget test")
+  base.start()
   ctx = newContext(1024*8)
 
   base.drawFrame = proc() =
@@ -256,6 +256,7 @@ proc startFidget*() =
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window url
   win.innerTitle = title
+  setWindowTitle(title)
 
 
 proc `title`*(win: uibase.Window): string =
