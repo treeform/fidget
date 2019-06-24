@@ -1,5 +1,5 @@
 import uibase, dom2 as dom, chroma, strutils, math, tables
-
+import print
 
 var
   divCache*: seq[Group]
@@ -38,7 +38,6 @@ proc draw*(group: Group) =
   if cacheGroup.fill != current.fill or cacheGroup.kind != current.kind:
     inc perf.numLowLevelCalls
     cacheGroup.fill = current.fill
-    cacheGroup.kind = current.kind
     if current.kind == "text":
       dom.style.color = $current.fill.toHtmlRgba()
       dom.style.backgroundColor = "rgba(0,0,0,0)"
@@ -69,6 +68,9 @@ proc draw*(group: Group) =
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
     #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+
+  if cacheGroup.kind == "text" and current.kind != "text":
+    dom.removeAllChildren()
 
   if current.kind == "text":
     if current.editableText:
@@ -173,6 +175,10 @@ proc draw*(group: Group) =
       $current.cornerRadius[2] & "px " &
       $current.cornerRadius[3] & "px"
     )
+
+  # kind should be the last thing to change
+  cacheGroup.kind = current.kind
+
   inc numGroups
 
 var startTime: float
