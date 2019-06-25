@@ -76,6 +76,7 @@ proc tick*() =
   # reset key and mouse press to default state
   for i in 0..<buttonPress.len:
     buttonPress[i] = false
+    buttonUp[i] = false
 
   perfMark("pre SwapBuffers")
   SwapBuffers(window)
@@ -201,6 +202,8 @@ proc start*() =
       if buttonDown[key] == false and setKey:
         buttonToggle[key] = not buttonToggle[key]
         buttonPress[key] = true
+      if buttonDown[key] == false and setKey == false:
+        buttonUp[key] = true
       buttonDown[key] = setKey
 
   discard SetKeyCallback(window, onSetKey)
@@ -218,6 +221,8 @@ proc start*() =
       if buttonDown[button] == false and setKey == true:
         buttonPress[button] = true
       buttonDown[button] = setKey
+    if buttonDown[button] == false and setKey == false:
+      buttonUp[button] = true
   discard SetMouseButtonCallback(window, onMouseButton)
 
   proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
