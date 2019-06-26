@@ -1,4 +1,4 @@
-import streams
+import streams, strformat
 import flippy, snappy, print, opengl
 import textures, perf
 
@@ -48,10 +48,10 @@ proc loadSlate*(filePath: string): SlateImage =
   var slate = SlateImage()
   var f = newFileStream(filePath, fmRead)
   if f.readStr(8) != "slate!!\0":
-    raise newException(Exception, "Invalid slate header.")
+    raise newException(Exception, &"Invalid slate header {filePath}.")
   while not f.atEnd():
     if f.readStr(4) != "mip!":
-      raise newException(Exception, "Invalid slate sub header.")
+      raise newException(Exception, &"Invalid slate sub header {filePath}.")
     var mip = Image()
     mip.width = int f.readUInt32()
     mip.height = int f.readUInt32()
