@@ -71,6 +71,7 @@ proc draw*(group: Group) =
 
   if cacheGroup.kind == "text" and current.kind != "text":
     dom.removeAllChildren()
+    cacheGroup.text = ""
 
   if current.kind == "text":
     if current.editableText:
@@ -115,9 +116,9 @@ proc draw*(group: Group) =
       if cacheGroup.text != current.text:
         inc perf.numLowLevelCalls
         cacheGroup.text = current.text
+
         # remove old text
-        while dom.firstChild != nil:
-          dom.removeChild(dom.firstChild)
+        dom.removeAllChildren()
 
         var textDiv = document.createElement("span")
         dom.appendChild(textDiv)
