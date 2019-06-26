@@ -12,9 +12,9 @@ type
 
     image*: Image ## Image of the atlas remove?
     texture*: Texture ## Texture of the atlas
-    heights : seq[uint16] ## Hight map of the free space in the atlas
-    size: int ## size x size dementions of the atlas
-    margin: int ## default margin between images
+    heights*: seq[uint16] ## Hight map of the free space in the atlas
+    size*: int ## size x size dementions of the atlas
+    margin*: int ## default margin between images
 
     mat*: Mat4 ## current matrix
     mats: seq[Mat4] ## matrix stack
@@ -252,7 +252,7 @@ proc drawUvRect*(
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy, uvRect.xy + uvRect.wh, color)
 
 
-proc getOrLoadImageRect(ctx: Context, imagePath: string): Rect =
+proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
     # need to load imagePath
     # check to see if approparte .slate file is around

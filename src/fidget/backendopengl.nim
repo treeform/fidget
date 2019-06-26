@@ -189,9 +189,7 @@ proc goto*(url: string) =
   redraw()
 
 
-proc startFidget*() =
-  ## Starts fidget UI library
-
+proc setupFidget*() =
   base.start()
   ctx = newContext(1024*8)
 
@@ -246,6 +244,11 @@ proc startFidget*() =
     ctx.flip()
 
   useDepthBuffer(false)
+
+
+proc startFidget*() =
+  ## Starts fidget UI library
+  setupFidget()
 
   while base.running:
     base.tick()
