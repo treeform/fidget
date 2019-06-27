@@ -11,6 +11,27 @@ proc removeAllChildren(dom: Node) =
     dom.removeChild(dom.firstChild)
 
 
+var computeTextHeightCache = newTable[string, float]()
+proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
+  ## Give text, font and a width of the box, compute how far the
+  ## text will fill down the hight of the box.
+  let key = text & $width & fontName & $fontSize
+  if key in computeTextHeightCache:
+    return computeTextHeightCache[key]
+  var tempDiv = document.createElement("div")
+  document.body.appendChild(tempDiv)
+  tempDiv.style.fontSize = $fontSize & "px"
+  tempDiv.style.fontFamily = fontName
+  tempDiv.style.position = "absolute"
+  tempDiv.style.left = "-1000"
+  tempDiv.style.top = "-1000"
+  tempDiv.style.width = $width & "px"
+  tempDiv.innerHTML = text
+  result = float tempDiv.clientHeight
+  document.body.removeChild(tempDiv)
+  computeTextHeightCache[key] = result
+
+
 proc draw*(group: Group) =
 
   while divCache.len <= numGroups:
@@ -77,7 +98,7 @@ proc draw*(group: Group) =
     if current.editableText:
       # input element were you can type
       var inputDiv: Node
-      if cacheGroup.editableText == false:
+      if cacheGroup.editableText == false or dom.childNodes.len == 0:
         dom.removeAllChildren()
         inputDiv = document.createElement("input")
         inputDiv.setAttribute("type", "text")
@@ -128,7 +149,6 @@ proc draw*(group: Group) =
           var textDom = document.createTextNode(current.text)
           textDiv.appendChild(textDom)
 
-        textDiv.style.whiteSpace = "pre"
         textDiv.style.position = "absolute"
 
         case current.textStyle.textAlignHorizontal:
