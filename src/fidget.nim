@@ -97,6 +97,11 @@ template onClickOutside*(inner: untyped) =
   if mouse.click and not mouseOverlapLogic():
     inner
 
+template onRightClick*(inner: untyped) =
+  ## OnClick event handler.
+  if mouse.rightClick and mouseOverlapLogic():
+    inner
+
 template onKey*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Press:
