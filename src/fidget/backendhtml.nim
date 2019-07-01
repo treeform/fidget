@@ -215,7 +215,7 @@ proc drawStart() =
   # set up root HTML
   root.box.x = 0
   root.box.y = 0
-  root.box.w = float document.body.clientWidth
+  root.box.w = float dom.window.innerWidth #document.body.clientWidth #
   root.box.h = float document.body.clientHeight
 
   scrollBox.x = float dom.window.scrollX
