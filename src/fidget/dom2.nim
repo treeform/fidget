@@ -66,6 +66,7 @@ type
     performance*: Performance
     onpopstate*: proc (event: Event)
 
+
   Frame* = ref FrameObj
   FrameObj {.importc.} = object of WindowObj
 
