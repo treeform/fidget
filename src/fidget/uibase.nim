@@ -65,6 +65,7 @@ type
     state: KeyState
     pos*: Vec2
     click*: bool # mouse button just got held down
+    rightClick*: bool # mouse right click
     down*: bool # mouse button is held down
     cursorStyle*: MouseCursorStyle # sets the mouse cursor icon
 

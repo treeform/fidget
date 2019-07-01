@@ -69,6 +69,7 @@ proc tick*() =
 
   mouseWheelDelta = 0
   mouse.click = false
+  mouse.rightClick = false
 
   if glGetError() != GL_NO_ERROR:
     echo "gl error: "
@@ -217,6 +218,8 @@ proc start*() =
     let button = button + 1
     if button == 1 and setKey:
       mouse.click = true
+    if button == 2 and setKey:
+      mouse.rightClick = true
     if button < buttonDown.len:
       if buttonDown[button] == false and setKey == true:
         buttonPress[button] = true
