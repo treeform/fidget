@@ -56,7 +56,6 @@ type
     Repeat
     Press
 
-
   MouseCursorStyle* = enum
     Default
     Pointer
