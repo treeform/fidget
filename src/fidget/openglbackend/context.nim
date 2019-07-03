@@ -283,6 +283,13 @@ proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), color=c
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
 
+proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), size = vec2(0, 0), color=color(1,1,1,1)) =
+  ## Draws image the UI way - pos at top-left
+  let rect = ctx.getOrLoadImageRect(imagePath)
+  let wh = rect.wh * float32(ctx.size)
+  ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
+
+
 proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale=1.0, color=color(1,1,1,1)) =
   ## Draws image the Game way pos at center
   let rect = ctx.getOrLoadImageRect(imagePath)

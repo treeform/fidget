@@ -163,7 +163,7 @@ proc draw*(group: Group) =
 
   if group.imageName != "":
     let path = "data/" & group.imageName & ".png"
-    ctx.drawImage(path, vec2(0, 0))
+    ctx.drawImage(path, vec2(0, 0), vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
 
