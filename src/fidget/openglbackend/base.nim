@@ -206,6 +206,9 @@ proc start*() =
       if buttonDown[key] == false and setKey == false:
         buttonUp[key] = true
       buttonDown[key] = setKey
+      keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
+      keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
+      keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
 
   discard SetKeyCallback(window, onSetKey)
 
