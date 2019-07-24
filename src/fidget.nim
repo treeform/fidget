@@ -225,10 +225,12 @@ proc fill*(color: string) =
   ## Sets background color.
   current.fill = parseHtmlColor(color)
 
+
 proc fill*(color: string, alpha: float32) =
   ## Sets background color.
   current.fill = parseHtmlColor(color)
   current.fill.a = alpha
+
 
 proc transparency*(transparency: float32) =
   ## Sets transparency.
@@ -238,6 +240,17 @@ proc transparency*(transparency: float32) =
 proc stroke*(color: Color) =
   ## Sets stroke/border color.
   current.stroke = color
+
+
+proc stroke*(color: string) =
+  ## Sets stroke/border color.
+  current.stroke = parseHtmlColor(color)
+
+
+proc stroke*(color: string, alpha: float32) =
+  ## Sets stroke/border color.
+  current.stroke = parseHtmlColor(color)
+  current.stroke.a = alpha
 
 
 proc strokeWeight*(weight: float) =
