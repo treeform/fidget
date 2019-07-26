@@ -343,23 +343,24 @@ proc startFidget*() =
     else:
       event.preventDefault()
 
-  dom.window.addEventListener "keypress", proc(event: Event) =
-    ## When keyboards key is pressed
-    ## Used for typing because of key repeats
-    keyboard.set(Press, event)
-    hardRedraw()
-    if keyboard.state != Empty:
-      keyboard.use()
-    else:
-      event.preventDefault()
+  # dom.window.addEventListener "keypress", proc(event: Event) =
+  #   ## When keyboards key is pressed
+  #   ## Used for typing because of key repeats
+  #   keyboard.set(Press, event)
+  #   hardRedraw()
+  #   if keyboard.state != Empty:
+  #     keyboard.use()
+  #   else:
+  #     event.preventDefault()
 
   dom.window.addEventListener "input", proc(event: Event) =
     ## When INPUT element has keyboard input this is called
     if document.activeElement.nodeName == "INPUT":
       keyboard.input = $(cast[InputElement](document.activeElement).value)
       keyboard.inputFocusId = $document.activeElement.parentElement.id
+      keyboard.state = Press
       redraw()
-      echo "input"
+
 
   dom.window.addEventListener "focusin", proc(event: Event) =
     ## When INPUT element gets focus this is called, set the keyboard.input and
@@ -381,6 +382,7 @@ proc startFidget*() =
   dom.window.addEventListener "popstate", proc(event: Event) =
     ## Called when users presses back or forward buttons.
     redraw()
+
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works

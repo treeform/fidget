@@ -9,9 +9,9 @@ var
   textValue: string
   beEdit = false
 
-drawMain = proc() =
+window.title = "Inputs Example"
 
-  window.title = "Inputs Example"
+drawMain = proc() =
 
   frame "main":
     box 100, 100, 500, 30
@@ -41,5 +41,7 @@ drawMain = proc() =
 
     onClick:
       beEdit = not beEdit
+
+  echo "textValue is ", repr(textValue), " s ", keyboard.state
 
 startFidget()
