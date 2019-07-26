@@ -54,7 +54,7 @@ type
     Up
     Down
     Repeat
-    Press
+    Press # used for text input
 
   MouseCursorStyle* = enum
     Default
