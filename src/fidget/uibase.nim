@@ -100,6 +100,8 @@ var
   groupStack*: seq[Group]
   current*: Group
   scrollBox*: Box
+  scrollBoxMega*: Box # scroll box is 500px biger in y direction
+  scrollBoxMini*: Box # scroll box is smaller by 100px usefull for debugggin
   mouse* = Mouse()
   keyboard* = Keyboard()
   drawMain*: proc()

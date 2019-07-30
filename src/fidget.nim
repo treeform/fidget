@@ -29,7 +29,9 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   current.textStyle = parent.textStyle
   groupStack.add(current)
 
-  inner
+  var innerFn = proc() =
+    inner
+  innerFn()
 
   if not current.wasDrawn:
     current.draw()
