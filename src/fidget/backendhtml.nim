@@ -221,7 +221,17 @@ proc drawStart() =
   scrollBox.x = float dom.window.scrollX
   scrollBox.y = float dom.window.scrollY
   scrollBox.w = float document.body.clientWidth
-  scrollBox.h = float document.body.clientHeight
+  scrollBox.h = float dom.window.innerHeight
+
+  scrollBoxMega.x = float dom.window.scrollX
+  scrollBoxMega.y = float dom.window.scrollY - 500
+  scrollBoxMega.w = float document.body.clientWidth
+  scrollBoxMega.h = float dom.window.innerHeight + 1000
+
+  scrollBoxMini.x = float dom.window.scrollX
+  scrollBoxMini.y = float dom.window.scrollY + 100
+  scrollBoxMini.w = float document.body.clientWidth
+  scrollBoxMini.h = float dom.window.innerHeight - 200
 
   document.body.style.overflowX = "auto"
   document.body.style.overflowY = "auto"
