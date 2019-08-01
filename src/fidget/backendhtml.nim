@@ -6,6 +6,14 @@ var
   rootDomNode: Element
 
 
+var colorCache = newTable[Color, string]()
+proc toHtmlRgbaCached(color: Color): string =
+  result = colorCache.getOrDefault(color)
+  if result == "":
+    result = color.toHtmlRgba()
+    colorCache[color] = result
+
+
 proc removeAllChildren(dom: Node) =
   while dom.firstChild != nil:
     dom.removeChild(dom.firstChild)
