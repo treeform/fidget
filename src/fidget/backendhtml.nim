@@ -32,7 +32,117 @@ proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: 
   computeTextHeightCache[key] = result
 
 
-proc draw*(group: Group) =
+proc drawInit(group: Group) =
+
+  var dom = document.createElement("div")
+  rootDomNode.appendChild(dom)
+
+  dom.id = current.id
+
+  dom.style.position = "absolute"
+  dom.style.left = $current.screenBox.x & "px"
+  dom.style.top = $current.screenBox.y & "px"
+  dom.style.width = $current.screenBox.w & "px"
+  dom.style.height = $current.screenBox.h & "px"
+
+  if current.kind == "text":
+    dom.style.color = $current.fill.toHtmlRgba()
+    dom.style.backgroundColor = "rgba(0,0,0,0)"
+  else:
+    dom.style.backgroundColor = $current.fill.toHtmlRgba()
+    dom.style.color = "rgba(0,0,0,0)"
+
+  if current.strokeWeight > 0:
+    dom.style.borderStyle = "solid"
+    dom.style.boxSizing = "border-box"
+    dom.style.borderColor = $current.stroke.toHtmlRgba()
+    dom.style.borderWidth = $current.strokeWeight & "px"
+  else:
+    dom.style.borderStyle = "none"
+
+  dom.style.opacity = $current.transparency
+
+  dom.style.fontFamily = current.textStyle.fontFamily
+  dom.style.fontSize = $current.textStyle.fontSize & "px"
+  dom.style.fontWeight = $current.textStyle.fontWeight
+  #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+
+  if current.kind == "text":
+    if current.editableText:
+      # input element were you can type
+      var inputDiv: Node
+
+      inputDiv = document.createElement("input")
+      dom.appendChild(inputDiv)
+      inputDiv.setAttribute("type", "text")
+      inputDiv.style.border = "none"
+      inputDiv.style.outline = "none"
+      inputDiv.style.width = "100%"
+      inputDiv.style.backgroundColor = "transparent"
+      inputDiv.style.fontFamily = "inherit"
+      inputDiv.style.fontSize = "inherit"
+      inputDiv.style.fontWeight = "inherit"
+      inputDiv.style.padding = "0px"
+      inputDiv.setAttribute("value", current.text)
+      inputDiv.setAttribute("placeholder", current.placeholder)
+
+    else:
+      # normal text element
+      if current.text != "":
+        var textDiv = document.createElement("span")
+        dom.appendChild(textDiv)
+        # group has text, add text
+        var textDom = document.createTextNode(current.text)
+        textDiv.appendChild(textDom)
+
+        textDiv.style.position = "absolute"
+
+        case current.textStyle.textAlignHorizontal:
+          of -1:
+            textDiv.style.left = "0px"
+          of 1:
+            textDiv.style.right = "0px"
+          else:
+            textDiv.style.left = "50%"
+
+        case current.textStyle.textAlignVertical:
+          of -1:
+            textDiv.style.top = "0px"
+          of 1:
+            textDiv.style.bottom = "0px"
+          else:
+            textDiv.style.bottom = "50%"
+
+        if current.textStyle.textAlignVertical == 0:
+          if current.textStyle.textAlignHorizontal == 0:
+            textDiv.style.transform = "translate(-50%,-50%)"
+            textDiv.style.top = "50%"
+            textDiv.style.bottom = ""
+          else:
+            textDiv.style.transform = "translate(0, -50%)"
+            textDiv.style.top = "50%"
+            textDiv.style.bottom = ""
+        else:
+          if current.textStyle.textAlignHorizontal == 0:
+            textDiv.style.transform = "translate(-50%, 0)"
+
+  if current.imageName != "":
+    dom.style.backgroundImage = "url(" & current.imageName & ".png)"
+    dom.style.backgroundSize = "100% 100%"
+
+  let r = current.cornerRadius
+  if r[0] != 0 and r[1] != 0 and r[2] != 0 and r[3] != 0:
+    dom.style.borderRadius = (
+      $r[0] & "px " &
+      $r[1] & "px " &
+      $r[2] & "px " &
+      $r[3] & "px"
+    )
+
+  inc numGroups
+
+
+proc drawDiff(group: Group) =
 
   while divCache.len <= numGroups:
     rootDomNode.appendChild(document.createElement("div"))
@@ -66,9 +176,11 @@ proc draw*(group: Group) =
       dom.style.backgroundColor = $current.fill.toHtmlRgba()
       dom.style.color = "rgba(0,0,0,0)"
 
-  if cacheGroup.stroke != current.stroke:
+  if cacheGroup.stroke != current.stroke or
+      cacheGroup.strokeWeight != current.strokeWeight:
     inc perf.numLowLevelCalls
     cacheGroup.stroke = current.stroke
+    cacheGroup.strokeWeight = current.strokeWeight
     if current.strokeWeight > 0:
       dom.style.borderStyle = "solid"
       dom.style.boxSizing = "border-box"
@@ -202,6 +314,18 @@ proc draw*(group: Group) =
 
   inc numGroups
 
+
+
+const useDrawDiffing = true
+
+proc draw*(group: Group) =
+  when useDrawDiffing:
+    drawDiff(group)
+  else:
+    drawInit(group)
+
+
+
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
 
@@ -238,6 +362,10 @@ proc drawStart() =
 
   mouse.cursorStyle = Default
 
+  when not useDrawDiffing:
+    rootDomNode.removeAllChildren()
+
+
 proc drawFinish() =
 
   perf.drawMain = dom.window.performance.now() - startTime
@@ -246,10 +374,11 @@ proc drawFinish() =
   #echo numGroups
   #echo perf.numLowLevelCalls
 
-  # remove left over nodes
-  while rootDomNode.childNodes.len > numGroups:
-    rootDomNode.removeChild(rootDomNode.lastChild)
-    discard divCache.pop()
+  when useDrawDiffing:
+    # remove left over nodes
+    while rootDomNode.childNodes.len > numGroups:
+      rootDomNode.removeChild(rootDomNode.lastChild)
+      discard divCache.pop()
 
   # only set mouse style when it changes
   if prevMouseCursorStyle != mouse.cursorStyle:
@@ -370,7 +499,6 @@ proc startFidget*() =
       keyboard.inputFocusId = $document.activeElement.parentElement.id
       keyboard.state = Press
       redraw()
-
 
   dom.window.addEventListener "focusin", proc(event: Event) =
     ## When INPUT element gets focus this is called, set the keyboard.input and
