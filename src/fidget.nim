@@ -223,6 +223,12 @@ proc fill*(color: Color) =
   current.fill = color
 
 
+proc fill*(color: Color, alpha: float32) =
+  ## Sets background color.
+  current.fill = color
+  current.fill.a = alpha
+
+
 proc fill*(color: string) =
   ## Sets background color.
   current.fill = parseHtmlColor(color)
