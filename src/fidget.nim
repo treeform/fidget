@@ -127,6 +127,7 @@ template onInput*(inner: untyped) =
   if keyboard.state == Press and keyboard.inputFocusId == current.id:
     inner
 
+
 template onHover*(inner: untyped) =
   ## Code in the block will run when this box is hovered.
   if mouseOverlapLogic():
@@ -138,6 +139,19 @@ template onDown*(inner: untyped) =
   if mouse.down and mouseOverlapLogic():
     inner
 
+
+template onFocus*(inner: untyped) =
+  ## On focusing an input element.
+  if keyboard.inputFocusId == current.id and
+      keyboard.prevInputFocusId != current.id:
+    inner
+
+
+template onUnFocus*(inner: untyped) =
+  ## On loosing focus on an imput element
+  if keyboard.inputFocusId != current.id and
+      keyboard.prevInputFocusId == current.id:
+    inner
 
 proc id*(id: string) =
   ## Sets ID.
