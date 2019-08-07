@@ -19,13 +19,13 @@ proc removeAllChildren(dom: Node) =
     dom.removeChild(dom.firstChild)
 
 
-var computeTextHeightCache = newTable[string, float]()
-proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
+var computeTextBoxCache = newTable[string, (float, float)]()
+proc computeTextBox*(text: string, width: float, fontName: string, fontSize: float): (float, float) =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
   let key = text & $width & fontName & $fontSize
-  if key in computeTextHeightCache:
-    return computeTextHeightCache[key]
+  if key in computeTextBoxCache:
+    return computeTextBoxCache[key]
   var tempDiv = document.createElement("div")
   document.body.appendChild(tempDiv)
   tempDiv.style.fontSize = $fontSize & "px"
@@ -33,11 +33,19 @@ proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: 
   tempDiv.style.position = "absolute"
   tempDiv.style.left = "-1000"
   tempDiv.style.top = "-1000"
-  tempDiv.style.width = $width & "px"
+  tempDiv.style.maxWidth = $width & "px"
   tempDiv.innerHTML = text
-  result = float tempDiv.clientHeight
+  result[0] = float tempDiv.clientWidth
+  result[1] = float tempDiv.clientHeight
   document.body.removeChild(tempDiv)
-  computeTextHeightCache[key] = result
+  computeTextBoxCache[key] = result
+
+
+proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
+  ## Give text, font and a width of the box, compute how far the
+  ## text will fill down the hight of the box.
+  let (w, h) = computeTextBox(text, width, fontName, fontSize)
+  return h
 
 
 proc drawInit(group: Group) =
@@ -269,36 +277,30 @@ proc drawDiff(group: Group) =
           var textDom = document.createTextNode(current.text)
           textDiv.appendChild(textDom)
 
-        textDiv.style.position = "absolute"
+        if current.textStyle.textAlignHorizontal != -1 or current.textStyle.textAlignVertical != 1:
+          var box = computeTextBox(
+            current.text,
+            current.screenBox.w,
+            current.textStyle.fontFamily,
+            current.textStyle.fontSize
+          )
+          textDiv.style.position = "absolute"
+          case current.textStyle.textAlignHorizontal:
+            of -1:
+              textDiv.style.left = "0px"
+            of 1:
+              textDiv.style.left = $(current.screenBox.w - box[0]) & "px"
+            else:
+              textDiv.style.left = $(current.screenBox.w / 2 - box[0] / 2) & "px"
 
-        case current.textStyle.textAlignHorizontal:
-          of -1:
-            textDiv.style.left = "0px"
-          of 1:
-            textDiv.style.right = "0px"
-          else:
-            textDiv.style.left = "50%"
+          case current.textStyle.textAlignVertical:
+            of -1:
+              textDiv.style.top = "0px"
+            of 1:
+              textDiv.style.top = $(current.screenBox.h - box[1]) & "px"
+            else:
+              textDiv.style.top = $(current.screenBox.h / 2 - box[1] / 2) & "px"
 
-        case current.textStyle.textAlignVertical:
-          of -1:
-            textDiv.style.top = "0px"
-          of 1:
-            textDiv.style.bottom = "0px"
-          else:
-            textDiv.style.bottom = "50%"
-
-        if current.textStyle.textAlignVertical == 0:
-          if current.textStyle.textAlignHorizontal == 0:
-            textDiv.style.transform = "translate(-50%,-50%)"
-            textDiv.style.top = "50%"
-            textDiv.style.bottom = ""
-          else:
-            textDiv.style.transform = "translate(0, -50%)"
-            textDiv.style.top = "50%"
-            textDiv.style.bottom = ""
-        else:
-          if current.textStyle.textAlignHorizontal == 0:
-            textDiv.style.transform = "translate(-50%, 0)"
 
   if cacheGroup.imageName != current.imageName:
     cacheGroup.imageName = current.imageName
@@ -374,6 +376,7 @@ proc drawStart() =
     rootDomNode.removeAllChildren()
 
 
+
 proc drawFinish() =
 
   perf.drawMain = dom.window.performance.now() - startTime
@@ -388,7 +391,7 @@ proc drawFinish() =
       rootDomNode.removeChild(rootDomNode.lastChild)
       discard divCache.pop()
 
-  # only set mouse style when it changes
+  # Only set mouse style when it changes.
   if prevMouseCursorStyle != mouse.cursorStyle:
     prevMouseCursorStyle = mouse.cursorStyle
     case mouse.cursorStyle:
@@ -396,6 +399,9 @@ proc drawFinish() =
         rootDomNode.style.cursor = "default"
       of Pointer:
         rootDomNode.style.cursor = "pointer"
+
+  # Used for onFocus/onUnFocus.
+  keyboard.prevInputFocusId = keyboard.inputFocusId
 
 
 proc hardRedraw() =

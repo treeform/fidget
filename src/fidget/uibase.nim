@@ -78,6 +78,7 @@ type
     shiftKey*: bool
     superKey*: bool
     inputFocusId*: string
+    prevInputFocusId*: string
     input*: string
 
     textCursor*: int # at which character in the input string are we
