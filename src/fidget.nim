@@ -29,6 +29,9 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   current.textStyle = parent.textStyle
   groupStack.add(current)
 
+  for g in groupStack:
+    current.idPath.add "." & g.id
+
   var innerFn = proc() =
     inner
   innerFn()
@@ -124,7 +127,8 @@ template onKeyDown*(inner: untyped) =
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus
-  if keyboard.state == Press and keyboard.inputFocusId == current.id:
+  print keyboard.inputFocusIdPath, current.idPath
+  if keyboard.state == Press and keyboard.inputFocusIdPath == current.idPath:
     inner
 
 
@@ -142,15 +146,15 @@ template onDown*(inner: untyped) =
 
 template onFocus*(inner: untyped) =
   ## On focusing an input element.
-  if keyboard.inputFocusId == current.id and
-      keyboard.prevInputFocusId != current.id:
+  if keyboard.inputFocusIdPath == current.idPath and
+      keyboard.prevInputFocusIdPath != current.idPath:
     inner
 
 
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an imput element
-  if keyboard.inputFocusId != current.id and
-      keyboard.prevInputFocusId == current.id:
+  if keyboard.inputFocusIdPath != current.idPath and
+      keyboard.inputFocusIdPath == current.idPath:
     inner
 
 proc id*(id: string) =
@@ -298,6 +302,11 @@ proc cornerRadius*(radius: float) =
 proc editableText*(editableText: bool) =
   ## Sets the code for this group
   current.editableText = editableText
+
+
+proc multiline*(multiline: bool) =
+  ## Sets if editible text is multiline (textarea) or single line
+  current.multiline = multiline
 
 
 template binding*(stringVarible: untyped) =

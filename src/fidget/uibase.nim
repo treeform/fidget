@@ -28,6 +28,7 @@ type
 
   Group* = ref object
     id*: string
+    idPath*: string
     kind*: string
     text*: string
     placeholder*: string
@@ -48,6 +49,7 @@ type
     cornerRadius*: (float, float, float, float)
     wasDrawn*: bool # was group drawn or it still needs to be drawn
     editableText*: bool
+    multiline*: bool
 
   KeyState* = enum
     Empty
@@ -77,8 +79,8 @@ type
     ctrlKey*: bool
     shiftKey*: bool
     superKey*: bool
-    inputFocusId*: string
-    prevInputFocusId*: string
+    inputFocusIdPath*: string
+    prevInputFocusIdPath*: string
     input*: string
 
     textCursor*: int # at which character in the input string are we
