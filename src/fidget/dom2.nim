@@ -290,6 +290,7 @@ type
     pageBreakAfter*: cstring
     pageBreakBefore*: cstring
     position*: cstring
+    resize*: cstring
     right*: cstring
     scrollbar3dLightColor*: cstring
     scrollbarArrowColor*: cstring
