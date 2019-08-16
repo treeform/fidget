@@ -1,4 +1,4 @@
-import strformat, strutils, sequtils, times
+import strformat, strutils, times
 
 var prevTime: float64
 var prefDump*: bool = true
