@@ -1,5 +1,5 @@
 include system/timers
-import math, unicode, strutils, random, times
+import unicode
 import chroma, opengl, glfw3, vmath, print, input, perf
 import ../uibase
 
@@ -152,8 +152,9 @@ proc start*() =
   # Load opengl
   loadExtensions()
 
-  var flags: GLint
-  glGetIntegerv(GL_CONTEXT_FLAGS, addr flags)
+  # var flags: GLint
+  # glGetIntegerv(GL_CONTEXT_FLAGS, addr flags)
+  var flags = glGetInteger(GL_CONTEXT_FLAGS)
   if (flags and cast[GLint](GL_CONTEXT_FLAG_DEBUG_BIT)) != 0:
     when defined(glDebugMessageCallback):
       # set up error reporting
