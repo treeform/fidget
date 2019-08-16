@@ -127,7 +127,6 @@ template onKeyDown*(inner: untyped) =
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus
-  print keyboard.inputFocusIdPath, current.idPath
   if keyboard.state == Press and keyboard.inputFocusIdPath == current.idPath:
     inner
 
