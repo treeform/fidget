@@ -1,5 +1,5 @@
-import times, tables
-import vmath, chroma, typography, print, flippy
+import tables
+import vmath, chroma, typography
 import openglbackend/base, openglbackend/context, openglbackend/input
 import uibase
 
@@ -35,9 +35,9 @@ proc drawText(group: Group) =
   var font = fonts[group.textStyle.fontFamily]
   font.size = group.textStyle.fontSize
   font.lineHeight = group.textStyle.lineHeight
-  let fontHeight = font.ascent - font.descent
-  let scale = font.size / fontHeight
-  let editing = keyboard.inputFocusId == group.id
+  # let fontHeight = font.ascent - font.descent
+  # let scale = font.size / fontHeight
+  let editing = keyboard.inputFocusIdPath == group.idPath
   let cursorWidth = floor(min(1, font.size/12.0))
 
   if editing:
@@ -124,7 +124,7 @@ proc drawText(group: Group) =
 
       if mouse.click and mouse.pos.inside(current.screenBox):
         echo "gain focus"
-        keyboard.inputFocusId = group.id
+        keyboard.inputFocusIdPath = group.idPath
         keyboard.input = group.text
         keyboard.textCursor = keyboard.input.len
 
@@ -136,8 +136,8 @@ proc drawText(group: Group) =
 
       if mouse.click and not mouse.pos.inside(current.screenBox):
         echo "loose focus"
-        if keyboard.inputFocusId == group.id:
-          keyboard.inputFocusId = ""
+        if keyboard.inputFocusIdPath == group.idPath:
+          keyboard.inputFocusIdPath = ""
 
 
 proc draw*(group: Group) =

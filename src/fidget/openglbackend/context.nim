@@ -1,6 +1,6 @@
-import tables, ospaths, os, times, strformat
+import tables, os, times, strformat
 import vmath, chroma, flippy
-import base, meshs, textures, slate
+import meshs, textures, slate
 
 type
   Context* = ref object
