@@ -190,16 +190,33 @@ proc start*() =
 
   proc onSetKey(window: glfw3.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
-    if typingMode and setKey:
+    if keyboard.inputFocusIdPath != "" and setKey:
+      keyboard.textCursor = clamp(keyboard.textCursor, 0, keyboard.inputRunes.len)
+      keyboard.inputChange = true
       case cast[Button](key):
+        of LEFT:
+          dec keyboard.textCursor
+        of RIGHT:
+          inc keyboard.textCursor
+        of Button.UP:
+          keyboard.goingUP = true
+        of Button.DOWN:
+          keyboard.goingDown = true
         of ENTER:
-          typingRunes.add(Rune(10))
+          keyboard.inputRunes.insert(Rune(10), keyboard.textCursor)
+          keyboard.input = $keyboard.inputRunes
+          inc keyboard.textCursor
         of BACKSPACE:
-          if typingRunes.len > 0:
-            typingRunes.setLen(typingRunes.len-1)
+          if keyboard.textCursor > 0:
+            dec keyboard.textCursor
+            keyboard.inputRunes.delete(keyboard.textCursor)
+            keyboard.input = $keyboard.inputRunes
+        of DELETE:
+          if keyboard.textCursor != keyboard.inputRunes.len:
+            keyboard.inputRunes.delete(keyboard.textCursor)
+            keyboard.input = $keyboard.inputRunes
         else:
           discard
-      typingText = $typingRunes
     elif key < buttonDown.len:
       if buttonDown[key] == false and setKey:
         buttonToggle[key] = not buttonToggle[key]
@@ -233,11 +250,11 @@ proc start*() =
   discard SetMouseButtonCallback(window, onMouseButton)
 
   proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
-    if typingMode:
-      print character
-      typingRunes.add Rune(character)
-      print typingText
-      typingText = $typingRunes
+    if keyboard.inputFocusIdPath != "":
+      keyboard.textCursor = clamp(keyboard.textCursor, 0, keyboard.inputRunes.len)
+      keyboard.inputRunes.insert(Rune(character), keyboard.textCursor)
+      inc keyboard.textCursor
+      keyboard.input = $keyboard.inputRunes
 
     keyboard.state = KeyState.Press
     # keyboard.altKey = event.altKey
