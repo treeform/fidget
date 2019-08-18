@@ -73,6 +73,12 @@ proc drawDiff(group: Group) =
     dom.style.width = $current.screenBox.w & "px"
     dom.style.height = $current.screenBox.h & "px"
 
+    if current.kind == "text":
+      if dom.childNodes.len > 0:
+        var textAreaDiv = dom.childNodes[0]
+        textAreaDiv.style.width = $current.box.w & "px"
+        textAreaDiv.style.height = $current.box.h & "px"
+
   if cacheGroup.fill != current.fill or cacheGroup.kind != current.kind:
     inc perf.numLowLevelCalls
     cacheGroup.fill = current.fill
