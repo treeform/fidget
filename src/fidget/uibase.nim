@@ -1,6 +1,9 @@
 import chroma, vmath, tables
 # typography
 
+when not defined(js):
+  import unicode
+
 const
   clearColor* = color(0,0,0,0)
   whiteColor* = color(1,1,1,1)
@@ -82,7 +85,12 @@ type
     inputFocusIdPath*: string
     prevInputFocusIdPath*: string
     input*: string
-
+    when not defined(js):
+      inputRunes*: seq[Rune]
+      lastUpDownX*: float # when going up or down last X is remembered
+      goingUp*: bool # cursor is going up
+      goingDown*: bool # cursor is going down
+      inputChange*: bool # some thing happend to the text area
     textCursor*: int # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 
@@ -142,6 +150,10 @@ proc use*(keyboard: Keyboard) =
 proc use*(mouse: Mouse) =
   mouse.click = false
 
+
+proc clamp*(value, min, max: int): int =
+  ## Makes sure the value is between min and max inclusive
+  max(min, min(value, max))
 
 proc between*(value, min, max: float): bool =
   ## Returns true if value is between min and max or equals to them.

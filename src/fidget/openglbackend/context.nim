@@ -300,13 +300,12 @@ proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale=
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   let imgKey = "rect"
   if imgKey notin ctx.entries:
-    var image = newImage(32, 32, 4)
+    var image = newImage(4, 4, 4)
     image.fill(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
   let uvRect = ctx.entries[imgKey]
   let wh = rect.wh * float32(ctx.size)
-  let halfPixel = vec2(1, 1) / float32(ctx.size) / 2
-  ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy + halfPixel, uvRect.xy + uvRect.wh - halfPixel, color)
+  ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy + uvRect.wh/2, uvRect.xy + uvRect.wh/2, color)
 
 
 proc flip*(ctx: Context) =

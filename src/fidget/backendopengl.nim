@@ -1,5 +1,5 @@
-import tables
-import vmath, chroma, typography
+import tables, unicode
+import vmath, chroma, typography, print
 import openglbackend/base, openglbackend/context, openglbackend/input
 import uibase
 
@@ -38,7 +38,8 @@ proc drawText(group: Group) =
   # let fontHeight = font.ascent - font.descent
   # let scale = font.size / fontHeight
   let editing = keyboard.inputFocusIdPath == group.idPath
-  let cursorWidth = floor(min(1, font.size/12.0))
+  let cursorWidth = clamp(floor(font.size/12.0), 1.0, 12.0)
+  var cursorPos = vec2(0, 0)
 
   if editing:
     group.text = keyboard.input
@@ -51,18 +52,16 @@ proc drawText(group: Group) =
     vAlignNum(group.textStyle.textAlignVertical)
   )
 
+  if keyboard.textCursor > layout.len:
+    keyboard.textCursor = layout.len
+
   # draw layout boxes
   for pos in layout:
+    ctx.fillRect(pos.selectRect, color(0, 0, 1, 0.1))
+
+  # draw characters
+  for glphyIdx, pos in layout:
     var font = pos.font
-    # if pos.character == "\n":
-    #   #print pos.selectRect, pos.index
-    #   ctx.strokeRect(pos.selectRect, rgba(0,0,255,255))
-    #   let baseLine = pos.selectRect.y + font.ascent * scale
-    #   ctx.line(
-    #     vec2(pos.selectRect.x, baseLine),
-    #     vec2(pos.selectRect.x + pos.selectRect.w, baseLine),
-    #     rgba(0,0,255,255)
-    #   )
 
     if pos.character in font.glyphs:
       let subPixelShift = floor(pos.subPixelShift*10)/10
@@ -80,40 +79,31 @@ proc drawText(group: Group) =
 
       ctx.drawImage(charKey, charPos, group.fill)
 
-    if editing and keyboard.textCursor == pos.index:
+    if editing and keyboard.textCursor == glphyIdx:
       # draw text cursor at glyph pos
-      ctx.fillRect(rect(
-        pos.selectRect.x,
-        pos.selectRect.y,
-        cursorWidth,
-        font.size
-      ), group.fill)
+      cursorPos = pos.selectRect.xy
 
-  # draw text cursor if there is not character
+
   if editing and keyboard.input.len == 0:
-    ctx.fillRect(rect(
-      group.screenBox.x,
-      group.screenBox.y,
-      cursorWidth,
-      font.size
-    ), group.fill)
-  # draw text cursor at the last character
-  elif editing and keyboard.input.len == keyboard.textCursor:
+    # draw text cursor at the start if there is no characters
+    cursorPos = group.screenBox.xy
+  elif editing and keyboard.inputRunes.len == keyboard.textCursor:
+    # draw text cursor at the end character
     let pos = layout[^1]
     if pos.character != "\n":
-      ctx.fillRect(rect(
-        pos.selectRect.x + pos.selectRect.w,
-        pos.selectRect.y,
-        cursorWidth,
-        font.size
-      ), group.fill)
+      cursorPos.x = pos.selectRect.x + pos.selectRect.w
+      cursorPos.y = pos.selectRect.y
     else:
-      ctx.fillRect(rect(
-        group.screenBox.x,
-        pos.selectRect.y + font.lineHeight,
-        cursorWidth,
-        font.size
-      ), group.fill)
+      cursorPos.x = 0
+      cursorPos.y = pos.selectRect.y + font.lineHeight
+
+  ctx.fillRect(rect(
+    cursorPos.x,
+    cursorPos.y,
+    cursorWidth,
+    font.lineHeight #font.size
+  ), group.fill)
+
 
   if group.text.len > 0 or (group.editableText and group.placeholder.len > 0):
     var text = group.text
@@ -122,15 +112,39 @@ proc drawText(group: Group) =
       if group.text.len == 0 and group.placeholder.len > 0:
           text = group.placeholder
 
+      if keyboard.inputChange and not keyboard.goingUp and not keyboard.goingDown:
+        keyboard.lastUpDownX = cursorPos.x
+
+      if keyboard.goingUp:
+        let pos = layout.pickGlyphAt(vec2(keyboard.lastUpDownX, cursorPos.y - font.lineHeight * 0.5))
+        if pos.character != "":
+          keyboard.textCursor = pos.count
+        keyboard.goingUp = false
+
+      if keyboard.goingDown:
+        let pos = layout.pickGlyphAt(vec2(keyboard.lastUpDownX, cursorPos.y + font.lineHeight * 1.5))
+        if pos.character != "":
+          keyboard.textCursor = pos.count
+        keyboard.goingDown = false
+
       if mouse.click and mouse.pos.inside(current.screenBox):
         echo "gain focus"
         keyboard.inputFocusIdPath = group.idPath
         keyboard.input = group.text
+        keyboard.inputRunes = group.text.toRunes()
         keyboard.textCursor = keyboard.input.len
 
-        let pos = layout.pickGlyphAt(mouse.pos)
+        # pick where to playce the textCursor
+        let pickMousePos = mouse.pos - current.screenBox.xy
+        let pos = layout.pickGlyphAt(pickMousePos)
         if pos.character != "":
-          keyboard.textCursor = pos.index
+          keyboard.textCursor = pos.count
+          keyboard.lastUpDownX = mouse.pos.x
+
+          # when selecting the last character, select the end
+          let pickOffset = pickMousePos - pos.selectRect.xy
+          if pickOffset.x > pos.selectRect.w / 2 and keyboard.textCursor == keyboard.inputRunes.len - 1:
+            inc keyboard.textCursor
 
         mouse.use()
 
@@ -138,6 +152,9 @@ proc drawText(group: Group) =
         echo "loose focus"
         if keyboard.inputFocusIdPath == group.idPath:
           keyboard.inputFocusIdPath = ""
+
+  # we have processed the change
+  keyboard.inputChange = false
 
 
 proc draw*(group: Group) =

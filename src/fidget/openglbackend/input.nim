@@ -150,11 +150,6 @@ var
   mouseDelta*: Vec2
   mouseWheelDelta*: float
 
-  typingMode*: bool
-  typingCursor*: int
-  typingRunes* = newSeq[Rune]()
-  typingText*: string
-
 
 proc `[]`*(buttons: seq[bool], button:Button): bool =
   return buttons[cast[int](button)]
