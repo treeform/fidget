@@ -91,6 +91,7 @@ type
       goingUp*: bool # cursor is going up
       goingDown*: bool # cursor is going down
       inputChange*: bool # some thing happend to the text area
+      multiline*: bool
     textCursor*: int # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 

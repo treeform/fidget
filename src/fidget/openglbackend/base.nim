@@ -203,9 +203,10 @@ proc start*() =
         of Button.DOWN:
           keyboard.goingDown = true
         of ENTER:
-          keyboard.inputRunes.insert(Rune(10), keyboard.textCursor)
-          keyboard.input = $keyboard.inputRunes
-          inc keyboard.textCursor
+          if keyboard.multiline:
+            keyboard.inputRunes.insert(Rune(10), keyboard.textCursor)
+            keyboard.input = $keyboard.inputRunes
+            inc keyboard.textCursor
         of BACKSPACE:
           if keyboard.textCursor > 0:
             dec keyboard.textCursor

@@ -86,7 +86,7 @@ proc drawText(group: Group) =
 
   if editing and keyboard.input.len == 0:
     # draw text cursor at the start if there is no characters
-    cursorPos = group.screenBox.xy
+    cursorPos = vec2(0, 0)
   elif editing and keyboard.inputRunes.len == keyboard.textCursor:
     # draw text cursor at the end character
     let pos = layout[^1]
@@ -133,6 +133,7 @@ proc drawText(group: Group) =
         keyboard.input = group.text
         keyboard.inputRunes = group.text.toRunes()
         keyboard.textCursor = keyboard.input.len
+        keyboard.multiline = group.multiline
 
         # pick where to playce the textCursor
         let pickMousePos = mouse.pos - current.screenBox.xy
