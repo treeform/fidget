@@ -140,7 +140,7 @@ proc drawText(group: Group) =
         let pos = layout.pickGlyphAt(pickMousePos)
         if pos.character != "":
           keyboard.textCursor = pos.count
-          keyboard.lastUpDownX = mouse.pos.x
+          keyboard.lastUpDownX = mouse.pos.x - current.screenBox.x
 
           # when selecting the last character, select the end
           let pickOffset = pickMousePos - pos.selectRect.xy
