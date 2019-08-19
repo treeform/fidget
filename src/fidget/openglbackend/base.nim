@@ -216,6 +216,19 @@ proc start*() =
           if keyboard.textCursor != keyboard.inputRunes.len:
             keyboard.inputRunes.delete(keyboard.textCursor)
             keyboard.input = $keyboard.inputRunes
+        of LETTER_C: # copy
+          discard
+        of LETTER_V: # paste
+          if (modifiers and MOD_CONTROL) != 0:
+            let pasteBuffer = $base.window.GetClipboardString()
+            for rune in pasteBuffer.runes:
+              keyboard.inputRunes.insert(rune, keyboard.textCursor)
+              inc keyboard.textCursor
+            keyboard.input = $keyboard.inputRunes
+        of LETTER_X: # cut
+          discard
+        of LETTER_A: # select all
+          discard
         else:
           discard
     elif key < buttonDown.len:
