@@ -38,7 +38,7 @@ proc setWindowTitle*(title: string) =
   window.SetWindowTitle(title)
 
 
-proc tick*() =
+proc tick*(poll=true) =
   perfMark("--- start frame")
 
   inc frameCount
@@ -46,7 +46,8 @@ proc tick*() =
   fps = float(fpsTimeSeries.num())
   avgFrameTime = float(fpsTimeSeries.avg())
 
-  PollEvents()
+  if poll:
+    PollEvents()
   perfMark("PollEvents")
 
   if glfw3.WindowShouldClose(window) != 0:
@@ -179,8 +180,10 @@ proc start*() =
   echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   proc onResize(handle: glfw3.Window, w, h: int32) {.cdecl.} =
+    echo "on resize"
     onResize()
-    tick()
+    tick(poll = false)
+
   discard SetFramebufferSizeCallback(window, onResize)
   onResize()
 
