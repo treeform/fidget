@@ -10,3 +10,4 @@
 nimcache
 cairo
 *.dylib
+*.dll

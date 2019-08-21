@@ -2,7 +2,7 @@ import chroma, vmath, sequtils
 # typography
 
 when not defined(js):
-  import unicode
+  import typography/textboxes
 
 const
   clearColor* = color(0,0,0,0)
@@ -85,13 +85,6 @@ type
     inputFocusIdPath*: string
     prevInputFocusIdPath*: string
     input*: string
-    when not defined(js):
-      inputRunes*: seq[Rune]
-      lastUpDownX*: float # when going up or down last X is remembered
-      goingUp*: bool # cursor is going up
-      goingDown*: bool # cursor is going down
-      inputChange*: bool # some thing happend to the text area
-      multiline*: bool
     textCursor*: int # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 
@@ -124,6 +117,10 @@ var
   popupActive*: bool
   inPopup*: bool
   #fonts* = newTable[string, Font]()
+
+when not defined(js):
+  var
+    textBox*: TextBox
 
 mouse = Mouse()
 mouse.pos = Vec2()
@@ -195,16 +192,3 @@ proc xy*(b: Box): Vec2 = vec2(b.x, b.y)
 proc wh*(b: Box): Vec2 = vec2(b.w, b.h)
 
 
-proc selectRange*(keyboard: Keyboard): HSlice[int, int] =
-  result.a = min(keyboard.textCursor, keyboard.selectionCursor)
-  result.b = max(keyboard.textCursor, keyboard.selectionCursor)
-
-
-proc deleteSelection*(keyboard: Keyboard): bool =
-  if keyboard.textCursor != keyboard.selectionCursor:
-    keyboard.inputRunes.delete(keyboard.selectRange.a, keyboard.selectRange.b - 1)
-    keyboard.input = $keyboard.inputRunes
-    keyboard.textCursor = keyboard.selectRange.a
-    keyboard.selectionCursor = keyboard.selectRange.a
-    return true
-  return false

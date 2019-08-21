@@ -1,6 +1,6 @@
 include system/timers
 import unicode, sequtils
-import chroma, opengl, glfw3, vmath, print, input, perf
+import chroma, opengl, glfw3, vmath, print, input, perf, typography/textboxes
 import ../uibase
 
 var
@@ -194,64 +194,36 @@ proc start*() =
 
   proc onSetKey(window: glfw3.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
-    if keyboard.inputFocusIdPath != "" and setKey:
-      keyboard.textCursor = clamp(keyboard.textCursor, 0, keyboard.inputRunes.len)
-      keyboard.inputChange = true
+    if keyboard.inputFocusIdPath != "":
+      if not setKey: return
       let
         ctrl = (modifiers and MOD_CONTROL) != 0
         shift = (modifiers and MOD_SHIFT) != 0
       case cast[Button](key):
         of LEFT:
-          dec keyboard.textCursor
-          if not shift:
-            keyboard.selectionCursor = keyboard.textCursor
+          textBox.left(shift)
         of RIGHT:
-          inc keyboard.textCursor
-          if not shift:
-            keyboard.selectionCursor = keyboard.textCursor
+          textBox.right(shift)
         of Button.UP:
-          keyboard.goingUP = true
+          textBox.up(shift)
         of Button.DOWN:
-          keyboard.goingDown = true
+          textBox.down(shift)
         of ENTER:
-          if keyboard.multiline:
-            discard keyboard.deleteSelection()
-            keyboard.inputRunes.insert(Rune(10), keyboard.textCursor)
-            keyboard.input = $keyboard.inputRunes
-            inc keyboard.textCursor
-            keyboard.selectionCursor = keyboard.textCursor
+          #TODO: keyboard.multiline:
+          textBox.typeCharacter(Rune(10))
         of BACKSPACE:
-          if not keyboard.deleteSelection() and keyboard.textCursor > 0:
-            dec keyboard.textCursor
-            keyboard.selectionCursor = keyboard.textCursor
-            keyboard.inputRunes.delete(keyboard.textCursor)
-            keyboard.input = $keyboard.inputRunes
+          textBox.backspace(shift)
         of DELETE:
-          if not keyboard.deleteSelection() and keyboard.textCursor != keyboard.inputRunes.len:
-            keyboard.inputRunes.delete(keyboard.textCursor)
-            keyboard.input = $keyboard.inputRunes
+          textBox.delete(shift)
         of LETTER_C: # copy
           if ctrl:
-            let
-              copyRunes = keyboard.inputRunes[keyboard.selectRange.a ..< keyboard.selectRange.b]
-              copyText = $copyRunes
-            base.window.SetClipboardString(copyText)
+            base.window.SetClipboardString(textBox.copy())
         of LETTER_V: # paste
           if ctrl:
-            discard keyboard.deleteSelection()
-            let pasteBuffer = $base.window.GetClipboardString()
-            for rune in pasteBuffer.runes:
-              keyboard.inputRunes.insert(rune, keyboard.textCursor)
-              inc keyboard.textCursor
-              keyboard.selectionCursor = keyboard.textCursor
-            keyboard.input = $keyboard.inputRunes
+            textBox.paste($base.window.GetClipboardString())
         of LETTER_X: # cut
           if ctrl:
-            let
-              copyRunes = keyboard.inputRunes[keyboard.selectRange.a ..< keyboard.selectRange.b]
-              copyText = $copyRunes
-            base.window.SetClipboardString(copyText)
-            discard keyboard.deleteSelection()
+            base.window.SetClipboardString(textBox.cut())
         of LETTER_A: # select all
           discard
         else:
@@ -291,19 +263,13 @@ proc start*() =
 
   proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
-      keyboard.textCursor = clamp(keyboard.textCursor, 0, keyboard.inputRunes.len)
-      keyboard.selectionCursor = clamp(keyboard.selectionCursor, 0, keyboard.inputRunes.len)
-      discard keyboard.deleteSelection()
-      keyboard.inputRunes.insert(Rune(character), keyboard.textCursor)
-      inc keyboard.textCursor
-      keyboard.selectionCursor = keyboard.textCursor
-      keyboard.input = $keyboard.inputRunes
-
-    keyboard.state = KeyState.Press
-    # keyboard.altKey = event.altKey
-    # keyboard.ctrlKey = event.ctrlKey
-    # keyboard.shiftKey = event.shiftKey
-    keyboard.keyString = Rune(character).toUTF8()
+      textBox.typeCharacter(Rune(character))
+    else:
+      keyboard.state = KeyState.Press
+      # keyboard.altKey = event.altKey
+      # keyboard.ctrlKey = event.ctrlKey
+      # keyboard.shiftKey = event.shiftKey
+      keyboard.keyString = Rune(character).toUTF8()
 
   discard SetCharCallback(window, onSetCharCallback)
 
