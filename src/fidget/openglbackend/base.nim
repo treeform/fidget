@@ -242,7 +242,10 @@ proc start*() =
   discard SetKeyCallback(window, onSetKey)
 
   proc onScroll(window: glfw3.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
-    mouseWheelDelta += yoffset
+    if keyboard.inputFocusIdPath != "":
+      textBox.scrollY += int(yoffset) * 50
+    else:
+      mouseWheelDelta += yoffset
   discard SetScrollCallback(window, onScroll)
 
   proc onMouseButton(window: glfw3.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
