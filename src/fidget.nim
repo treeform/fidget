@@ -30,7 +30,10 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   groupStack.add(current)
 
   for g in groupStack:
-    current.idPath.add "." & g.id
+    if g.id != "":
+      if current.idPath.len > 0:
+        current.idPath.add "-"
+      current.idPath.add g.id
 
   var innerFn = proc() =
     inner
@@ -306,6 +309,11 @@ proc editableText*(editableText: bool) =
 proc multiline*(multiline: bool) =
   ## Sets if editible text is multiline (textarea) or single line
   current.multiline = multiline
+
+
+proc drawable*(drawable: bool) =
+  ## Sets drawable, drawable in HTML creates a canvas
+  current.drawable = drawable
 
 
 template binding*(stringVarible: untyped) =
