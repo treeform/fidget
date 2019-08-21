@@ -27,7 +27,7 @@ drawMain = proc() =
   window.title = "Pad of Text"
 
   frame "main":
-    box 100, 100, parent.box.w - 200, parent.box.h
+    box 100, 100, parent.box.w - 200, parent.box.h - 200
     font "Ubuntu", 20.0, 400.0, 25, -1, -1
     rectangle "#F7F7F9"
 
