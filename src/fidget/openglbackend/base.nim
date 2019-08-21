@@ -1,5 +1,5 @@
 include system/timers
-import unicode
+import unicode, sequtils
 import chroma, opengl, glfw3, vmath, print, input, perf
 import ../uibase
 
@@ -61,6 +61,7 @@ proc tick*() =
     mousePosPrev = mousePos
 
   perfMark("pre user draw")
+
 
   assert drawFrame != nil
   drawFrame()
@@ -193,40 +194,61 @@ proc start*() =
     if keyboard.inputFocusIdPath != "" and setKey:
       keyboard.textCursor = clamp(keyboard.textCursor, 0, keyboard.inputRunes.len)
       keyboard.inputChange = true
+      let
+        ctrl = (modifiers and MOD_CONTROL) != 0
+        shift = (modifiers and MOD_SHIFT) != 0
       case cast[Button](key):
         of LEFT:
           dec keyboard.textCursor
+          if not shift:
+            keyboard.selectionCursor = keyboard.textCursor
         of RIGHT:
           inc keyboard.textCursor
+          if not shift:
+            keyboard.selectionCursor = keyboard.textCursor
         of Button.UP:
           keyboard.goingUP = true
         of Button.DOWN:
           keyboard.goingDown = true
         of ENTER:
           if keyboard.multiline:
+            discard keyboard.deleteSelection()
             keyboard.inputRunes.insert(Rune(10), keyboard.textCursor)
             keyboard.input = $keyboard.inputRunes
             inc keyboard.textCursor
+            keyboard.selectionCursor = keyboard.textCursor
         of BACKSPACE:
-          if keyboard.textCursor > 0:
+          if not keyboard.deleteSelection() and keyboard.textCursor > 0:
             dec keyboard.textCursor
+            keyboard.selectionCursor = keyboard.textCursor
             keyboard.inputRunes.delete(keyboard.textCursor)
             keyboard.input = $keyboard.inputRunes
         of DELETE:
-          if keyboard.textCursor != keyboard.inputRunes.len:
+          if not keyboard.deleteSelection() and keyboard.textCursor != keyboard.inputRunes.len:
             keyboard.inputRunes.delete(keyboard.textCursor)
             keyboard.input = $keyboard.inputRunes
         of LETTER_C: # copy
-          discard
+          if ctrl:
+            let
+              copyRunes = keyboard.inputRunes[keyboard.selectRange.a ..< keyboard.selectRange.b]
+              copyText = $copyRunes
+            base.window.SetClipboardString(copyText)
         of LETTER_V: # paste
-          if (modifiers and MOD_CONTROL) != 0:
+          if ctrl:
+            discard keyboard.deleteSelection()
             let pasteBuffer = $base.window.GetClipboardString()
             for rune in pasteBuffer.runes:
               keyboard.inputRunes.insert(rune, keyboard.textCursor)
               inc keyboard.textCursor
+              keyboard.selectionCursor = keyboard.textCursor
             keyboard.input = $keyboard.inputRunes
         of LETTER_X: # cut
-          discard
+          if ctrl:
+            let
+              copyRunes = keyboard.inputRunes[keyboard.selectRange.a ..< keyboard.selectRange.b]
+              copyText = $copyRunes
+            base.window.SetClipboardString(copyText)
+            discard keyboard.deleteSelection()
         of LETTER_A: # select all
           discard
         else:
@@ -251,6 +273,7 @@ proc start*() =
   proc onMouseButton(window: glfw3.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
     let button = button + 1
+    mouse.down = setKey
     if button == 1 and setKey:
       mouse.click = true
     if button == 2 and setKey:
@@ -266,8 +289,11 @@ proc start*() =
   proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
       keyboard.textCursor = clamp(keyboard.textCursor, 0, keyboard.inputRunes.len)
+      keyboard.selectionCursor = clamp(keyboard.selectionCursor, 0, keyboard.inputRunes.len)
+      discard keyboard.deleteSelection()
       keyboard.inputRunes.insert(Rune(character), keyboard.textCursor)
       inc keyboard.textCursor
+      keyboard.selectionCursor = keyboard.textCursor
       keyboard.input = $keyboard.inputRunes
 
     keyboard.state = KeyState.Press

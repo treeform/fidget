@@ -1,4 +1,4 @@
-import chroma, vmath, tables
+import chroma, vmath, sequtils
 # typography
 
 when not defined(js):
@@ -156,7 +156,8 @@ proc clamp*(value, min, max: int): int =
   ## Makes sure the value is between min and max inclusive
   max(min, min(value, max))
 
-proc between*(value, min, max: float): bool =
+
+proc between*(value, min, max: float|int): bool =
   ## Returns true if value is between min and max or equals to them.
   (value >= min) and (value <= max)
 
@@ -192,3 +193,18 @@ proc `$`*(g: Group): string =
 
 proc xy*(b: Box): Vec2 = vec2(b.x, b.y)
 proc wh*(b: Box): Vec2 = vec2(b.w, b.h)
+
+
+proc selectRange*(keyboard: Keyboard): HSlice[int, int] =
+  result.a = min(keyboard.textCursor, keyboard.selectionCursor)
+  result.b = max(keyboard.textCursor, keyboard.selectionCursor)
+
+
+proc deleteSelection*(keyboard: Keyboard): bool =
+  if keyboard.textCursor != keyboard.selectionCursor:
+    keyboard.inputRunes.delete(keyboard.selectRange.a, keyboard.selectRange.b - 1)
+    keyboard.input = $keyboard.inputRunes
+    keyboard.textCursor = keyboard.selectRange.a
+    keyboard.selectionCursor = keyboard.selectRange.a
+    return true
+  return false
