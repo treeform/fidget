@@ -201,13 +201,23 @@ proc start*() =
         shift = (modifiers and MOD_SHIFT) != 0
       case cast[Button](key):
         of LEFT:
-          textBox.left(shift)
+          if ctrl:
+            textBox.leftWord(shift)
+          else:
+            textBox.left(shift)
         of RIGHT:
-          textBox.right(shift)
+          if ctrl:
+            textBox.rightWord(shift)
+          else:
+            textBox.right(shift)
         of Button.UP:
           textBox.up(shift)
         of Button.DOWN:
           textBox.down(shift)
+        of Button.HOME:
+          textBox.startOfLine(shift)
+        of Button.END:
+          textBox.endOfLine(shift)
         of ENTER:
           #TODO: keyboard.multiline:
           textBox.typeCharacter(Rune(10))
