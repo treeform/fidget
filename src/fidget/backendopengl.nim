@@ -73,8 +73,11 @@ proc drawText(group: Group) =
         mouse.down = false
       else:
         textBox.mouseAction(mousePos, click=true)
-    else:
-      textBox.mouseAction(mousePos, click=false)
+
+  if mouse.down and not mouse.click:
+    # draggin the mouse
+    let mousePos = mouse.pos - group.screenBox.xy
+    textBox.mouseAction(mousePos, click=false)
 
   let editing = keyboard.inputFocusIdPath == group.idPath
 
