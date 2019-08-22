@@ -218,6 +218,10 @@ proc start*() =
           textBox.startOfLine(shift)
         of Button.END:
           textBox.endOfLine(shift)
+        of Button.PAGE_UP:
+          textBox.pageUp(shift)
+        of Button.PAGE_DOWN:
+          textBox.pageDOwn(shift)
         of ENTER:
           #TODO: keyboard.multiline:
           textBox.typeCharacter(Rune(10))
@@ -235,7 +239,8 @@ proc start*() =
           if ctrl:
             base.window.SetClipboardString(textBox.cut())
         of LETTER_A: # select all
-          discard
+          if ctrl:
+            textBox.selectAll()
         else:
           discard
     elif key < buttonDown.len:
