@@ -64,6 +64,18 @@ proc drawDiff(group: Group) =
     cacheGroup.idPath = current.idPath
     dom.id = current.idPath
 
+  if cacheGroup.drawable != current.drawable:
+    dom.removeAllChildren()
+    cacheGroup.drawable = current.drawable
+    if current.drawable:
+      var canvasNode = document.createElement("canvas")
+      canvasNode.id = current.idPath & "-canvas"
+      canvasNode.style.width = $current.box.w & "px"
+      canvasNode.style.height = $current.box.h & "px"
+      canvasNode.setAttribute("width", $current.box.w)
+      canvasNode.setAttribute("height", $current.box.h)
+      dom.appendChild(canvasNode)
+
   if cacheGroup.screenBox != current.screenBox:
     inc perf.numLowLevelCalls
     cacheGroup.screenBox = current.screenBox
@@ -75,9 +87,17 @@ proc drawDiff(group: Group) =
 
     if current.kind == "text":
       if dom.childNodes.len > 0:
-        var textAreaDiv = dom.childNodes[0]
-        textAreaDiv.style.width = $current.box.w & "px"
-        textAreaDiv.style.height = $current.box.h & "px"
+        var textAreaNode = dom.childNodes[0]
+        textAreaNode.style.width = $current.box.w & "px"
+        textAreaNode.style.height = $current.box.h & "px"
+
+    if current.drawable:
+      if dom.childNodes.len > 0:
+        var canvasNode = dom.childNodes[0]
+        canvasNode.style.width = $current.box.w & "px"
+        canvasNode.style.height = $current.box.h & "px"
+        canvasNode.setAttribute("width", $current.box.w)
+        canvasNode.setAttribute("height", $current.box.h)
 
   if cacheGroup.fill != current.fill or cacheGroup.kind != current.kind:
     inc perf.numLowLevelCalls
@@ -122,42 +142,42 @@ proc drawDiff(group: Group) =
   if current.kind == "text":
     if current.editableText:
       # input element were you can type
-      var textAreaDiv: Node
+      var textAreaNode: Node
       if cacheGroup.editableText == false or dom.childNodes.len == 0:
         dom.removeAllChildren()
         if current.multiline:
-          textAreaDiv = document.createElement("textarea")
+          textAreaNode = document.createElement("textarea")
         else:
-          textAreaDiv = document.createElement("input")
-        textAreaDiv.setAttribute("type", "text")
-        textAreaDiv.style.border = "none"
-        textAreaDiv.style.outline = "none"
-        textAreaDiv.style.width = $current.box.w & "px"
-        textAreaDiv.style.height = $current.box.h & "px"
-        textAreaDiv.style.backgroundColor = "transparent"
-        textAreaDiv.style.fontFamily = "inherit"
-        textAreaDiv.style.fontSize = "inherit"
-        textAreaDiv.style.fontWeight = "inherit"
-        textAreaDiv.style.padding = "0px"
-        textAreaDiv.style.resize = "none"
-        #textAreaDiv.style.overflow = "hidden"
-        dom.appendChild(textAreaDiv)
+          textAreaNode = document.createElement("input")
+        textAreaNode.setAttribute("type", "text")
+        textAreaNode.style.border = "none"
+        textAreaNode.style.outline = "none"
+        textAreaNode.style.width = $current.box.w & "px"
+        textAreaNode.style.height = $current.box.h & "px"
+        textAreaNode.style.backgroundColor = "transparent"
+        textAreaNode.style.fontFamily = "inherit"
+        textAreaNode.style.fontSize = "inherit"
+        textAreaNode.style.fontWeight = "inherit"
+        textAreaNode.style.padding = "0px"
+        textAreaNode.style.resize = "none"
+        #textAreaNode.style.overflow = "hidden"
+        dom.appendChild(textAreaNode)
         cacheGroup.text = ""
         cacheGroup.placeholder = ""
         cacheGroup.editableText = current.editableText
       else:
-        textAreaDiv = dom.childNodes[0]
+        textAreaNode = dom.childNodes[0]
 
       cacheGroup.editableText = true
 
       if cacheGroup.text != current.text:
         cacheGroup.text = current.text
-        #textAreaDiv.setAttribute("value", current.text)
-        cast[TextAreaElement](textAreaDiv).value = current.text
+        #textAreaNode.setAttribute("value", current.text)
+        cast[TextAreaElement](textAreaNode).value = current.text
 
       if cacheGroup.placeholder != current.placeholder:
         cacheGroup.placeholder = current.placeholder
-        textAreaDiv.setAttribute("placeholder", current.placeholder)
+        textAreaNode.setAttribute("placeholder", current.placeholder)
 
     else:
       # normal text element

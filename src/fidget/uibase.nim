@@ -53,6 +53,8 @@ type
     wasDrawn*: bool # was group drawn or it still needs to be drawn
     editableText*: bool
     multiline*: bool
+    drawable*: bool
+
 
   KeyState* = enum
     Empty
