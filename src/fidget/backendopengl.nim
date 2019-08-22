@@ -43,9 +43,7 @@ proc drawText(group: Group) =
 
   if mouse.down and mouse.pos.inside(current.screenBox):
     if mouse.click and keyboard.inputFocusIdPath != group.idPath:
-      print "gain focus"
       keyboard.inputFocusIdPath = group.idPath
-      print "created new text box", group.idPath
       textBox = newTextBox(
         font,
         int group.screenBox.w,
@@ -60,7 +58,6 @@ proc drawText(group: Group) =
         inc multiClick
       else:
         multiClick = 0
-      print multiClick, epochTime() - lastClickTime
       lastClickTime = epochTime()
       if multiClick == 1:
         textBox.selectWord(mousePos)
