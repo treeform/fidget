@@ -9,6 +9,11 @@ var
   textValue: string
   beEdit = false
 
+
+when not defined(js):
+  import fidget/backendopengl, typography, tables
+  fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
+
 window.title = "Inputs Example"
 
 drawMain = proc() =
@@ -20,7 +25,7 @@ drawMain = proc() =
     text "input":
       box 0, 0, 500, 30
       fill "#000000"
-      font "Helvetica Neue", 16.0, 400.0, 15, -1, -1
+      font "Ubuntu", 16.0, 400.0, 15, -1, -1
       if beEdit:
         placeholder "[Enabled, type here]"
         binding textValue
@@ -33,7 +38,7 @@ drawMain = proc() =
     text "text":
       box 10, 0, parent.box.w, parent.box.h
       fill "#FFFFFF"
-      font "Helvetica Neue", 16.0, 400.0, 15, -1, 0
+      font "Ubuntu", 16.0, 400.0, 15, -1, 0
       characters "Switch to input:" & $beEdit
 
     onHover:
@@ -42,6 +47,6 @@ drawMain = proc() =
     onClick:
       beEdit = not beEdit
 
-  echo "textValue is ", repr(textValue), " s ", keyboard.state
+      echo "textValue is ", repr(textValue), " s ", keyboard.state
 
 startFidget()
