@@ -85,7 +85,7 @@ proc drawText(group: Group) =
       textBox.resize(group.screenBox.wh)
     layout = textBox.layout
     ctx.saveTransform()
-    ctx.translate(vec2(0, float -textBox.scrollY))
+    ctx.translate(-textBox.scroll)
 
     for rect in textBox.selectionRegions():
       ctx.fillRect(rect, rgba(0, 255, 0, 155).color)
