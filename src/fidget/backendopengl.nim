@@ -41,18 +41,20 @@ proc drawText(group: Group) =
   # let fontHeight = font.ascent - font.descent
   # let scale = font.size / fontHeight
 
-  if mouse.down and mouse.pos.inside(current.screenBox):
+  let mousePos = mouse.pos - group.screenBox.xy
+
+  if current.editableText and mouse.down and mouse.pos.inside(current.screenBox):
     if mouse.click and keyboard.inputFocusIdPath != group.idPath:
       keyboard.inputFocusIdPath = group.idPath
       textBox = newTextBox(
         font,
         int group.screenBox.w,
         int group.screenBox.w,
-        group.text
+        group.text,
+        current.multiline
       )
 
     # mouse actions click, drag, double clicking
-    let mousePos = mouse.pos - group.screenBox.xy
     if mouse.click:
       if epochTime() - lastClickTime < 0.5:
         inc multiClick
@@ -69,15 +71,15 @@ proc drawText(group: Group) =
         textBox.selectAll()
         mouse.down = false
       else:
-        textBox.mouseAction(mousePos, click=true)
+        textBox.mouseAction(mousePos, click=true, keyboard.shiftKey)
 
-  if mouse.down and not mouse.click:
+
+  if textBox != nil and mouse.down and not mouse.click and
+      keyboard.inputFocusIdPath == group.idPath:
     # draggin the mouse
-    let mousePos = mouse.pos - group.screenBox.xy
-    textBox.mouseAction(mousePos, click=false)
+    textBox.mouseAction(mousePos, click=false, keyboard.shiftKey)
 
   let editing = keyboard.inputFocusIdPath == group.idPath
-
   var layout: seq[GlyphPosition]
 
   if editing:
@@ -128,6 +130,9 @@ proc drawText(group: Group) =
     ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
 
     ctx.restoreTransform()
+
+    keyboard.input = textBox.text
+
 
 proc draw*(group: Group) =
   ## Draws the group

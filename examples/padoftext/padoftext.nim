@@ -10,6 +10,7 @@ when not defined(js):
 
 
 var
+  titleValue = "Lorem ipsum dolor"
   textValue = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut volutpat mi tortor, quis congue elit bibendum vitae. Pellentesque risus velit, tempor vel arcu pellentesque, lacinia ultrices felis. Aliquam erat volutpat. Nulla sodales odio ac turpis fermentum, quis pulvinar erat efficitur. Ut molestie consectetur odio vitae interdum. Etiam dui odio, porta in volutpat in, facilisis at erat. Etiam sed augue eget risus tincidunt sagittis sit amet nec justo. Donec ac auctor massa. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
 
@@ -24,9 +25,23 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
 
 drawMain = proc() =
 
-  window.title = "Pad of Text"
+  window.title = titleValue
 
-  frame "main":
+  group "title":
+    box 100, 10, 200, 25
+    font "Ubuntu", 20.0, 400.0, 25, -1, -1
+    rectangle "#F7F7F9"
+
+    text "title":
+      box 0, 0, parent.box.w, parent.box.h
+      fill "#000000"
+      multiline false
+      binding titleValue
+
+      onInput:
+        window.title = titleValue
+
+  group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200
     font "Ubuntu", 20.0, 400.0, 25, -1, -1
     rectangle "#F7F7F9"

@@ -194,11 +194,15 @@ proc start*() =
 
   proc onSetKey(window: glfw3.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
+    keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
+    keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
+    keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
     if keyboard.inputFocusIdPath != "":
+      keyboard.state = KeyState.Press
       if not setKey: return
       let
-        ctrl = (modifiers and MOD_CONTROL) != 0
-        shift = (modifiers and MOD_SHIFT) != 0
+        ctrl = keyboard.ctrlKey
+        shift = keyboard.shiftKey
       case cast[Button](key):
         of LEFT:
           if ctrl:
@@ -250,9 +254,6 @@ proc start*() =
       if buttonDown[key] == false and setKey == false:
         buttonUp[key] = true
       buttonDown[key] = setKey
-      keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
-      keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
-      keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
 
   discard SetKeyCallback(window, onSetKey)
 
@@ -281,6 +282,7 @@ proc start*() =
 
   proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
+      keyboard.state = KeyState.Press
       textBox.typeCharacter(Rune(character))
     else:
       keyboard.state = KeyState.Press
