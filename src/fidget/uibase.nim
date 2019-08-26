@@ -11,12 +11,6 @@ const
 
 type
 
-  Box* = object
-    x*: float
-    y*: float
-    w*: float
-    h*: float
-
   TextStyle* = object
     fontFamily*: string
     fontSize*: float
@@ -37,9 +31,9 @@ type
     placeholder*: string
     code*: string
     kids*: seq[Group]
-    box*: Box
+    box*: Rect
     rotation*: float
-    screenBox*: Box
+    screenBox*: Rect
     fill*: Color
     transparency*: float
     strokeWeight*: float
@@ -106,9 +100,9 @@ var
   prevRoot*: Group
   groupStack*: seq[Group]
   current*: Group
-  scrollBox*: Box
-  scrollBoxMega*: Box # scroll box is 500px biger in y direction
-  scrollBoxMini*: Box # scroll box is smaller by 100px usefull for debugggin
+  scrollBox*: Rect
+  scrollBoxMega*: Rect # scroll box is 500px biger in y direction
+  scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
   mouse* = Mouse()
   keyboard* = Keyboard()
   drawMain*: proc()
@@ -156,17 +150,17 @@ proc clamp*(value, min, max: int): int =
   max(min, min(value, max))
 
 
-proc between*(value, min, max: float|int): bool =
+proc between*(value, min, max: float32|int): bool =
   ## Returns true if value is between min and max or equals to them.
   (value >= min) and (value <= max)
 
 
-proc inside*(p: Vec2, b: Box): bool =
+proc inside*(p: Vec2, b: Rect): bool =
   ## Return true if position is inside the box.
   return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
 
 
-proc overlap*(a, b: Box): bool =
+proc overlap*(a, b: Rect): bool =
   ## Returns true if box a overlaps box b.
   let
     xOverlap = between(a.x, b.x, b.x + b.w) or between(b.x, a.x, a.x + a.w)
@@ -174,7 +168,7 @@ proc overlap*(a, b: Box): bool =
   return xOverlap and yOverlap
 
 
-proc `+`*(a, b: Box): Box =
+proc `+`*(a, b: Rect): Rect =
   ## Add two boxes together.
   result.x = a.x + b.x
   result.y = a.y + b.y
@@ -182,15 +176,7 @@ proc `+`*(a, b: Box): Box =
   result.h = a.h
 
 
-proc `$`*(g: Group): string =
-  ## Format group is a string.
-  result = "Group"
-  if g.id.len > 0:
-    result &= " id:" & $g.id
-  result &= " screenBox:" & $g.box
 
 
-proc xy*(b: Box): Vec2 = vec2(b.x, b.y)
-proc wh*(b: Box): Vec2 = vec2(b.w, b.h)
 
 

@@ -43,6 +43,14 @@ proc drawText(group: Group) =
 
   let mousePos = mouse.pos - group.screenBox.xy
 
+  # draw masked region
+  ctx.beginMask()
+  ctx.fillRect(
+    rect(0, 0, group.screenBox.w/2, group.screenBox.h/2),
+    rgba(255, 0, 0, 255).color
+  )
+  ctx.endMask()
+
   if current.editableText and mouse.down and mouse.pos.inside(current.screenBox):
     if mouse.click and keyboard.inputFocusIdPath != group.idPath:
       keyboard.inputFocusIdPath = group.idPath
@@ -53,7 +61,6 @@ proc drawText(group: Group) =
         group.text,
         current.multiline
       )
-
     # mouse actions click, drag, double clicking
     if mouse.click:
       if epochTime() - lastClickTime < 0.5:
@@ -133,6 +140,8 @@ proc drawText(group: Group) =
 
     keyboard.input = textBox.text
 
+  ctx.clearMask()
+
 
 proc draw*(group: Group) =
   ## Draws the group
@@ -204,6 +213,8 @@ proc setupFidget*() =
 
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
 
+    ctx.startFrame(windowFrame)
+
     ctx.saveTransform()
     # 4k 3840x2160
     # 2k 2048×1080
@@ -235,7 +246,7 @@ proc setupFidget*() =
     # ctx.drawImage("circle100.png")
     # ctx.restoreTransform()
 
-    ctx.flip()
+    ctx.endFrame()
 
   useDepthBuffer(false)
 
