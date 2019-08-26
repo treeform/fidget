@@ -181,7 +181,6 @@ proc start*() =
   echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   proc onResize(handle: glfw3.Window, w, h: int32) {.cdecl.} =
-    echo "on resize"
     onResize()
     tick(poll = false)
 
@@ -259,7 +258,7 @@ proc start*() =
 
   proc onScroll(window: glfw3.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
-      textBox.scrollBy(yoffset * 50)
+      textBox.scrollBy(-yoffset * 50)
     else:
       mouseWheelDelta += yoffset
   discard SetScrollCallback(window, onScroll)
