@@ -27,19 +27,19 @@ drawMain = proc() =
 
   window.title = titleValue
 
-  # group "title":
-  #   box 100, 10, 200, 50
-  #   font "Ubuntu", 40.0, 400.0, 50, -1, 0
-  #   rectangle "#F7F7F9"
+  group "title":
+    box 100, 10, 200, 50
+    font "Ubuntu", 40.0, 400.0, 50, -1, 0
+    rectangle "#F7F7F9"
 
-  #   text "title":
-  #     box 0, 0, parent.box.w, parent.box.h
-  #     fill "#000000"
-  #     multiline false
-  #     binding titleValue
+    text "title":
+      box 0, 0, parent.box.w, parent.box.h
+      fill "#000000"
+      multiline false
+      binding titleValue
 
-  #     onInput:
-  #       window.title = titleValue
+      onInput:
+        window.title = titleValue
 
   group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200
