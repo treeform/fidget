@@ -46,7 +46,7 @@ proc drawText(group: Group) =
   # draw masked region
   ctx.beginMask()
   ctx.fillRect(
-    rect(0, 0, group.screenBox.w/2, group.screenBox.h/2),
+    rect(0, 0, group.screenBox.w, group.screenBox.h),
     rgba(255, 0, 0, 255).color
   )
   ctx.endMask()

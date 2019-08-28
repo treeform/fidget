@@ -28,6 +28,7 @@ type
     maskShader*: GLuint
     maskTextureId: GLuint
 
+
 proc rect(x, y, w, h: int): Rect =
   ## integer rext to float rect
   rect(float32 x, float32 y, float32 w, float32 h)
@@ -278,7 +279,8 @@ proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
     # check to see if approparte .slate file is around
     echo "[load] ", imagePath
     if not fileExists(imagePath):
-      raise newException(Exception, &"Image '{imagePath}' not found")
+      quit(&"Image '{imagePath}' not found")
+      #raise newException(Exception, &"Image '{imagePath}' not found")
     let
       slateImagePath = imagePath.changeFileExt(".slate")
     if not existsFile(slateImagePath):
@@ -333,7 +335,6 @@ proc drawMesh*(ctx: Context) =
   if ctx.quadCount > 0:
     ctx.mesh.upload(ctx.quadCount*6)
     ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
-    print "draw mesh", ctx.quadCount
     ctx.quadCount = 0
 
 
@@ -341,27 +342,31 @@ proc clearMask*(ctx: Context) =
   ## Sets mask off (acutally fills the mask with white)
   ctx.drawMesh()
 
+  if ctx.maskFBO != 0:
+    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+
+    glClearColor(1, 1, 1, 1)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
   ctx.drawMesh()
 
   if ctx.maskFBO == 0:
-    print "create new buffer!"
     glGenFramebuffers(1, addr ctx.maskFBO)
-    print ctx.maskFBO
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
 
-    # if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-    #   quit("Some thing wrong with frame buffer. 1")
-
-    var
-      width = GLsizei windowFrame.x
-      height = GLsizei windowFrame.y
-
-
     glGenTextures(1, addr ctx.maskTextureId)
+    ctx.maskTexture.id = ctx.maskTextureId
+
+    ctx.maskImage = Image()
+    ctx.maskImage.width = (int windowFrame.x)
+    ctx.maskImage.height = (int windowFrame.y)
+
     glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width, GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
@@ -370,59 +375,50 @@ proc beginMask*(ctx: Context) =
     if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
       quit("Some thing wrong with frame buffer. 2")
 
-  print "bind mask frame buffer"
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
   if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
     quit("Some thing wrong with frame buffer. 2")
 
-  glCLearColor(1, 0, 0, 0.5)
+  glCLearColor(0, 0, 0, 0.0)
   glClear(GL_COLOR_BUFFER_BIT)
 
   ctx.mesh.shader = ctx.maskShader
   ctx.mesh.textures.setLen(0)
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
 
+
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
   ctx.drawMesh()
 
-  var image = newImage("debug.png", int windowFrame.x, int windowFrame.y, 4)
-  glReadPixels(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y, GL_RGBA, GL_UNSIGNED_BYTE, addr image.data[0])
-  image.save()
+  # var image = newImage("debug.png", int windowFrame.x, int windowFrame.y, 4)
+  # glReadPixels(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y, GL_RGBA, GL_UNSIGNED_BYTE, addr image.data[0])
+  # image.save()
   # if true: quit()
 
-  print "bind old framebuffer"
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
   ctx.mesh.shader = ctx.shader
   ctx.mesh.textures.setLen(0)
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-
-  ctx.maskTexture.id = ctx.maskTextureId
   ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
 
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
-  proc powOf2(i: int): int =
-    result = 2
-    while result < i:
-      echo result
-      result = result * 2
-
   ## Starts a new frame.
-  if ctx.maskImage == nil or (ctx.maskImage.width < int screenSize.x) or
-    (ctx.maskImage.height < int screenSize.y):
-    echo "regen mask image"
-    ctx.maskImage = newImage("", powOf2(int screenSize.x), powOf2(int screenSize.y), 4)
-    echo ctx.maskImage
-    ctx.maskImage.fill(rgba(255, 255, 255, 255))
-    ctx.maskTexture = ctx.maskImage.texture()
-    ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  if ctx.maskImage == nil or (ctx.maskImage.width != int screenSize.x) or
+    (ctx.maskImage.height != int screenSize.y):
+    ctx.maskImage.width = (int windowFrame.x)
+    ctx.maskImage.height = (int windowFrame.y)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width, GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    ctx.clearMask()
 
 
 proc endFrame*(ctx: Context) =
   ## Ends a frame.
   ctx.drawMesh()
+
