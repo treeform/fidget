@@ -53,6 +53,10 @@ proc tick*(poll=true) =
   if glfw3.WindowShouldClose(window) != 0:
     running = false
 
+  if windowSize == vec2(0, 0):
+    # window is minimized, don't do any drawing
+    return
+
   block:
     var x, y: float64
     GetCursorPos(window, addr x, addr y)
@@ -137,8 +141,13 @@ proc start*() =
 
   # Open a window
   perfMark("start open window")
-  #window = CreateWindow(1920, 1080, windowTitle, nil, nil)
-  window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
+
+
+  var monitor = GetPrimaryMonitor()
+  var mode = GetVideoMode(monitor)
+  window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
+
+  #window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
   perfMark("open window")
 
   if window.isNil:
