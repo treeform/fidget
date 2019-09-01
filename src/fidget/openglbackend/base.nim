@@ -143,11 +143,11 @@ proc start*() =
   perfMark("start open window")
 
 
-  var monitor = GetPrimaryMonitor()
-  var mode = GetVideoMode(monitor)
-  window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
+  # var monitor = GetPrimaryMonitor()
+  # var mode = GetVideoMode(monitor)
+  # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
 
-  #window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
+  window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
   perfMark("open window")
 
   if window.isNil:
