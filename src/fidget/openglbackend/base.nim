@@ -58,6 +58,10 @@ proc tick*(poll=true) =
   if glfw3.WindowShouldClose(window) != 0:
     running = false
 
+  if windowSize == vec2(0, 0):
+    # window is minimized, don't do any drawing
+    return
+
   block:
     var x, y: float64
     GetCursorPos(window, addr x, addr y)
@@ -142,7 +146,12 @@ proc start*() =
 
   # Open a window
   perfMark("start open window")
-  #window = CreateWindow(1920, 1080, windowTitle, nil, nil)
+
+
+  # var monitor = GetPrimaryMonitor()
+  # var mode = GetVideoMode(monitor)
+  # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
+
   window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
   perfMark("open window")
 
@@ -191,7 +200,6 @@ proc start*() =
   echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   proc onResize(handle: glfw3.Window, w, h: int32) {.cdecl.} =
-    echo "on resize"
     onResize()
     tick(poll = false)
 
@@ -204,20 +212,38 @@ proc start*() =
 
   proc onSetKey(window: glfw3.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     var setKey = action != 0
+    keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
+    keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
+    keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
     if keyboard.inputFocusIdPath != "":
+      keyboard.state = KeyState.Press
       if not setKey: return
       let
-        ctrl = (modifiers and MOD_CONTROL) != 0
-        shift = (modifiers and MOD_SHIFT) != 0
+        ctrl = keyboard.ctrlKey
+        shift = keyboard.shiftKey
       case cast[Button](key):
         of LEFT:
-          textBox.left(shift)
+          if ctrl:
+            textBox.leftWord(shift)
+          else:
+            textBox.left(shift)
         of RIGHT:
-          textBox.right(shift)
+          if ctrl:
+            textBox.rightWord(shift)
+          else:
+            textBox.right(shift)
         of Button.UP:
           textBox.up(shift)
         of Button.DOWN:
           textBox.down(shift)
+        of Button.HOME:
+          textBox.startOfLine(shift)
+        of Button.END:
+          textBox.endOfLine(shift)
+        of Button.PAGE_UP:
+          textBox.pageUp(shift)
+        of Button.PAGE_DOWN:
+          textBox.pageDOwn(shift)
         of ENTER:
           #TODO: keyboard.multiline:
           textBox.typeCharacter(Rune(10))
@@ -235,7 +261,8 @@ proc start*() =
           if ctrl:
             base.window.SetClipboardString(textBox.cut())
         of LETTER_A: # select all
-          discard
+          if ctrl:
+            textBox.selectAll()
         else:
           discard
     elif key < buttonDown.len:
@@ -245,15 +272,12 @@ proc start*() =
       if buttonDown[key] == false and setKey == false:
         buttonUp[key] = true
       buttonDown[key] = setKey
-      keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
-      keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
-      keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
 
   discard SetKeyCallback(window, onSetKey)
 
   proc onScroll(window: glfw3.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
-      textBox.scroll.y += yoffset * 50
+      textBox.scrollBy(-yoffset * 50)
     else:
       mouseWheelDelta += yoffset
   discard SetScrollCallback(window, onScroll)
@@ -276,6 +300,7 @@ proc start*() =
 
   proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
+      keyboard.state = KeyState.Press
       textBox.typeCharacter(Rune(character))
     else:
       keyboard.state = KeyState.Press
