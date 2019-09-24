@@ -35,9 +35,12 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
         current.idPath.add "-"
       current.idPath.add g.id
 
-  var innerFn = proc() =
+  #TODO: figure out if function wrap is good?
+  # var innerFn = proc() =
+  #   inner
+  # innerFn()
+  block:
     inner
-  innerFn()
 
   if not current.wasDrawn:
     current.draw()
@@ -166,12 +169,17 @@ proc id*(id: string) =
 
 proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlignHorizontal, textAlignVertical: int) =
   ## Sets the font
+  print "settin font"
+  print current == nil
+  #print current.textStyle == nil
   current.textStyle.fontFamily = fontFamily
+  print "....."
   current.textStyle.fontSize = fontSize
   current.textStyle.fontWeight = fontWeight
   current.textStyle.lineHeight = lineHeight
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
+  print "done settin font"
 
 proc fontFamily*(fontFamily: string) =
   ## Sets the font family

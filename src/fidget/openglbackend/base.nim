@@ -1,7 +1,12 @@
 include system/timers
 import unicode, sequtils
-import chroma, opengl, glfw3, vmath, print, input, perf, typography/textboxes
+import chroma, opengl, vmath, print, input, perf, typography/textboxes
+import glfw3
+
 import ../uibase
+
+# if defined(ios) or defined(android):
+#   {.fatal: "This module can only be used on desktop windows, macos or linux.".}
 
 var
   window*: glfw3.Window
@@ -147,12 +152,17 @@ proc start*() =
   MakeContextCurrent(window)
   #FocusWindow(window)
 
-  view = mat4()
-  view.pos = vec3(0.0, 0.0, -10.0)
-  proj = perspective(160, 800.0/800.0, 0.0001, 100.0)
+  # view = mat4()
+  # view.pos = vec3(0.0, 0.0, -10.0)
+  # proj = perspective(160, 800.0/800.0, 0.0001, 100.0)
 
   # Load opengl
-  loadExtensions()
+  when defined(ios) or defined(android):
+    # TODO, some thing causes a crash
+    #loadExtensions()
+    discard
+  else:
+    loadExtensions()
 
   # var flags: GLint
   # glGetIntegerv(GL_CONTEXT_FLAGS, addr flags)
@@ -243,7 +253,7 @@ proc start*() =
 
   proc onScroll(window: glfw3.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
     if keyboard.inputFocusIdPath != "":
-      textBox.scrollY += int(yoffset) * 50
+      textBox.scroll.y += yoffset * 50
     else:
       mouseWheelDelta += yoffset
   discard SetScrollCallback(window, onScroll)
