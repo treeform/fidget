@@ -1,6 +1,8 @@
 import tables, os, times, strformat
 import vmath, chroma, flippy
-import meshes, textures, slate
+import meshes, textures, shaders, slate
+import opengl, base, print
+
 
 type
   Context* = ref object
@@ -15,9 +17,16 @@ type
     heights*: seq[uint16] ## Hight map of the free space in the atlas
     size*: int ## size x size dementions of the atlas
     margin*: int ## default margin between images
-
+    shader*: GLuint
     mat*: Mat4 ## current matrix
     mats: seq[Mat4] ## matrix stack
+
+    # mask
+    maskImage*: Image ## Maskimage
+    maskTexture*: Texture ## Mask texture
+    maskFBO*: GLuint
+    maskShader*: GLuint
+    maskTextureId: GLuint
 
 
 proc rect(x, y, w, h: int): Rect =
@@ -76,6 +85,7 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
+
 when defined(ios) or defined(android):
   const
     atlastVertSrc = staticRead("atlas.es.vert")
@@ -84,6 +94,9 @@ else:
   const
     atlastVertSrc = staticRead("atlas.vert")
     atlastFragSrc = staticRead("atlas.frag")
+    maskVertSrc = staticRead("mask.vert")
+    maskFragSrc = staticRead("mask.frag")
+
 
 proc newContext*(
     size = 1024,
@@ -91,32 +104,38 @@ proc newContext*(
     maxQuads = 1024,
   ): Context =
   ## Creates a new context
-  result = Context()
-  result.entries = newTable[string, Rect]()
-  result.size = size
-  result.margin = margin
-  result.maxQuads = maxQuads
-  result.mat = mat4()
-  result.mats = newSeq[Mat4]()
+  var ctx = Context()
+  ctx.entries = newTable[string, Rect]()
+  ctx.size = size
+  ctx.margin = margin
+  ctx.maxQuads = maxQuads
+  ctx.mat = mat4()
+  ctx.mats = newSeq[Mat4]()
 
-  result.heights = newSeq[uint16](size)
-  result.image = newImage("", size, size, 4)
-  result.image.fill(rgba(255, 255, 255, 0))
-  result.texture = result.image.texture()
+  ctx.heights = newSeq[uint16](size)
+  ctx.image = newImage("", size, size, 4)
+  ctx.image.fill(rgba(255, 255, 255, 0))
+  ctx.texture = ctx.image.texture()
 
-  result.mesh = newUvColorMesh(size=maxQuads*2)
-  # for i in 0..<result.maxQuads:
-  #   result.mesh.addQuad(
-  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-  #   )
+  ctx.mesh = newUvColorMesh(size=maxQuads*2)
 
-  result.mesh.loadShader(atlastVertSrc, atlastFragSrc)
-  result.mesh.loadTexture("rgbaTex", result.texture)
-  result.mesh.finalize()
+  ctx.mesh.loadShader(atlastVertSrc, atlastFragSrc)
+  ctx.mesh.loadTexture("rgbaTex", result.texture)
+  ctx.mesh.finalize()
 
+  ctx.maskImage = newImage("", 1024, 1024, 4)
+  ctx.maskImage.fill(rgba(255, 255, 255, 255))
+  ctx.maskTexture = ctx.maskImage.texture()
+
+  ctx.shader = compileShaderFiles(atlastVertSrc, atlastFragSrc)
+  ctx.maskShader = compileShaderFiles(maskVertSrc, maskFragSrc)
+
+  #ctx.mesh.loadShader(atlastVertSrc, atlastFragSrc)
+  ctx.mesh.shader = ctx.shader
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  ctx.mesh.finalize()
+  return ctx
 
 
 proc findEmptyRect*(ctx: Context, width, height: int): Rect =
@@ -264,7 +283,8 @@ proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
     # check to see if approparte .slate file is around
     echo "[load] ", imagePath
     if not fileExists(imagePath):
-      raise newException(Exception, &"Image '{imagePath}' not found")
+      quit(&"Image '{imagePath}' not found")
+      #raise newException(Exception, &"Image '{imagePath}' not found")
     let
       slateImagePath = imagePath.changeFileExt(".slate")
     if not existsFile(slateImagePath):
@@ -314,9 +334,95 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy + uvRect.wh/2, uvRect.xy + uvRect.wh/2, color)
 
 
-proc flip*(ctx: Context) =
+proc drawMesh*(ctx: Context) =
   ## Flips - draws current buffer and starts a new one.
-  echo "flip drew: ", ctx.quadCount, " quads"
-  ctx.mesh.upload(ctx.quadCount*6)
-  ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
-  ctx.quadCount = 0
+  if ctx.quadCount > 0:
+    ctx.mesh.upload(ctx.quadCount*6)
+    ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
+    ctx.quadCount = 0
+
+
+proc clearMask*(ctx: Context) =
+  ## Sets mask off (acutally fills the mask with white)
+  ctx.drawMesh()
+
+  if ctx.maskFBO != 0:
+    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+
+    glClearColor(1, 1, 1, 1)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+proc beginMask*(ctx: Context) =
+  ## Starts drawing into a mask.
+  ctx.drawMesh()
+
+  if ctx.maskFBO == 0:
+    glGenFramebuffers(1, addr ctx.maskFBO)
+    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+
+    glGenTextures(1, addr ctx.maskTextureId)
+    ctx.maskTexture.id = ctx.maskTextureId
+
+    ctx.maskImage = Image()
+    ctx.maskImage.width = (int windowFrame.x)
+    ctx.maskImage.height = (int windowFrame.y)
+
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width, GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ctx.maskTextureId, 0)
+
+    if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
+      quit("Some thing wrong with frame buffer. 2")
+
+  glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+  glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
+
+  if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
+    quit("Some thing wrong with frame buffer. 2")
+
+  glCLearColor(0, 0, 0, 0.0)
+  glClear(GL_COLOR_BUFFER_BIT)
+
+  ctx.mesh.shader = ctx.maskShader
+  ctx.mesh.textures.setLen(0)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
+
+
+proc endMask*(ctx: Context) =
+  ## Stops drawing into the mask.
+  ctx.drawMesh()
+
+  # var image = newImage("debug.png", int windowFrame.x, int windowFrame.y, 4)
+  # glReadPixels(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y, GL_RGBA, GL_UNSIGNED_BYTE, addr image.data[0])
+  # image.save()
+  # if true: quit()
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
+
+  ctx.mesh.shader = ctx.shader
+  ctx.mesh.textures.setLen(0)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+
+
+proc startFrame*(ctx: Context, screenSize: Vec2) =
+  ## Starts a new frame.
+  if ctx.maskImage == nil or (ctx.maskImage.width != int screenSize.x) or
+    (ctx.maskImage.height != int screenSize.y):
+    ctx.maskImage.width = (int windowFrame.x)
+    ctx.maskImage.height = (int windowFrame.y)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width, GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    ctx.clearMask()
+
+
+proc endFrame*(ctx: Context) =
+  ## Ends a frame.
+  ctx.drawMesh()
+

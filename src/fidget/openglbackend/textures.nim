@@ -10,7 +10,7 @@ type
     id*: GLuint
 
 
-proc texture*(image: Image):Texture =
+proc texture*(image: Image): Texture =
   var texture = Texture()
   texture.kind = Texsture2d
   glGenTextures(1, texture.id.addr)

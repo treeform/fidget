@@ -45,26 +45,32 @@ proc drawText(group: Group) =
   # let fontHeight = font.ascent - font.descent
   # let scale = font.size / fontHeight
 
-  if mouse.down and mouse.pos.inside(current.screenBox):
+  let mousePos = mouse.pos - group.screenBox.xy
+
+  # draw masked region
+  ctx.beginMask()
+  ctx.fillRect(
+    rect(0, 0, group.screenBox.w, group.screenBox.h),
+    rgba(255, 0, 0, 255).color
+  )
+  ctx.endMask()
+
+  if current.editableText and mouse.down and mouse.pos.inside(current.screenBox):
     if mouse.click and keyboard.inputFocusIdPath != group.idPath:
-      print "gain focus"
       keyboard.inputFocusIdPath = group.idPath
-      print "created new text box", group.idPath
       textBox = newTextBox(
         font,
         int group.screenBox.w,
         int group.screenBox.w,
-        group.text
+        group.text,
+        current.multiline
       )
-
     # mouse actions click, drag, double clicking
-    let mousePos = mouse.pos - group.screenBox.xy
     if mouse.click:
       if epochTime() - lastClickTime < 0.5:
         inc multiClick
       else:
         multiClick = 0
-      print multiClick, epochTime() - lastClickTime
       lastClickTime = epochTime()
       if multiClick == 1:
         textBox.selectWord(mousePos)
@@ -76,12 +82,15 @@ proc drawText(group: Group) =
         textBox.selectAll()
         mouse.down = false
       else:
-        textBox.mouseAction(mousePos, click=true)
-    else:
-      textBox.mouseAction(mousePos, click=false)
+        textBox.mouseAction(mousePos, click=true, keyboard.shiftKey)
+
+
+  if textBox != nil and mouse.down and not mouse.click and
+      keyboard.inputFocusIdPath == group.idPath:
+    # draggin the mouse
+    textBox.mouseAction(mousePos, click=false, keyboard.shiftKey)
 
   let editing = keyboard.inputFocusIdPath == group.idPath
-
   var layout: seq[GlyphPosition]
 
   if editing:
@@ -89,7 +98,7 @@ proc drawText(group: Group) =
       textBox.resize(group.screenBox.wh)
     layout = textBox.layout
     ctx.saveTransform()
-    ctx.translate(vec2(0, -textBox.scroll.y))
+    ctx.translate(-textBox.scroll)
 
     for rect in textBox.selectionRegions():
       ctx.fillRect(rect, rgba(0, 255, 0, 155).color)
@@ -132,6 +141,11 @@ proc drawText(group: Group) =
     ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
 
     ctx.restoreTransform()
+
+    keyboard.input = textBox.text
+
+  ctx.clearMask()
+
 
 proc draw*(group: Group) =
   ## Draws the group
@@ -207,6 +221,8 @@ proc setupFidget*() {.exportc.} =
 
     clearColorBuffer(color(1.0, 0.0, 0.0, 1.0))
 
+    ctx.startFrame(windowFrame)
+
     ctx.saveTransform()
     # 4k 3840x2160
     # 2k 2048×1080
@@ -238,7 +254,7 @@ proc setupFidget*() {.exportc.} =
     # ctx.drawImage("circle100.png")
     # ctx.restoreTransform()
 
-    ctx.flip()
+    ctx.endFrame()
 
 
 

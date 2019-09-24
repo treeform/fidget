@@ -231,16 +231,6 @@ proc box*(x, y, w, h: float) =
     current.screenBox = current.box + parent.screenBox
 
 
-template box*(x, y, w, h: untyped) =
-  ## Sets the box dimentions.
-  box(float x, float y, float w, float h)
-
-
-proc box*(b: Box) =
-  ## Sets the box dimentions.
-  box(b.x, b.y, b.w, b.h)
-
-
 proc rotation*(rotationInDeg: float) =
   ## Sets rotation in degrees
   current.rotation = rotationInDeg
