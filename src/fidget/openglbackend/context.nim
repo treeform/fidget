@@ -1,6 +1,6 @@
 import tables, os, times, strformat
 import vmath, chroma, flippy
-import meshs, textures, slate
+import meshes, textures, slate
 
 type
   Context* = ref object
@@ -76,9 +76,14 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
-const
-  atlastVertSrc = staticRead("atlas.vert")
-  atlastFragSrc = staticRead("atlas.frag")
+when defined(ios) or defined(android):
+  const
+    atlastVertSrc = staticRead("atlas.es.vert")
+    atlastFragSrc = staticRead("atlas.es.frag")
+else:
+  const
+    atlastVertSrc = staticRead("atlas.vert")
+    atlastFragSrc = staticRead("atlas.frag")
 
 proc newContext*(
     size = 1024,
@@ -99,14 +104,15 @@ proc newContext*(
   result.image.fill(rgba(255, 255, 255, 0))
   result.texture = result.image.texture()
 
-  result.mesh = newUvColorMesh()
-  for i in 0..<result.maxQuads:
-    result.mesh.addQuad(
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-    )
+  result.mesh = newUvColorMesh(size=maxQuads*2)
+  # for i in 0..<result.maxQuads:
+  #   result.mesh.addQuad(
+  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
+  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
+  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
+  #     vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
+  #   )
+
   result.mesh.loadShader(atlastVertSrc, atlastFragSrc)
   result.mesh.loadTexture("rgbaTex", result.texture)
   result.mesh.finalize()
@@ -310,6 +316,7 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
 
 proc flip*(ctx: Context) =
   ## Flips - draws current buffer and starts a new one.
+  echo "flip drew: ", ctx.quadCount, " quads"
   ctx.mesh.upload(ctx.quadCount*6)
   ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
   ctx.quadCount = 0
