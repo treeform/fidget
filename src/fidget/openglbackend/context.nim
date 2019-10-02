@@ -381,7 +381,7 @@ proc beginMask*(ctx: Context) =
   if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
     quit("Some thing wrong with frame buffer. 2")
 
-  glCLearColor(0, 0, 0, 0.0)
+  glClearColor(0, 0, 0, 0.0)
   glClear(GL_COLOR_BUFFER_BIT)
 
   ctx.mesh.shader = ctx.maskShader

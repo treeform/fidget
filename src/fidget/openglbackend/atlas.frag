@@ -1,6 +1,6 @@
 #version 410
 
-#extension GL_EXT_gpu_shader4 : enable
+//#extension GL_EXT_gpu_shader4 : enable
 
 precision mediump float;
 
@@ -25,8 +25,8 @@ void main() {
 
 
   fragColor = texture(rgbaTex, uv).rgba * color;
-  ivec2 s = textureSize2D(rgbaMask, 0);
-  fragColor.a *= texture(rgbaMask, vec2(screen.x/s.x, 1 - screen.y/s.y)).a;
+  // ivec2 s = textureSize2D(rgbaMask, 0);
+  // fragColor.a *= texture(rgbaMask, vec2(screen.x/s.x, 1 - screen.y/s.y)).a;
 
 
 }
