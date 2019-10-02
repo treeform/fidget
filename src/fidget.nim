@@ -35,9 +35,14 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
         current.idPath.add "-"
       current.idPath.add g.id
 
+  #TODO: figure out if function wrap is good?
+  # function wrap is needed for JS, but bad for non JS?
   var innerFn = proc() =
     inner
   innerFn()
+  # hmm
+  # block:
+  #   inner
 
   if not current.wasDrawn:
     current.draw()
@@ -221,6 +226,11 @@ proc box*(x, y, w, h: float) =
   current.screenBox = current.box
   if parent != nil:
     current.screenBox = current.box + parent.screenBox
+
+
+proc box*(x, y, w, h: int|float32|float) =
+  ## Sets the box dimentions with integers
+  box(float x, float y, float w, float h)
 
 
 proc rotation*(rotationInDeg: float) =
