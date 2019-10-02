@@ -1,6 +1,10 @@
 import tables, unicode, times
 import vmath, chroma, typography, typography/textboxes, print
-import openglbackend/base, openglbackend/context, openglbackend/input
+when defined(ios) or defined(android):
+  import openglbackend/basemobile as base
+else:
+  import openglbackend/base as base
+import openglbackend/context, openglbackend/input
 import uibase
 
 export windowFrame
@@ -192,13 +196,17 @@ proc goto*(url: string) =
   redraw()
 
 
-proc setupFidget*() =
+proc setupFidget*() {.exportc.} =
   base.start()
-  ctx = newContext(1024*8)
+  when defined(ios):
+    ctx = newContext(1024*4)
+  else:
+    ctx = newContext(1024*8)
 
   base.drawFrame = proc() =
+    print windowFrame.x, windowFrame.y
     proj = ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100)
-
+    #print $proj
     setupRoot()
 
     root.box.x = float 0
@@ -211,7 +219,7 @@ proc setupFidget*() =
     scrollBox.w = root.box.w
     scrollBox.h = root.box.h
 
-    clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
+    clearColorBuffer(color(1.0, 0.0, 0.0, 1.0))
 
     ctx.startFrame(windowFrame)
 
@@ -248,17 +256,21 @@ proc setupFidget*() =
 
     ctx.endFrame()
 
+
+
   useDepthBuffer(false)
 
 
 proc startFidget*() =
   ## Starts fidget UI library
-  setupFidget()
 
-  while base.running:
-    base.tick()
-
-  base.exit()
+  when defined(ios) or defined(android):
+    discard
+  else:
+    setupFidget()
+    while base.running:
+      base.tick()
+    base.exit()
 
 
 proc `title=`*(win: uibase.Window, title: string) =

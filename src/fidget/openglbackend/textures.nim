@@ -46,6 +46,17 @@ proc texture*(image: Image): Texture =
       cast[pointer](image.data[0].addr)
     )
   else:
+    print(
+      target,
+      level,
+      internalformat,
+      width,
+      height,
+      border,
+      format,
+      `type`,
+      cast[pointer](image.data[0].addr)
+    )
     glTexImage2D(
       target,
       level,
@@ -78,6 +89,17 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
   #   pixels = cast[pointer](image.data[0].addr)
   # )
   glBindTexture(GL_TEXTURE_2D, texture.id)
+  print(
+    GL_TEXTURE_2D,
+    GLint(level),
+    GLint(x),
+    GLint(y),
+    GLsizei(image.width),
+    GLsizei(image.height),
+    GLenum GL_RGBA,
+    GLenum GL_UNSIGNED_BYTE,
+    cast[pointer](image.data[0].addr)
+  )
   glTexSubImage2D(
     GL_TEXTURE_2D,
     level = GLint(level),
@@ -103,6 +125,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     x = x div 2
     y = y div 2
     inc level
+    break
 
 
 proc textureBind*(texture:Texture, number:int) =

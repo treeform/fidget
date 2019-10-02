@@ -43,7 +43,8 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
     glGetShaderInfoLog(vertShader, logSize.GLsizei, logLen.addr, logStr)
 
     # Print the log
-    quit $logStr
+    echo $logStr
+    quit()
 
     # Cleanup
     # dealloc(logStr)

@@ -1,8 +1,8 @@
 import tables, os, times, strformat
 import vmath, chroma, flippy
-import meshs, textures, shaders, slate
-
+import meshes, textures, shaders, slate
 import opengl, base, print
+
 
 type
   Context* = ref object
@@ -85,11 +85,18 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
-const
-  atlastVertSrc = staticRead("atlas.vert")
-  atlastFragSrc = staticRead("atlas.frag")
-  maskVertSrc = staticRead("mask.vert")
-  maskFragSrc = staticRead("mask.frag")
+
+when defined(ios) or defined(android):
+  const
+    atlastVertSrc = staticRead("atlas.es.vert")
+    atlastFragSrc = staticRead("atlas.es.frag")
+else:
+  const
+    atlastVertSrc = staticRead("atlas.vert")
+    atlastFragSrc = staticRead("atlas.frag")
+    maskVertSrc = staticRead("mask.vert")
+    maskFragSrc = staticRead("mask.frag")
+
 
 proc newContext*(
     size = 1024,
@@ -107,17 +114,14 @@ proc newContext*(
 
   ctx.heights = newSeq[uint16](size)
   ctx.image = newImage("", size, size, 4)
-  #ctx.image.fill(rgba(255, 255, 255, 0))
+  ctx.image.fill(rgba(255, 255, 255, 0))
   ctx.texture = ctx.image.texture()
 
-  ctx.mesh = newUvColorMesh()
-  for i in 0 ..< ctx.maxQuads:
-    ctx.mesh.addQuad(
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-      vec3(0, 0, 0), vec2(0, 0), color(0,0,0,0),
-    )
+  ctx.mesh = newUvColorMesh(size=maxQuads*2)
+
+  ctx.mesh.loadShader(atlastVertSrc, atlastFragSrc)
+  ctx.mesh.loadTexture("rgbaTex", result.texture)
+  ctx.mesh.finalize()
 
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))

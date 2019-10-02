@@ -11,3 +11,5 @@ nimcache
 cairo
 *.dylib
 *.dll
+ios_bars
+android_bars
