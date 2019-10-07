@@ -222,5 +222,3 @@ proc glfmMain*(display: ptr GLFMDisplay) {.exportc.} =
   echo readAssetFile("data.txt")
 
 
-
-  print windowSize

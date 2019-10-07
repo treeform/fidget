@@ -46,17 +46,6 @@ proc texture*(image: Image): Texture =
       cast[pointer](image.data[0].addr)
     )
   else:
-    print(
-      target,
-      level,
-      internalformat,
-      width,
-      height,
-      border,
-      format,
-      `type`,
-      cast[pointer](image.data[0].addr)
-    )
     glTexImage2D(
       target,
       level,
@@ -77,40 +66,31 @@ proc texture*(image: Image): Texture =
 
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
-  # glTextureSubImage2D(
-  #   texture = texture.id,
-  #   level = GLint(level),
-  #   xoffset = GLint(x),
-  #   yoffset = GLint(y),
-  #   width = GLsizei(image.width),
-  #   height = GLsizei(image.height),
-  #   format = GLenum GL_RGBA,
-  #   `type` = GLenum GL_UNSIGNED_BYTE,
-  #   pixels = cast[pointer](image.data[0].addr)
-  # )
-  glBindTexture(GL_TEXTURE_2D, texture.id)
-  print(
-    GL_TEXTURE_2D,
-    GLint(level),
-    GLint(x),
-    GLint(y),
-    GLsizei(image.width),
-    GLsizei(image.height),
-    GLenum GL_RGBA,
-    GLenum GL_UNSIGNED_BYTE,
-    cast[pointer](image.data[0].addr)
-  )
-  glTexSubImage2D(
-    GL_TEXTURE_2D,
-    level = GLint(level),
-    xoffset = GLint(x),
-    yoffset = GLint(y),
-    width = GLsizei(image.width),
-    height = GLsizei(image.height),
-    format = GLenum GL_RGBA,
-    `type` = GLenum GL_UNSIGNED_BYTE,
-    pixels = cast[pointer](image.data[0].addr)
-  )
+  when defined(ios) or defined(android):
+    glBindTexture(GL_TEXTURE_2D, texture.id)
+    glTexSubImage2D(
+      GL_TEXTURE_2D,
+      level = GLint(level),
+      xoffset = GLint(x),
+      yoffset = GLint(y),
+      width = GLsizei(image.width),
+      height = GLsizei(image.height),
+      format = GLenum GL_RGBA,
+      `type` = GLenum GL_UNSIGNED_BYTE,
+      pixels = cast[pointer](image.data[0].addr)
+    )
+  else:
+    glTextureSubImage2D(
+      texture = texture.id,
+      level = GLint(level),
+      xoffset = GLint(x),
+      yoffset = GLint(y),
+      width = GLsizei(image.width),
+      height = GLsizei(image.height),
+      format = GLenum GL_RGBA,
+      `type` = GLenum GL_UNSIGNED_BYTE,
+      pixels = cast[pointer](image.data[0].addr)
+    )
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   var
