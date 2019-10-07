@@ -283,8 +283,8 @@ proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
     # check to see if approparte .slate file is around
     echo "[load] ", imagePath
     if not fileExists(imagePath):
-      quit(&"Image '{imagePath}' not found")
-      #raise newException(Exception, &"Image '{imagePath}' not found")
+      #quit(&"Image '{imagePath}' not found")
+      raise newException(Exception, &"Image '{imagePath}' not found")
     let
       slateImagePath = imagePath.changeFileExt(".slate")
     if not existsFile(slateImagePath):
