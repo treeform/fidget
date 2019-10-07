@@ -204,7 +204,6 @@ proc setupFidget*() {.exportc.} =
     ctx = newContext(1024*8)
 
   base.drawFrame = proc() =
-    print windowFrame.x, windowFrame.y
     proj = ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100)
     #print $proj
     setupRoot()

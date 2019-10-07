@@ -117,10 +117,10 @@ proc newContext*(
   ctx.image.fill(rgba(255, 255, 255, 0))
   ctx.texture = ctx.image.texture()
 
-  ctx.mesh = newUvColorMesh(size=maxQuads*2)
+  ctx.mesh = newUvColorMesh(size=maxQuads*2*3)
 
   ctx.mesh.loadShader(atlastVertSrc, atlastFragSrc)
-  ctx.mesh.loadTexture("rgbaTex", result.texture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
   ctx.mesh.finalize()
 
   ctx.maskImage = newImage("", 1024, 1024, 4)

@@ -1,7 +1,4 @@
-import opengl
-import vmath
-import math
-import random
+import opengl, vmath, math, strformat
 
 import shaders
 import textures
@@ -146,21 +143,14 @@ proc loadShader*(mesh: Mesh, vertFileName: string, fragFileName: string) =
 
 
 proc loadTexture*(mesh: Mesh, name: string, texture: Texture) =
-  echo "loadTexture"
   var uniform = TexUniform()
-  echo "1"
   uniform.name = name
-  echo "2"
   uniform.texture = texture
-  echo "3"
-  echo cast[uint](mesh.shader)
-  echo name
   uniform.loc = glGetUniformLocation(mesh.shader, name)
-  echo "4"
-  assert uniform.loc != -1
-  echo "5"
+  if uniform.loc == -1:
+    echo &"can't find uniform {name} in mesh.shader.name"
+    quit()
   mesh.textures.add(uniform)
-  echo "end loadTexture"
 
 
 proc upload*(mesh: Mesh) =
@@ -402,26 +392,22 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
     var uniModel = glGetUniformLocation(mesh.shader, "model")
     if uniModel > -1:
       var arr = mat.toFloat32()
-      echo "uniModel ", arr
       glUniformMatrix4fv(uniModel, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
     var uniView = glGetUniformLocation(mesh.shader, "view")
     if uniView > -1:
       var arr = view.toFloat32()
-      echo "uniView ", arr
       glUniformMatrix4fv(uniView, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
     var uniProj = glGetUniformLocation(mesh.shader, "proj")
     if uniProj > -1:
       var arr = proj.toFloat32()
-      echo "uniProj ", arr
       glUniformMatrix4fv(uniProj, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
     var uniSuperTrans = glGetUniformLocation(mesh.shader, "superTrans")
     if uniSuperTrans > -1:
       var superTrans = proj * view * mat
       var arr = superTrans.toFloat32()
-      echo "uniSuperTrans ", arr
       glUniformMatrix4fv(uniSuperTrans, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
     # Do the drawing
@@ -431,12 +417,10 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
       glBindVertexArray(mesh.vao)
 
     for uniform in mesh.uniforms:
-      echo uniform.name, uniform.loc
       mesh.uniformBind(uniform)
 
     for i, uniform in mesh.textures:
       uniform.texture.textureBind(i)
-      echo "tx", uniform.name, uniform.loc
       glUniform1i(GLint uniform.loc, GLint i)
 
     glDrawArrays(mesh.drawMode, 0, GLsizei max)
