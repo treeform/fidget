@@ -97,7 +97,6 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     x = x
     y = y
     level = 0
-  # image.alphaBleed()
   var image = image
   while image.width > 1 and image.height > 1:
     texture.updateSubImage(x, y, image, level)
@@ -105,8 +104,6 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     x = x div 2
     y = y div 2
     inc level
-    break
-
 
 proc textureBind*(texture:Texture, number:int) =
   glActiveTexture(GLenum(int(GL_TEXTURE0) + number))

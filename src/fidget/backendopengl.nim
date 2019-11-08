@@ -168,6 +168,13 @@ proc draw*(group: Group) =
           group.screenBox.w, group.screenBox.h
         ), group.fill)
 
+  if group.strokeWeight > 0 and group.kind != "text":
+    ctx.strokeRoundedRect(rect(
+      0, 0,
+      group.screenBox.w, group.screenBox.h
+    ), group.stroke, group.strokeWeight, group.cornerRadius[0])
+
+
   if group.imageName != "":
     let path = "data/" & group.imageName & ".png"
     ctx.drawImage(path, vec2(0, 0), vec2(group.screenBox.w, group.screenBox.h))
@@ -218,7 +225,7 @@ proc setupFidget*() {.exportc.} =
     scrollBox.w = root.box.w
     scrollBox.h = root.box.h
 
-    clearColorBuffer(color(1.0, 0.0, 0.0, 1.0))
+    clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
 
     ctx.startFrame(windowFrame)
 

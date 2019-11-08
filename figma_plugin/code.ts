@@ -1,7 +1,5 @@
-// let nodeCount = 0
-// const nodeTypeCounts: Map<NodeType, number> = new Map
 
-function q(str: string) {
+function q(str: string): string {
   return JSON.stringify(str)
 }
 
@@ -13,16 +11,17 @@ function titleCase(str) {
   return str.join(' ');
 }
 
-function toHtmlColor(color){
- return "#" +
-  ("0" + (color.r*255).toString(16)).slice(-2) +
-  ("0" + (color.g*255).toString(16)).slice(-2) +
-  ("0" + (color.b*255).toString(16)).slice(-2) ;
+function toHtmlColor(color): string {
+  return "#" +
+  ("0" + (Math.floor(color.r*255.5)).toString(16)).slice(-2) +
+  ("0" + (Math.floor(color.g*255.5)).toString(16)).slice(-2) +
+  ("0" + (Math.floor(color.b*255.5)).toString(16)).slice(-2) ;
 }
 
 var text = ""
 var indent = 0
-
+var at = {x:0, y:0}
+var atStack = []
 
 function ind() {
   return "  ".repeat(indent)
@@ -39,12 +38,31 @@ function visitFill(fill) {
   }
 }
 
+
+function visitStroke(fill) {
+  // text += ind() + `fill color(${fill.color.r}, ${fill.color.g}, ${fill.color.b}, ${fill.opacity})\n`
+  if(fill.color != undefined){
+    if(fill.opacity != 1) {
+      text += ind() + `stroke ${JSON.stringify(toHtmlColor(fill.color))}, ${fill.opacity}\n`
+    } else {
+      text += ind() + `stroke ${JSON.stringify(toHtmlColor(fill.color))}\n`
+    }
+  }
+}
+
 function visit(node) {
+
+  if(!node.visible){
+    return
+  }
+
   text += ind() + node.type.toLowerCase() + " \"" + node.name + "\":\n"
   indent += 1
 
-  //text += ind() + `relativeTransform ${node.relativeTransform}\n`
-  text += ind() + `box ${node.x}, ${node.y}, ${node.width}, ${node.height}\n`
+  //text += ind() + `# relativeTransform ${node.relativeTransform}\n`
+  //text += ind() + `# ${node.x} ${node.y}\n`
+  text += ind() + `box ${node.x-at.x}, ${node.y-at.y}, ${node.width}, ${node.height}\n`
+
 
   if (node.constraints) {
     text += ind() + `constraints c${titleCase(node.constraints.horizontal)}, c${titleCase(node.constraints.vertical)}\n`
@@ -68,6 +86,20 @@ function visit(node) {
     for(let fill of node.fills){
       visitFill(fill)
     }
+  }
+
+  if(node.strokes != undefined && node.strokes != figma.mixed){
+    for(let stroke of node.strokes){
+      visitStroke(stroke)
+    }
+  }
+
+  if(node.cornerRadius != undefined && node.cornerRadius != figma.mixed){
+    text += ind() + `cornerRadius ${node.cornerRadius}\n`
+  }
+
+  if(node.strokeWeight != undefined) {
+    text += ind() + `strokeWeight ${node.strokeWeight}\n`
   }
 
   if (node.type == "TEXT"){
@@ -99,8 +131,21 @@ function visit(node) {
     text += ind() + "characters " + JSON.stringify(node.characters) + "\n"
   }
 
-  if (node.children) node.children.forEach(visit)
+  if (node.children) {
+    if(node.type == "GROUP"){
+      atStack.push({x:at.x, y:at.y})
+      at.x = node.x
+      at.y = node.y
+    }
+
+    node.children.forEach(visit)
+
+    if(node.type == "GROUP"){
+      at = atStack.pop()
+    }
+  }
   indent -= 1
+
 
 }
 

@@ -89,11 +89,11 @@ proc uploadBuf*(buf: VertBuffer, max: int) =
 
 proc bindBuf*(buf: VertBuffer, mesh: Mesh, index: int) =
   let uniformName = "vertex" & $buf.kind
-  echo "bind ", buf.kind, " to ", index
+  #echo "bind ", buf.kind, " to ", index
 
   let loc = glGetAttribLocation(mesh.shader, uniformName)
 
-  echo "glGetAttribLocation ", loc
+  #echo "glGetAttribLocation ", loc
 
   glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
   glVertexAttribPointer(GLuint loc, GLint buf.stride, cGL_FLOAT, GL_FALSE, 0, nil)
@@ -101,7 +101,7 @@ proc bindBuf*(buf: VertBuffer, mesh: Mesh, index: int) =
 
 
 proc newMesh*(): Mesh =
-  echo "new mesh"
+  #echo "new mesh"
   result = Mesh()
   result.mat = identity()
   result.buffers = newSeq[VertBuffer]()
