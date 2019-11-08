@@ -333,6 +333,35 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy + uvRect.wh/2, uvRect.xy + uvRect.wh/2, color)
 
+proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
+  # TODO: Make this a 9 patch
+  let
+    imgKey = "roundedRect:" & $rect.wh & ":" & $radius
+    w = int ceil(rect.w)
+    h = int ceil(rect.h)
+  if imgKey notin ctx.entries:
+    var image = newImage(w, h, 4)
+    image.fill(rgba(255, 255, 255, 0))
+    image.fillRoundedRect(rect(0,0, rect.w, rect.h), radius, rgba(255, 255, 255, 255))
+    ctx.putImage(imgKey, image)
+  let uvRect = ctx.entries[imgKey]
+  let wh = rect.wh * float32(ctx.size)
+  ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy, uvRect.xy + uvRect.wh, color)
+
+proc strokeRoundedRect*(ctx: Context, rect: Rect, color: Color, weight: float, radius: float) =
+  # TODO: Make this a 9 patch
+  let
+    imgKey = "roundedRect:" & $rect.wh & ":" & $radius & ":" & $weight
+    w = int ceil(rect.w)
+    h = int ceil(rect.h)
+  if imgKey notin ctx.entries:
+    var image = newImage(w, h, 4)
+    image.fill(rgba(255, 255, 255, 0))
+    image.strokeRoundedRect(rect(0,0, rect.w, rect.h), radius, 2, rgba(255, 255, 255, 255))
+    ctx.putImage(imgKey, image)
+  let uvRect = ctx.entries[imgKey]
+  let wh = rect.wh * float32(ctx.size)
+  ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy, uvRect.xy + uvRect.wh, color)
 
 proc drawMesh*(ctx: Context) =
   ## Flips - draws current buffer and starts a new one.

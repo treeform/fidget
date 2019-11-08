@@ -25,6 +25,7 @@ var
   avgFrameTime*: float64
   fps*: float64 = 60
 
+windowFrame = vec2(2000, 1000)
 
 proc onResize() =
   var cwidth, cheight: cint
@@ -152,7 +153,7 @@ proc start*() =
   # var mode = GetVideoMode(monitor)
   # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
 
-  window = CreateWindow(2000, 1000, uibase.window.innerTitle, nil, nil)
+  window = CreateWindow(cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
   perfMark("open window")
 
   if window.isNil:

@@ -11,6 +11,9 @@ const
 
 type
 
+  Contraints* = enum
+    cMin
+
   TextStyle* = object
     fontFamily*: string
     fontSize*: float

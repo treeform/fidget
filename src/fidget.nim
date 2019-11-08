@@ -37,12 +37,11 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
 
   #TODO: figure out if function wrap is good?
   # function wrap is needed for JS, but bad for non JS?
-  var innerFn = proc() =
-    inner
-  innerFn()
-  # hmm
-  # block:
+  # var innerFn = proc() =
   #   inner
+  # innerFn()
+  block:
+    inner
 
   if not current.wasDrawn:
     current.draw()
@@ -315,6 +314,10 @@ proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas
   current.drawable = drawable
 
+
+proc constraints*(vCon: Contraints, hCon: Contraints) =
+  ## Sets vertical or horizontal contraint.
+  discard
 
 template binding*(stringVarible: untyped) =
   ## Makes the current object text-editable and binds it to the
