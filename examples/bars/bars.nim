@@ -18,8 +18,6 @@ drawMain = proc() =
 
   window.title = "Fidget Bars Example"
 
-  print root.box
-
   let h = bars.len * 60 + 20
   let barW = root.box.w - 100
   frame "main":

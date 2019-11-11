@@ -8,8 +8,6 @@ It is an absolute travesty that there is no good and easy way to design cross pl
 
 Programmers still have to code UIs by hand from flat design mockups. Fidget leverages Figma - an app that is taking design world by storm. It does this by taking Figma files and converting them to code. No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and reload.
 
-
-
 Other UI systems like, HTML5 has a ton of layout primitives, margin, padding, float, absolute, relative, border box, flex and friends. I want to simplify this to just the most basic way to lay something out. Because Fidget leverages Figma, I am adopting their system, because it simple and visual:
 
 * Everything is a Group.
@@ -55,5 +53,13 @@ Fidgetgen is a tool to take figma files and turn them into code.
 fidgetgen figmaURL -o:someuifile.nim
 ```
 
+## maxOS
 
+You need to install glfw3
+
+```sh
+brew install glfw3
+```
+
+or just using dlls/macOS/libglfw.3.3.dylib thats provided.
 

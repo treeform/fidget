@@ -3,13 +3,9 @@ import print
 import vmath
 
 when not defined(js):
-  import fidget/backendopengl, typography, tables
-  # fonts["IBM Plex Sans Regular"] = readFontTTF("libs/fidget/examples/basic/assets/IBMPlexSans-Regular.ttf")
-  # fonts["IBM Plex Sans Bold"] = readFontTTF("libs/fidget/examples/basic/assets/IBMPlexSans-Bold.ttf")
-  # fonts["IBM Plex Sans Regular"] = readFontSvg("libs/fidget/examples/Ubuntu.svg")
-  # fonts["IBM Plex Sans Bold"] = readFontSvg("libs/fidget/examples/Ubuntu.svg")
-  fonts["IBM Plex Sans Regular"] = readFontSvg("libs/fidget/examples/basic/assets/IBMPlexSans-Regular.svg")
-  fonts["IBM Plex Sans Bold"] = readFontSvg("libs/fidget/examples/basic/assets/IBMPlexSans-Bold.svg")
+  import typography, tables
+  fonts["IBM Plex Sans Regular"] = readFontSvg("basic/assets/IBMPlexSans-Regular.svg")
+  fonts["IBM Plex Sans Bold"] = readFontSvg("basic/assets/IBMPlexSans-Bold.svg")
 
 drawMain = proc() =
   window.title = "Fidget Example"

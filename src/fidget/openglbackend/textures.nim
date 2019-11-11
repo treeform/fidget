@@ -66,7 +66,7 @@ proc texture*(image: Image): Texture =
 
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
-  when defined(ios) or defined(android):
+  when defined(ios) or defined(android) or defined(osx):
     glBindTexture(GL_TEXTURE_2D, texture.id)
     glTexSubImage2D(
       GL_TEXTURE_2D,

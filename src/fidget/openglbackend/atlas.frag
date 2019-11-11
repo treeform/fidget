@@ -1,6 +1,5 @@
+// atlas.frag
 #version 410
-
-#extension GL_EXT_gpu_shader4 : enable
 
 precision mediump float;
 
@@ -10,6 +9,7 @@ in vec2 screen;
 out vec4 fragColor;
 
 uniform vec2 screenSize;
+uniform vec2 textureSize;
 
 uniform sampler2D rgbaTex;
 uniform sampler2D rgbaMask;
@@ -23,10 +23,7 @@ void main() {
   //   fragColor.a = 0;
   // }
 
-
   fragColor = texture(rgbaTex, uv).rgba * color;
-  ivec2 s = textureSize2D(rgbaMask, 0);
+  vec2 s = textureSize; // textureSize2D(rgbaMask, 0);
   fragColor.a *= texture(rgbaMask, vec2(screen.x/s.x, 1 - screen.y/s.y)).a;
-
-
 }
