@@ -1,17 +1,12 @@
 import ../../src/fidget
-
-import print
-import random
 import math
-
 
 var
   textValue: string
   beEdit = false
 
-
 when not defined(js):
-  import fidget/backendopengl, typography, tables
+  import ../../src/fidget/backendopengl, typography, tables
   fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
 
 window.title = "Inputs Example"

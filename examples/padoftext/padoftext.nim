@@ -5,7 +5,7 @@ import random
 import math
 
 when not defined(js):
-  import fidget/backendopengl, typography, tables
+  import ../../src/fidget/backendopengl, typography, tables
   fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
 
 
