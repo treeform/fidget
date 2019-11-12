@@ -30,6 +30,7 @@ drawMain = proc() =
 
 
 
+when not defined(js):
+  windowFrame = vec2(530, 185)
 
-windowFrame = vec2(530, 185)
 startFidget()

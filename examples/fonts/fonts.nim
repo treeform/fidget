@@ -9,17 +9,15 @@ var bars = newSeq[int](1000)
 for i, bar in bars:
   bars[i] = rand(40)
 
+when not defined(js):
+  import typography, tables
+  fonts["IBM Plex Sans Regular"] = readFontSvg("IBMPlexSans-Regular.svg")
 
 drawMain = proc() =
 
   window.title = "Fidget Fonts Example"
 
-  # fontFamily "Helvetica Neue"
-  # fontSize 12
-  # fontWeight 200
-  # lineHeight 16
-  # textAlign -1, -1
-  font "Helvetica Neue", 12, 200, 16, -1, -1
+  font "IBM Plex Sans Regular", 12, 200, 16, -1, -1
 
   let h = bars.len * 60 + 20
   frame "main":

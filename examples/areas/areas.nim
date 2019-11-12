@@ -49,11 +49,11 @@ drawMain = proc() =
     if area.expanded:
       totalPageHeight += area.heightCode
 
-  totalPageHeight = max(totalPageHeight, window.innerHeight)
+  totalPageHeight = max(totalPageHeight, dom2.window.innerHeight)
   let width = 1000
 
   frame "main":
-    box 0, 0, window.innerWidth, totalPageHeight
+    box 0, 0, dom2.window.innerWidth, totalPageHeight
     rectangle "#F7F7F9"
 
     group "center":
@@ -108,8 +108,8 @@ drawMain = proc() =
 
               group "codeText":
                 box 20, 20, width-40, area.heightCode-40
-                textColor "#000000"
-                text area.queryCode
+                fill "#000000"
+                characters area.queryCode
 
               onClick:
                 print "edit", area.queryCode
@@ -135,6 +135,6 @@ drawMain = proc() =
 
             innerAtY += area.heightOuput
 
-        atY += innerAtY
+          atY += innerAtY
 
-
+startFidget()

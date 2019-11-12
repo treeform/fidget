@@ -63,3 +63,29 @@ brew install glfw3
 
 or just using dlls/macOS/libglfw.3.3.dylib thats provided.
 
+
+## Now to run the examples:
+
+Native examples for Windows, macOS, and Linux:
+```
+cd examples
+nim c -r bars/bars.nim
+nim c -r fonts/fonts.nim
+nim c -r hovers/hovers.nim
+nim c -r inputs/inputs.nim
+nim c -r padoftext/padoftext.nim
+nim c -r padofcode/padofcode.nim
+nim c -r basic/basic.nim
+```
+
+Runs the same examples as HTML:
+```
+cd examples
+nim js -o:bars/bars.js bars/bars.nim
+nim js -o:fonts/fonts.js fonts/fonts.nim
+nim js -o:hovers/hovers.js hovers/hovers.nim
+nim js -o:inputs/inputs.js inputs/inputs.nim
+nim js -o:padoftext/padoftext.js padoftext/padoftext.nim
+nim js -o:padofcode/padofcode.js padofcode/padofcode.nim
+nim js -o:basic/basic.js basic/basic.nim
+```

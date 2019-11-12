@@ -6,7 +6,7 @@ import random, tables, math
 
 when not defined(js):
   import fidget/backendopengl, typography
-  fonts["Inconsolata"] = readFontSVG("libs/fidget/examples/padofcode/Inconsolata.svg")
+  fonts["Inconsolata"] = readFontSVG("Inconsolata.svg")
 
 
 var
