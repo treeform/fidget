@@ -201,7 +201,7 @@ proc drawDiff(group: Group) =
           var textDom = document.createTextNode(current.text)
           textDiv.appendChild(textDom)
 
-        if current.textStyle.textAlignHorizontal != -1 or current.textStyle.textAlignVertical != 1:
+        if current.textStyle.textAlignHorizontal != -1 or current.textStyle.textAlignVertical != -1:
           var box = computeTextBox(
             current.text,
             current.screenBox.w,
