@@ -5,7 +5,7 @@ import random, tables, math
 
 
 when not defined(js):
-  import fidget/backendopengl, typography
+  import ../../src/fidget/backendopengl, typography
   fonts["Inconsolata"] = readFontSVG("Inconsolata.svg")
 
 
