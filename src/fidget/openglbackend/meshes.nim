@@ -389,6 +389,13 @@ proc find*(mesh: Mesh, name: string): Mesh =
 proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
     glUseProgram(mesh.shader)
 
+    var uniTextureSize = glGetUniformLocation(mesh.shader, "windowFrame")
+    if uniTextureSize > -1:
+      var arr: array[2, float32]
+      arr[0] = float32 windowFrame.x
+      arr[1] = float32 windowFrame.y
+      glUniform2f(uniTextureSize, arr[0], arr[1])
+
     var uniModel = glGetUniformLocation(mesh.shader, "model")
     if uniModel > -1:
       var arr = mat.toFloat32()

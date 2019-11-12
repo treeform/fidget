@@ -210,13 +210,6 @@ proc checkBatch*(ctx: Context) =
   if ctx.quadCount == ctx.maxQuads:
     # ctx is full dump the images in the ctx now and start a new batch
     ctx.mesh.upload(ctx.quadCount*6)
-    # set texture size uniform
-    var uniTextureSize = glGetUniformLocation(ctx.mesh.shader, "textureSize")
-    var arr: array[2, float32]
-    arr[0] = float32 ctx.size
-    arr[1] = float32 ctx.size
-    glUniformMatrix2fv(uniTextureSize, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
-
     ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
     ctx.quadCount = 0
 
