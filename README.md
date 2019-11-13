@@ -55,37 +55,41 @@ fidgetgen figmaURL -o:someuifile.nim
 
 ## maxOS
 
-You need to install glfw3
+You need to install `glfw3`
 
 ```sh
-brew install glfw3
+brew install `glfw3`
 ```
 
-or just using dlls/macOS/libglfw.3.3.dylib thats provided.
+or just using `dlls/macOS/libglfw.3.3.dylib` thats provided.
 
 
 ## Now to run the examples:
 
-Native examples for Windows, macOS, and Linux:
+### Native examples for Windows, macOS, and Linux:
+
+First `cd` to each folder then compile and run.
+
 ```
-cd examples
-nim c -r bars/bars.nim
-nim c -r fonts/fonts.nim
-nim c -r hovers/hovers.nim
-nim c -r inputs/inputs.nim
-nim c -r padoftext/padoftext.nim
-nim c -r padofcode/padofcode.nim
-nim c -r basic/basic.nim
+nim c -r bars.nim
+nim c -r fonts.nim
+nim c -r hovers.nim
+nim c -r inputs.nim
+nim c -r padoftext.nim
+nim c -r padofcode.nim
+nim c -r basic.nim
 ```
 
-Runs the same examples as HTML:
+### Runs the same examples as HTML:
+
+First `cd` to each folder then run `js` compile command then open the `.html` file in a browser.
+
 ```
-cd examples
-nim js -o:bars/bars.js bars/bars.nim
-nim js -o:fonts/fonts.js fonts/fonts.nim
-nim js -o:hovers/hovers.js hovers/hovers.nim
-nim js -o:inputs/inputs.js inputs/inputs.nim
-nim js -o:padoftext/padoftext.js padoftext/padoftext.nim
-nim js -o:padofcode/padofcode.js padofcode/padofcode.nim
-nim js -o:basic/basic.js basic/basic.nim
+nim js -o:bars.js bars.nim
+nim js -o:fonts.js fonts.nim
+nim js -o:hovers.js hovers.nim
+nim js -o:inputs.js inputs.nim
+nim js -o:padoftext.js padoftext.nim
+nim js -o:padofcode.js padofcode.nim
+nim js -o:basic.js basic.nim
 ```

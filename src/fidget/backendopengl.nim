@@ -106,7 +106,7 @@ proc drawText(group: Group) =
   else:
     layout = font.typeset(
       group.text,
-      pos=vec2(0, 0), #group.screenBox.xy,
+      pos=vec2(0, -1), #group.screenBox.xy,
       size=group.screenBox.wh,
       hAlignNum(group.textStyle.textAlignHorizontal),
       vAlignNum(group.textStyle.textAlignVertical)
@@ -163,12 +163,18 @@ proc draw*(group: Group) =
       drawText(group)
     else:
       if group.imageName == "":
-        ctx.fillRect(rect(
-          0, 0,
-          group.screenBox.w, group.screenBox.h
-        ), group.fill)
+        if group.cornerRadius[0] != 0:
+          ctx.fillRoundedRect(rect(
+            0, 0,
+            group.screenBox.w, group.screenBox.h
+          ), group.fill, group.cornerRadius[0])
+        else:
+          ctx.fillRect(rect(
+            0, 0,
+            group.screenBox.w, group.screenBox.h
+          ), group.fill)
 
-  if group.strokeWeight > 0 and group.kind != "text":
+  if group.stroke.a > 0 and group.strokeWeight > 0 and group.kind != "text":
     ctx.strokeRoundedRect(rect(
       0, 0,
       group.screenBox.w, group.screenBox.h
