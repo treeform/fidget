@@ -209,22 +209,30 @@ proc drawDiff(group: Group) =
             current.textStyle.fontSize
           )
           textDiv.style.position = "absolute"
+          var left = 0.0
           case current.textStyle.textAlignHorizontal:
             of -1:
-              textDiv.style.left = "0px"
+              left = 0
             of 1:
-              textDiv.style.left = $(current.screenBox.w - box[0]) & "px"
+              left = current.screenBox.w - box[0]
             else:
-              textDiv.style.left = $(current.screenBox.w / 2 - box[0] / 2) & "px"
+              left = current.screenBox.w / 2 - box[0] / 2
 
+          var top = 0.0
           case current.textStyle.textAlignVertical:
             of -1:
-              textDiv.style.top = "0px"
+              top = 0
             of 1:
-              textDiv.style.top = $(current.screenBox.h - box[1]) & "px"
+              top = current.screenBox.h - box[1]
             else:
-              textDiv.style.top = $(current.screenBox.h / 2 - box[1] / 2) & "px"
+              top = current.screenBox.h / 2 - box[1] / 2
 
+          # TODO: figure out why this adjustment is needed
+          left -= 2
+          top -= 1
+
+          textDiv.style.left = $left & "px"
+          textDiv.style.top = $top & "px"
 
   if cacheGroup.imageName != current.imageName:
     cacheGroup.imageName = current.imageName
