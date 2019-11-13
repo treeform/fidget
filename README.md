@@ -1,4 +1,4 @@
-<img src="examples/banner.png">
+<img src="docs/banner.png">
 
 # Fidget - A cross platform UI library for nim
 
@@ -10,7 +10,7 @@ Programmers still have to code UIs by hand from flat design mockups. Fidget leve
 
 <p align="center">
   <br>
-  <img src="examples/uiExampleIce.png">
+  <img src="docs/uiExampleIce.png">
 </p>
 <p align="center" style='font-size:12px'>
   <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Available for hire.</a>
