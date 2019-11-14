@@ -14,6 +14,6 @@ jobs:
         export PATH=~/.nimble/bin:$PATH
         echo "export PATH=~/.nimble/bin:$PATH" >> ~/.profile
         choosenim stable  
-        nimble install .      
+        nimble install -y .      
         cd examples/bars/; nim c bars.nim; cd ../..
         cd examples/fonts/; nim c fonts.nim; cd ../..
