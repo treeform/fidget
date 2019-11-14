@@ -13,9 +13,9 @@ jobs:
         #sh init.sh -y
         #export PATH=~/.nimble/bin:$PATH
         #echo "export PATH=~/.nimble/bin:$PATH" >> ~/.profile
-        #choosenim stable  
-        #nimble install -y .    
+        #choosenim stable
         wget https://launchpad.net/ubuntu/+source/nim/1.0.2-1/+build/17969112/+files/nim_1.0.2-1_amd64.deb
         dpkg -i nim_1.0.2-1_amd64.deb 
+        nimble install -y
         cd examples/bars/; nim c bars.nim; cd ../..
         cd examples/fonts/; nim c fonts.nim; cd ../..
