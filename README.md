@@ -6,7 +6,28 @@
 
 Fidget aims to provide performant natively compiled cross platform UIs for any platform - Web with HTML5, Windows, macOS, Linux, iOS and Android with OpenGL.
 
-Programmers still have to code UIs by hand from flat design mockups. Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a Figma Extension to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
+Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a Figma Extension to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
+
+Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/). 
+
+
+## Code Sample:
+
+```nim
+var textValue = ""
+frame "main":
+  box 0, 0, parent.box.w, 1000
+  font "Inconsolata", 16, 400, 20, -1, -1
+  rectangle "#F7F7F9"
+
+  text "codebox":
+    box 0, 0, parent.box.w, 1000
+    fill "#000000"
+    multiline true
+    binding textValue
+```
+
+## Output Sample:
 
 <p align="center">
   <br>
@@ -15,6 +36,8 @@ Programmers still have to code UIs by hand from flat design mockups. Fidget leve
 <p align="center" style='font-size:12px'>
   <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Available for hire.</a>
 </p>
+
+# Backends
 
 Fidget has several backends that are planned:
 * HTML (best supported)
