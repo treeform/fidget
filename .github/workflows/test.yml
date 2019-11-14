@@ -1,0 +1,19 @@
+name: CI
+
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:    
+    - uses: actions/checkout@v1
+    - name: Test
+      run: |
+        export CHOOSENIM_NO_ANALYTICS=1
+        curl https://nim-lang.org/choosenim/init.sh -sSf > init.sh
+        sh init.sh -y
+        export PATH=~/.nimble/bin:$PATH
+        echo "export PATH=~/.nimble/bin:$PATH" >> ~/.profile
+        choosenim stable  
+        nimble install .      
+        cd examples/bars/; nim c bars.nim; cd ../..
+        cd examples/fonts/; nim c fonts.nim; cd ../..
