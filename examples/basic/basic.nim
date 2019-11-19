@@ -7,6 +7,8 @@ when not defined(js):
   fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
   fonts["IBM Plex Sans Bold"] = readFontSvg("data/IBMPlexSans-Bold.svg")
 
+var textInputVar = ""
+
 drawMain = proc() =
   window.title = "Fidget Example"
   component "iceUI":
@@ -219,7 +221,9 @@ drawMain = proc() =
         fill "#72bdd0", 0.5
         strokeWeight 1
         font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
-        characters "Start typing here"
+        placeholder "Start typing here"
+        binding textInputVar
+
     group "label":
       box 150, 15, 100, 30
       text "Text field:":

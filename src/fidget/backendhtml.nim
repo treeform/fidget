@@ -485,6 +485,7 @@ proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window title
   if win.innerTitle != title:
     dom.document.title = title
+    win.innerTitle = title
     redraw()
 
 
