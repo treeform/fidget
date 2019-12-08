@@ -1,7 +1,7 @@
 include system/timers
 import unicode, sequtils
 import chroma, opengl, vmath, print, input, perf, typography/textboxes
-import glfw3
+import glfw
 
 import ../uibase
 
@@ -9,7 +9,7 @@ import ../uibase
 #   {.fatal: "This module can only be used on desktop windows, macos or linux.".}
 
 var
-  window*: glfw3.Window
+  window*: glfw.Window
   view*: Mat4
   proj*: Mat4
   windowSize*: Vec2
@@ -28,12 +28,11 @@ var
 windowFrame = vec2(2000, 1000)
 
 proc onResize() =
-  var cwidth, cheight: cint
-  GetWindowSize(window, addr cwidth, addr cheight)
+  var (cwidth, cheight) = window.size
   windowSize.x = float(cwidth)
   windowSize.y = float(cheight)
 
-  GetFramebufferSize(window, addr cwidth, addr cheight)
+  (cwidth, cheight) = window.framebufferSize
   windowFrame.x = float(cwidth)
   windowFrame.y = float(cheight)
   dpi = windowFrame.x / windowSize.x
@@ -41,7 +40,8 @@ proc onResize() =
 
 
 proc setWindowTitle*(title: string) =
-  window.SetWindowTitle(title)
+  if window != nil:
+    window.title = title
 
 
 proc tick*(poll=true) =
@@ -53,10 +53,10 @@ proc tick*(poll=true) =
   avgFrameTime = float(fpsTimeSeries.avg())
 
   if poll:
-    PollEvents()
+    pollEvents()
   perfMark("PollEvents")
 
-  if glfw3.WindowShouldClose(window) != 0:
+  if window.shouldClose:
     running = false
 
   if windowSize == vec2(0, 0):
@@ -64,8 +64,7 @@ proc tick*(poll=true) =
     return
 
   block:
-    var x, y: float64
-    GetCursorPos(window, addr x, addr y)
+    var (x, y) = window.cursorPos
     mousePos = vec2(x, y)
     mousePos *= dpi
     mouseDelta = mousePos - mousePosPrev
@@ -92,7 +91,7 @@ proc tick*(poll=true) =
     buttonUp[i] = false
 
   perfMark("pre SwapBuffers")
-  SwapBuffers(window)
+  window.swapBuffers()
   perfMark("SwapBuffers")
 
   perfMark("--- end frame")
@@ -117,8 +116,8 @@ proc useDepthBuffer*(on: bool) =
 
 proc exit*() =
   # cleanup GLFW
-  DestroyWindow(window)
-  Terminate()
+  window.destroy()
+  glfw.terminate()
 
 
 proc glGetInteger(what: GLenum): int =
@@ -131,8 +130,7 @@ proc start*() =
   perfMark("start base")
 
   # init libraries
-  if Init() == 0:
-    quit("Failed to intialize GLFW.")
+  glfw.initialize()
 
   perfMark("init glfw")
 
@@ -140,10 +138,10 @@ proc start*() =
 
   #WindowHint(SAMPLES, 32)
 
-  glfw3.WindowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
-  glfw3.WindowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
-  glfw3.WindowHint(cint CONTEXT_VERSION_MAJOR, 4)
-  glfw3.WindowHint(cint CONTEXT_VERSION_MINOR, 1)
+  # glfw.windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
+  # glfw.windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
+  # glfw.windowHint(cint CONTEXT_VERSION_MAJOR, 4)
+  # glfw.windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
   # Open a window
   perfMark("start open window")
@@ -153,13 +151,21 @@ proc start*() =
   # var mode = GetVideoMode(monitor)
   # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
 
-  window = CreateWindow(cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
+  let cfg = OpenglWindowConfig(
+    size: (cint windowFrame.x, cint windowFrame.y),
+    title: uibase.window.innerTitle,
+    forwardCompat: true,
+    profile: opCoreProfile,
+    version: glv41
+  )
+
+  window = newWindow(cfg) #cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
   perfMark("open window")
 
   if window.isNil:
     quit("Failed to open GLFW window.")
 
-  MakeContextCurrent(window)
+  window.makeContextCurrent()
   #FocusWindow(window)
 
   # view = mat4()
@@ -196,26 +202,33 @@ proc start*() =
       glEnable(GL_DEBUG_OUTPUT)
 
   # Print some info
-  echo GetVersionString()
+  echo "GFLW_VERSION:", versionString()
   echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
   echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
-  proc onResize(handle: glfw3.Window, w, h: int32) {.cdecl.} =
+  window.framebufferSizeCb = proc(window: glfw.Window, res: tuple[w, h: int32]) {.closure.} =
     onResize()
     tick(poll = false)
 
-  discard SetFramebufferSizeCallback(window, onResize)
-  onResize()
+  #discard SetFramebufferSizeCallback(window, onResize)
+  #onResize()
 
-  # proc onRefresh(handle: glfw3.Window) {.cdecl.} =
+  # proc onRefresh(handle: glfw.Window) {.cdecl.} =
   #   onResize()
   # discard SetWindowRefreshCallback(window, onRefresh)
 
-  proc onSetKey(window: glfw3.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
-    var setKey = action != 0
-    keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
-    keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
-    keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
+  window.keyCb = proc(
+      window: glfw.Window,
+      key: Key,
+      scanCode: int32,
+      action: KeyAction,
+      modKeys: set[ModifierKey]
+    ) {.closure.} =
+    let setKey = action != kaUp
+    let keyScanCode = scanCode(key)
+    keyboard.altKey = setKey and mkAlt in modKeys
+    keyboard.ctrlKey = setKey and (mkCtrl in modKeys or mkSuper in modKeys)
+    keyboard.shiftKey = setKey and mkShift in modKeys
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
       if not setKey: return
@@ -254,38 +267,37 @@ proc start*() =
           textBox.delete(shift)
         of LETTER_C: # copy
           if ctrl:
-            base.window.SetClipboardString(textBox.copy())
+            base.window.clipboardString = textBox.copy()
         of LETTER_V: # paste
           if ctrl:
-            textBox.paste($base.window.GetClipboardString())
+            textBox.paste($base.window.clipboardString)
         of LETTER_X: # cut
           if ctrl:
-            base.window.SetClipboardString(textBox.cut())
+            base.window.clipboardString = textBox.cut()
         of LETTER_A: # select all
           if ctrl:
             textBox.selectAll()
         else:
           discard
-    elif key < buttonDown.len:
-      if buttonDown[key] == false and setKey:
-        buttonToggle[key] = not buttonToggle[key]
-        buttonPress[key] = true
-      if buttonDown[key] == false and setKey == false:
-        buttonUp[key] = true
-      buttonDown[key] = setKey
+    elif keyScanCode < buttonDown.len:
+      if buttonDown[keyScanCode] == false and setKey:
+        buttonToggle[keyScanCode] = not buttonToggle[keyScanCode]
+        buttonPress[keyScanCode] = true
+      if buttonDown[keyScanCode] == false and setKey == false:
+        buttonUp[keyScanCode] = true
+      buttonDown[keyScanCode] = setKey
 
-  discard SetKeyCallback(window, onSetKey)
-
-  proc onScroll(window: glfw3.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
+  window.scrollCb = proc(window: glfw.Window, offset: tuple[x, y: float64]) {.closure.} =
     if keyboard.inputFocusIdPath != "":
-      textBox.scrollBy(-yoffset * 50)
+      textBox.scrollBy(-offset[1] * 50)
     else:
-      mouseWheelDelta += yoffset
-  discard SetScrollCallback(window, onScroll)
+      mouseWheelDelta += offset[1]
 
-  proc onMouseButton(window: glfw3.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
-    var setKey = action != 0
-    let button = button + 1
+  window.mouseButtonCb = proc(window: glfw.Window, button: MouseButton, pressed: bool,
+    modKeys: set[ModifierKey]) {.closure.} =
+    var setKey = pressed
+    let buttonCode = ord(button)
+    let button = buttonCode + 1
     mouse.down = setKey
     if button == 1 and setKey:
       mouse.click = true
@@ -297,23 +309,21 @@ proc start*() =
       buttonDown[button] = setKey
     if buttonDown[button] == false and setKey == false:
       buttonUp[button] = true
-  discard SetMouseButtonCallback(window, onMouseButton)
 
-  proc onSetCharCallback(window: glfw3.Window; character: cuint) {.cdecl.} =
+  window.charCb = proc(window: glfw.Window, codePoint: Rune) {.closure.} =
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
-      textBox.typeCharacter(Rune(character))
+      textBox.typeCharacter(codePoint)
     else:
       keyboard.state = KeyState.Press
       # keyboard.altKey = event.altKey
       # keyboard.ctrlKey = event.ctrlKey
       # keyboard.shiftKey = event.shiftKey
-      keyboard.keyString = Rune(character).toUTF8()
+      keyboard.keyString = codePoint.toUTF8()
 
-  discard SetCharCallback(window, onSetCharCallback)
 
   # this does not fire when mouse is not in the window
-  # proc onMouseMove(window: glfw3.Window; x: cdouble; y: cdouble) {.cdecl.} =
+  # proc onMouseMove(window: glfw.Window; x: cdouble; y: cdouble) {.cdecl.} =
   #   mousePos.x = x
   #   mousePos.y = y
   # discard SetCursorPosCallback(window, onMouseMove)
