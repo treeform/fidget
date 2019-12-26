@@ -5,6 +5,14 @@ import vmath
 
 var shaderCache = newTable[string, GLuint]()
 
+
+proc getShaderLog(shader: GLuint): string =
+  var length: GLint = 0
+  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, length.addr)
+  var log: string = newString(length.int)
+  glGetShaderInfoLog(shader, length, nil, log)
+  return log
+
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   var key = vertShaderSrc & "->" & fragShaderSrc
 
@@ -30,20 +38,7 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   if isCompiled == 0:
     echo vertShaderSrc
     echo "Vertex Shader wasn't compiled.  Reason:"
-
-    # Query the log size
-    var logSize: GLint
-    glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, logSize.addr)
-
-    # Get the log itself
-    var
-      logStr = cast[ptr GLchar](alloc(logSize))
-      logLen: GLsizei
-
-    glGetShaderInfoLog(vertShader, logSize.GLsizei, logLen.addr, logStr)
-
-    # Print the log
-    echo $logStr
+    echo getShaderLog(vertShader)
     quit()
 
     # Cleanup
@@ -61,20 +56,8 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   if isCompiled == 0:
     echo fragShaderSrc
     echo "Fragment Shader wasn't compiled.  Reason:"
-
-    # Query the log size
-    var logSize: GLint
-    glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, logSize.addr)
-
-    # Get the log itself
-    var
-      logStr = cast[ptr GLchar](alloc(logSize))
-      logLen: GLsizei
-
-    glGetShaderInfoLog(fragShader, logSize.GLsizei, logLen.addr, logStr)
-
-    # Print the log
-    quit $logStr
+    echo getShaderLog(vertShader)
+    quit()
 
     # Cleanup
     # dealloc(logStr)

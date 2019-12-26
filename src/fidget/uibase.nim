@@ -13,6 +13,10 @@ type
 
   Contraints* = enum
     cMin
+    cScale
+    cRight
+    cLeft
+    cBoth
 
   TextStyle* = object
     fontFamily*: string
