@@ -1,12 +1,14 @@
 import uibase, dom2 as dom, chroma, strutils, math, tables
+import html5_canvas
 import print
 
 var
   divCache*: seq[Group]
-  rootDomNode: Element
+  rootDomNode*: Element
+  canvasNode*: Element
+  ctx*: CanvasRenderingContext2D
 
-
-var colorCache = newTable[Color, string]()
+var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
   if result == "":
@@ -58,23 +60,15 @@ proc drawDiff(group: Group) =
     dom = rootDomNode.childNodes[numGroups]
     cacheGroup = divCache[numGroups]
 
+  if cacheGroup.kind != current.kind:
+    dom.removeAllChildren()
+
+
   if cacheGroup.idPath != current.idPath:
     inc perf.numLowLevelCalls
     cacheGroup.id = current.id
     cacheGroup.idPath = current.idPath
     dom.id = current.idPath
-
-  if cacheGroup.drawable != current.drawable:
-    dom.removeAllChildren()
-    cacheGroup.drawable = current.drawable
-    if current.drawable:
-      var canvasNode = document.createElement("canvas")
-      canvasNode.id = current.idPath & "-canvas"
-      canvasNode.style.width = $current.box.w & "px"
-      canvasNode.style.height = $current.box.h & "px"
-      canvasNode.setAttribute("width", $current.box.w)
-      canvasNode.setAttribute("height", $current.box.h)
-      dom.appendChild(canvasNode)
 
   if cacheGroup.screenBox != current.screenBox:
     inc perf.numLowLevelCalls
@@ -90,15 +84,6 @@ proc drawDiff(group: Group) =
         var textAreaNode = dom.childNodes[0]
         textAreaNode.style.width = $current.box.w & "px"
         textAreaNode.style.height = $current.box.h & "px"
-
-    if current.drawable:
-      if dom.childNodes.len > 0:
-        var canvasNode = dom.childNodes[0]
-        canvasNode.style.width = $current.box.w & "px"
-        canvasNode.style.height = $current.box.h & "px"
-        canvasNode.setAttribute("width", $current.box.w)
-        canvasNode.setAttribute("height", $current.box.h)
-
   if cacheGroup.fill != current.fill or cacheGroup.kind != current.kind:
     inc perf.numLowLevelCalls
     cacheGroup.fill = current.fill
@@ -136,7 +121,6 @@ proc drawDiff(group: Group) =
     #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
   if cacheGroup.kind == "text" and current.kind != "text":
-    dom.removeAllChildren()
     cacheGroup.text = ""
 
   if current.kind == "text":
@@ -144,7 +128,6 @@ proc drawDiff(group: Group) =
       # input element were you can type
       var textAreaNode: Node
       if cacheGroup.editableText == false or dom.childNodes.len == 0:
-        dom.removeAllChildren()
         if current.multiline:
           textAreaNode = document.createElement("textarea")
         else:
@@ -182,7 +165,6 @@ proc drawDiff(group: Group) =
     else:
       # normal text element
       if cacheGroup.editableText == true:
-        dom.removeAllChildren()
         cacheGroup.text = ""
         cacheGroup.editableText = current.editableText
 
@@ -261,8 +243,6 @@ proc draw*(group: Group) =
   drawDiff(group)
 
 
-
-
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
 
@@ -294,8 +274,28 @@ proc drawStart() =
   scrollBoxMini.w = float document.body.clientWidth
   scrollBoxMini.h = float dom.window.innerHeight - 200
 
-  document.body.style.overflowX = "auto"
-  document.body.style.overflowY = "auto"
+  document.body.style.overflowX = "hidden"
+  document.body.style.overflowY = "scroll"
+
+
+  var canvas = cast[Canvas](canvasNode)
+  ctx = canvas.getContext2D()
+  var devicePixelRatio = 2.0
+  var
+    width = float(canvasNode.clientWidth)
+    height = float(canvasNode.clientHeight)
+  canvas.clientWidth = int(width)
+  canvas.clientHeight = int(height)
+  canvas.width = int(scrollBox.w * devicePixelRatio)
+  canvas.height = int(scrollBox.h * devicePixelRatio)
+
+  canvas.style.display = "block"
+  canvas.style.position = "absolute"
+  canvas.style.zIndex = -1
+  canvas.style.left = cstring($scrollBox.x & "px")
+  canvas.style.top = cstring($scrollBox.y & "px")
+  canvas.style.width = cstring($scrollBox.w & "px")
+  canvas.style.height = cstring($scrollBox.h & "px")
 
   mouse.cursorStyle = Default
 
@@ -368,6 +368,9 @@ proc startFidget*() =
     ## called when html page loads and JS can start running
     rootDomNode = document.createElement("div")
     document.body.appendChild(rootDomNode)
+
+    canvasNode = document.createElement("canvas")
+    document.body.appendChild(canvasNode)
     redraw()
 
   dom.window.addEventListener "resize", proc(event: Event) =
