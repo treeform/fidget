@@ -132,9 +132,14 @@ template onKeyDown*(inner: untyped) =
     inner
 
 
+proc hasKeyboardFocus*(group: Group): bool =
+  ## Does a group have keyboard input focus
+  return keyboard.inputFocusIdPath == group.idPath
+
+
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus
-  if keyboard.state == Press and keyboard.inputFocusIdPath == current.idPath:
+  if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
 
