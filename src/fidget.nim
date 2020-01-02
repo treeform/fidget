@@ -114,6 +114,7 @@ template onRightClick*(inner: untyped) =
   if mouse.rightClick and mouseOverlapLogic():
     inner
 
+
 template onKey*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Press:
@@ -150,7 +151,7 @@ template onHover*(inner: untyped) =
 
 
 template onDown*(inner: untyped) =
-  ## Code in the block will run when this box is hovered.
+  ## Code in the block will run when this mouse is dragging.
   if mouse.down and mouseOverlapLogic():
     inner
 
