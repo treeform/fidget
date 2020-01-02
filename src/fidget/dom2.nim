@@ -466,6 +466,9 @@ type
     memory*: PerformanceMemory
     timing*: PerformanceTiming
 
+  Selection* {.importc.} = ref object
+
+
 {.push importcpp.}
 
 # EventTarget "methods"
@@ -540,7 +543,7 @@ proc getElementById*(d: Document, id: cstring): Element
 proc getElementsByName*(d: Document, name: cstring): seq[Element]
 proc getElementsByTagName*(d: Document, name: cstring): seq[Element]
 proc getElementsByClassName*(d: Document, name: cstring): seq[Element]
-proc getSelection*(d: Document): cstring
+proc getSelection*(d: Document): Selection
 proc handleEvent*(d: Document, event: Event)
 proc open*(d: Document)
 proc releaseEvents*(d: Document, eventMask: int) {.deprecated.}
@@ -593,6 +596,8 @@ proc setAttribute*(s: Style, attr, value: cstring, caseSensitive=false)
 
 # Event "methods"
 proc preventDefault*(ev: Event)
+proc stopPropagation*(ev: Event)
+proc stopImmediatePropagation*(ev: Event)
 
 # TouchEvent "methods"
 proc identifiedTouch*(list: TouchList): Touch
@@ -600,6 +605,9 @@ proc item*(list: TouchList, i: int): Touch
 
 # Performance "methods"
 proc now*(p: Performance): float
+
+# Selection "methods"
+proc removeAllRanges*(s: Selection)
 
 {.pop.}
 

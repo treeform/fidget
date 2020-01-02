@@ -21,6 +21,10 @@ proc removeAllChildren(dom: Node) =
     dom.removeChild(dom.firstChild)
 
 
+proc removeTextSelection*() =
+  dom.window.document.getSelection().removeAllRanges()
+
+
 var computeTextBoxCache = newTable[string, (float, float)]()
 proc computeTextBox*(text: string, width: float, fontName: string, fontSize: float): (float, float) =
   ## Give text, font and a width of the box, compute how far the
@@ -296,6 +300,8 @@ proc drawStart() =
   canvas.style.top = cstring($scrollBox.y & "px")
   canvas.style.width = cstring($scrollBox.w & "px")
   canvas.style.height = cstring($scrollBox.h & "px")
+
+  ctx.scale(devicePixelRatio, devicePixelRatio)
 
   mouse.cursorStyle = Default
 
