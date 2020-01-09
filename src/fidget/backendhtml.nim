@@ -327,6 +327,12 @@ proc drawFinish() =
         rootDomNode.style.cursor = "default"
       of Pointer:
         rootDomNode.style.cursor = "pointer"
+      of Grab:
+        rootDomNode.style.cursor = "grab"
+      of NSResize:
+        rootDomNode.style.cursor = "ns-resize"
+
+
 
   # Used for onFocus/onUnFocus.
   keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
