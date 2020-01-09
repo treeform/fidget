@@ -69,6 +69,8 @@ type
   MouseCursorStyle* = enum
     Default
     Pointer
+    Grab
+    NSResize
 
   Mouse* = ref object
     state: KeyState
