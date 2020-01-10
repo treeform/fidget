@@ -42,8 +42,10 @@ proc drawText(group: Group) =
   var font = fonts[group.textStyle.fontFamily]
   font.size = group.textStyle.fontSize
   font.lineHeight = group.textStyle.lineHeight
-  # let fontHeight = font.ascent - font.descent
-  # let scale = font.size / fontHeight
+
+  if font.lineHeight == 0:
+    font.lineHeight = font.size
+  #print group.textStyle.lineHeight
 
   let mousePos = mouse.pos - group.screenBox.xy
 
@@ -84,7 +86,6 @@ proc drawText(group: Group) =
       else:
         textBox.mouseAction(mousePos, click=true, keyboard.shiftKey)
 
-
   if textBox != nil and mouse.down and not mouse.click and
       keyboard.inputFocusIdPath == group.idPath:
     # draggin the mouse
@@ -101,11 +102,14 @@ proc drawText(group: Group) =
     ctx.translate(-textBox.scroll)
 
     for rect in textBox.selectionRegions():
-      ctx.fillRect(rect, rgba(0, 255, 0, 155).color)
+      ctx.fillRect(rect, group.highlightColor)
 
-  else:
+  if layout.len == 0:
+    var text = group.text
+    if text == "" and group.placeholder.len > 0:
+      text = group.placeholder
     layout = font.typeset(
-      group.text,
+      text,
       pos=vec2(0, -1), #group.screenBox.xy,
       size=group.screenBox.wh,
       hAlignNum(group.textStyle.textAlignHorizontal),
@@ -134,12 +138,10 @@ proc drawText(group: Group) =
 
   if editing:
     # draw cursor
-    ctx.fillRect(textBox.selectorRect, rgba(0, 0, 255, 255).color)
-    ctx.fillRect(textBox.cursorRect, rgba(255, 0, 0, 255).color)
-
-    # draw mouse pos
-    ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
-
+    ctx.fillRect(textBox.cursorRect, group.cursorColor)
+    # debug
+    #ctx.fillRect(textBox.selectorRect, rgba(0, 0, 0, 255).color)
+    # ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
     ctx.restoreTransform()
 
     keyboard.input = textBox.text
@@ -149,8 +151,6 @@ proc drawText(group: Group) =
 
 proc draw*(group: Group) =
   ## Draws the group
-  #echo group.id
-
   ctx.saveTransform()
   ctx.translate(group.screenBox.xy)
   if group.rotation != 0:

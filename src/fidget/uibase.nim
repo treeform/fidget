@@ -13,10 +13,10 @@ type
 
   Contraints* = enum
     cMin
+    cMax
     cScale
-    cRight
-    cLeft
     cBoth
+    cCenter
 
   TextStyle* = object
     fontFamily*: string
@@ -39,6 +39,7 @@ type
     code*: string
     kids*: seq[Group]
     box*: Rect
+    orgBox*: Rect
     rotation*: float
     screenBox*: Rect
     fill*: Color
@@ -55,7 +56,8 @@ type
     editableText*: bool
     multiline*: bool
     drawable*: bool
-
+    cursorColor*: Color
+    highlightColor*: Color
 
   KeyState* = enum
     Empty
@@ -135,7 +137,8 @@ proc setupRoot*() =
   groupStack = @[root]
   current = root
   root.id = "root"
-
+  root.highlightColor = rgba(0, 0, 0, 20).color
+  root.cursorColor = rgba(0, 0, 0, 255).color
 
 proc use*(keyboard: Keyboard) =
   keyboard.state = Empty

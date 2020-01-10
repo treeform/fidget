@@ -27,6 +27,8 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   current.wasDrawn = false
   current.transparency = 1.0
   current.textStyle = parent.textStyle
+  current.cursorColor = parent.cursorColor
+  current.highlightColor = parent.highlightColor
   groupStack.add(current)
 
   for g in groupStack:
@@ -232,6 +234,18 @@ proc box*(x, y, w, h: int|float32|float) =
   box(float x, float y, float w, float h)
 
 
+proc box*(rect: Rect) =
+  ## Sets the box dimentions with integers
+  box(rect.x, rect.y, rect.w, rect.h)
+
+proc orgBox*(x, y, w, h: int|float32|float) =
+  ## Sets the box dimentions of the original element for constraints.
+  #box(float x, float y, float w, float h)
+  current.orgBox.x = float x
+  current.orgBox.y = float y
+  current.orgBox.w = float w
+  current.orgBox.h = float h
+
 proc rotation*(rotationInDeg: float) =
   ## Sets rotation in degrees
   current.rotation = rotationInDeg
@@ -248,12 +262,7 @@ proc fill*(color: Color, alpha: float32) =
   current.fill.a = alpha
 
 
-proc fill*(color: string) =
-  ## Sets background color.
-  current.fill = parseHtmlColor(color)
-
-
-proc fill*(color: string, alpha: float32) =
+proc fill*(color: string, alpha: float32 = 1.0) =
   ## Sets background color.
   current.fill = parseHtmlColor(color)
   current.fill.a = alpha
@@ -269,12 +278,7 @@ proc stroke*(color: Color) =
   current.stroke = color
 
 
-proc stroke*(color: string) =
-  ## Sets stroke/border color.
-  current.stroke = parseHtmlColor(color)
-
-
-proc stroke*(color: string, alpha: float32) =
+proc stroke*(color: string, alpha=1.0) =
   ## Sets stroke/border color.
   current.stroke = parseHtmlColor(color)
   current.stroke.a = alpha
@@ -310,6 +314,28 @@ proc multiline*(multiline: bool) =
   current.multiline = multiline
 
 
+proc cursorColor*(color: Color) =
+  ## Sets the color of the text cursor
+  current.cursorColor = color
+
+
+proc cursorColor*(color: string, alpha=1.0) =
+  ## Sets the color of the text cursor
+  current.cursorColor = parseHtmlColor(color)
+  current.cursorColor.a = alpha
+
+
+proc highlightColor*(color: Color) =
+  ## Sets the color of text selection.
+  current.highlightColor = color
+
+
+proc highlightColor*(color: string, alpha=1.0) =
+  ## Sets the color of text selection.
+  current.highlightColor = parseHtmlColor(color)
+  current.highlightColor.a = alpha
+
+
 proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas
   current.drawable = drawable
@@ -317,7 +343,35 @@ proc drawable*(drawable: bool) =
 
 proc constraints*(vCon: Contraints, hCon: Contraints) =
   ## Sets vertical or horizontal contraint.
-  discard
+  case vCon
+    of cMin: discard
+    of cMax:
+      current.box.x = parent.box.w - current.box.w
+    of cScale:
+      let xScale = parent.box.w / parent.orgBox.w
+      current.box.x *= xScale
+      current.box.w *= xScale
+    of cBoth:
+      let xDiff = parent.box.w - parent.orgBox.w
+      current.box.w += xDiff
+    of cCenter:
+      current.box.x = floor((parent.box.w - current.box.w) / 2.0)
+
+  case hCon
+    of cMin: discard
+    of cMax:
+      current.box.y = parent.box.h - current.box.h
+    of cScale:
+      let yScale = parent.box.h / parent.orgBox.h
+      current.box.y *= yScale
+      current.box.h *= yScale
+    of cBoth:
+      let yDiff = parent.box.h - parent.orgBox.h
+      current.box.h += yDiff
+    of cCenter:
+      current.box.y = floor((parent.box.h - current.box.h) / 2.0)
+
+  current.screenBox = current.box + parent.screenBox
 
 template binding*(stringVarible: untyped) =
   ## Makes the current object text-editable and binds it to the

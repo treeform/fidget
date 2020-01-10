@@ -359,7 +359,7 @@ proc strokeRoundedRect*(ctx: Context, rect: Rect, color: Color, weight: float, r
   if imgKey notin ctx.entries:
     var image = newImage(w, h, 4)
     image.fill(rgba(255, 255, 255, 0))
-    image.strokeRoundedRect(rect(0,0, rect.w, rect.h), radius, 2, rgba(255, 255, 255, 255))
+    image.strokeRoundedRect(rect(0,0, rect.w, rect.h), radius, weight, rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
   let uvRect = ctx.entries[imgKey]
   let wh = rect.wh * float32(ctx.size)
