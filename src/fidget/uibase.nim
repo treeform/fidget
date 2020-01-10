@@ -69,6 +69,8 @@ type
   MouseCursorStyle* = enum
     Default
     Pointer
+    Grab
+    NSResize
 
   Mouse* = ref object
     state: KeyState
@@ -160,7 +162,7 @@ proc clamp*(value, min, max: int): int =
   max(min, min(value, max))
 
 
-proc between*(value, min, max: float32|int): bool =
+proc between*(value, min, max: float32|float|int): bool =
   ## Returns true if value is between min and max or equals to them.
   (value >= min) and (value <= max)
 
