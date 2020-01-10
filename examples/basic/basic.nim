@@ -7,7 +7,10 @@ when not defined(js):
   fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
   fonts["IBM Plex Sans Bold"] = readFontSvg("data/IBMPlexSans-Bold.svg")
 
-var textInputVar = ""
+var
+  textInputVar = ""
+  checkBoxValue: bool
+  radioBoxValue: bool
 
 drawMain = proc() =
   window.title = "Fidget Example"
@@ -44,7 +47,7 @@ drawMain = proc() =
         cornerRadius 5
         strokeWeight 1
       instance "arrow":
-        box 100, 0, 20, 20
+        box 80, 0, 20, 20
         constraints cMin, cMin
         image "arrow"
       text "text":
@@ -57,10 +60,15 @@ drawMain = proc() =
 
     group "checkbox":
       box 152, 85, 91, 20
+      onClick:
+        checkBoxValue = not checkBoxValue
       rectangle "square":
         box 0, 2, 16, 16
         constraints cMin, cMin
-        fill "#ffffff"
+        if checkBoxValue:
+          fill "#9FE7F8"
+        else:
+          fill "#ffffff"
         stroke "#70bdcf"
         cornerRadius 5
         strokeWeight 1
@@ -74,10 +82,15 @@ drawMain = proc() =
 
     group "radiobox":
       box 152, 115, 91, 20
+      onClick:
+        radioBoxValue = not radioBoxValue
       rectangle "circle":
         box 0, 2, 16, 16
         constraints cMin, cMin
-        fill "#ffffff"
+        if radioBoxValue:
+          fill "#9FE7F8"
+        else:
+          fill "#ffffff"
         stroke "#72bdd0"
         cornerRadius 8
         strokeWeight 1
@@ -198,6 +211,10 @@ drawMain = proc() =
         constraints cMin, cMin
         cornerRadius 5
         fill "#72bdd0"
+        onHover:
+          fill "#5C8F9C"
+        onDown:
+          fill "#3E656F"
         strokeWeight 1
       text "text":
         box 0, 0, 90, 20
@@ -207,7 +224,7 @@ drawMain = proc() =
         font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
         characters "Button"
     group "input":
-      box 260, 15, 253, 30
+      box 260, 15, 250, 30
       rectangle "bg":
         box 0, 0, 250, 30
         constraints cMin, cMin
@@ -216,14 +233,17 @@ drawMain = proc() =
         cornerRadius 5
         strokeWeight 1
       text "text":
-        box 9, 0, 244, 30
+        box 9, 8, 232, 15
         constraints cMin, cMin
-        fill "#72bdd0", 0.5
+        highlightColor "#E5F7FE"
+        if textInputVar.len == 0:
+          fill "#72bdd0", 0.5
+        else:
+          fill "#46607e"
         strokeWeight 1
         font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
         placeholder "Start typing here"
         binding textInputVar
-
     group "label":
       box 150, 15, 100, 30
       text "Text field:":
@@ -237,7 +257,7 @@ drawMain = proc() =
       box 0, 0, 130, 185
       rectangle "bg":
         box 0, 0, 130, 185
-        constraints cMin, cMin
+        constraints cMin, cBoth
         fill "#e5f7fe"
         cornerRadius 0
         strokeWeight 1
