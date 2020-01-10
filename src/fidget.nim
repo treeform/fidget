@@ -116,6 +116,7 @@ template onRightClick*(inner: untyped) =
   if mouse.rightClick and mouseOverlapLogic():
     inner
 
+
 template onKey*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Press:
@@ -134,9 +135,14 @@ template onKeyDown*(inner: untyped) =
     inner
 
 
+proc hasKeyboardFocus*(group: Group): bool =
+  ## Does a group have keyboard input focus
+  return keyboard.inputFocusIdPath == group.idPath
+
+
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus
-  if keyboard.state == Press and keyboard.inputFocusIdPath == current.idPath:
+  if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
 
@@ -147,7 +153,7 @@ template onHover*(inner: untyped) =
 
 
 template onDown*(inner: untyped) =
-  ## Code in the block will run when this box is hovered.
+  ## Code in the block will run when this mouse is dragging.
   if mouse.down and mouseOverlapLogic():
     inner
 
