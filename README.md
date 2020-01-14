@@ -6,7 +6,7 @@
 
 Fidget aims to provide performant natively compiled cross platform UIs for any platform - Web with HTML5, Windows, macOS, Linux, iOS and Android with OpenGL.
 
-Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a [Figma Extension](extention/) to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
+Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a [Figma Plugin](figma_plugin/code.ts) to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
 
 Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/). 
 
