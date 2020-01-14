@@ -303,6 +303,7 @@ drawMain = proc() =
           strokeWeight 1
           font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
           characters "Contorls"
+          
     group "shadow":
       box 0, 0, 530, 3
       rectangle "l1":
