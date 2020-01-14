@@ -6,28 +6,35 @@
 
 Fidget aims to provide performant natively compiled cross platform UIs for any platform - Web with HTML5, Windows, macOS, Linux, iOS and Android with OpenGL.
 
-Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a Figma Extension to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
+Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a [Figma Extension](extention/) to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
 
 Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/). 
 
 
-## Code Sample:
+## Minimal Sample:
 
 ```nim
-var textValue = ""
-frame "main":
-  box 0, 0, parent.box.w, 1000
-  font "Inconsolata", 16, 400, 20, -1, -1
-  rectangle "#F7F7F9"
+import fidget, vmath
 
-  text "codebox":
-    box 0, 0, parent.box.w, 1000
-    fill "#000000"
-    multiline true
-    binding textValue
+drawMain = proc() =
+  frame "main":
+    box 0, 0, 620, 140
+    for i in 0 .. 4:
+      group "block":
+        box 20+i*120, 20, 100, 100
+        fill "#2B9FEA"
+       
+windowFrame = vec2(620, 140)
+startFidget()
 ```
 
-## Output Sample:
+<p align="center">
+  <br>
+  <img src="docs/minimal.png">
+</p>
+## Basic Sample:
+
+See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
 
 <p align="center">
   <br>
