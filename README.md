@@ -113,13 +113,13 @@ nim c -r basic.nim
 First `cd` to each folder then run `js` compile command then open the `.html` file in a browser.
 
 ```
-nim js -o:bars.js bars.nim
-nim js -o:fonts.js fonts.nim
-nim js -o:hovers.js hovers.nim
-nim js -o:inputs.js inputs.nim
-nim js -o:padoftext.js padoftext.nim
-nim js -o:padofcode.js padofcode.nim
-nim js -o:basic.js basic.nim
+nim js bars.nim
+nim js fonts.nim
+nim js hovers.nim
+nim js inputs.nim
+nim js padoftext.nim
+nim js padofcode.nim
+nim js basic.nim
 ```
 
 
