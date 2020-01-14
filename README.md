@@ -13,6 +13,15 @@ Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well
 
 ## Minimal Sample:
 
+```sh
+git clone https://github.com/treeform/fidget
+cd fidget 
+nimble install
+cd examples/minimal
+nim c -r minimal
+```
+
+
 ```nim
 import fidget, vmath
 
@@ -32,6 +41,7 @@ startFidget()
   <br>
   <img src="docs/minimal.png">
 </p>
+
 ## Basic Sample:
 
 See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
