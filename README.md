@@ -10,6 +10,17 @@ Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the des
 
 Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/). 
 
+## Example:
+
+<p align="center">
+  <br>
+  <img src="docs/uiExampleIce.png">
+</p>
+<p align="center" style='font-size:12px'>
+  <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Available for hire.</a>
+</p>
+
+See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
 
 ## Minimal Sample:
 
@@ -31,18 +42,6 @@ startFidget()
 <p align="center">
   <br>
   <img src="docs/minimal.png">
-</p>
-
-## Basic Sample:
-
-See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
-
-<p align="center">
-  <br>
-  <img src="docs/uiExampleIce.png">
-</p>
-<p align="center" style='font-size:12px'>
-  <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Available for hire.</a>
 </p>
 
 # Backends
