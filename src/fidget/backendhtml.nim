@@ -1,12 +1,13 @@
 import uibase, dom2 as dom, chroma, strutils, math, tables
 import html5_canvas
-import print
+import print, vmath
 
 var
   divCache*: seq[Group]
   rootDomNode*: Element
   canvasNode*: Element
   ctx*: CanvasRenderingContext2D
+  windowFrame*: Vec2
 
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
