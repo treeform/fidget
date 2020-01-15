@@ -114,6 +114,9 @@ function visit(node) {
     //   text += ind() + "fontName \"" + node.fontName.family + " " + node.fontName.style + "\"\n"
     // }
 
+    console.log(node)
+    console.log(node.lineHeight)
+
     let fontFamily = JSON.stringify(node.fontName.family + " " + node.fontName.style)
     var lineHeight = 0
     if (node.lineHeight.unit == "PIXELS"){
@@ -124,8 +127,8 @@ function visit(node) {
     if (node.textAlignHorizontal == "LEFT") h = -1
     if (node.textAlignHorizontal == "RIGHT") h = 1
     var v = 0
-    if (node.textAlignVertical == "TOP") h = -1
-    if (node.textAlignVertical == "BOTTOM") h = 1
+    if (node.textAlignVertical == "TOP") v = -1
+    if (node.textAlignVertical == "BOTTOM") v = 1
     text += ind() + `font ${fontFamily}, ${node.fontSize}, 200, ${lineHeight}, ${h}, ${v}\n`
 
     text += ind() + "characters " + JSON.stringify(node.characters) + "\n"
