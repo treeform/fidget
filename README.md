@@ -6,28 +6,11 @@
 
 Fidget aims to provide performant natively compiled cross platform UIs for any platform - Web with HTML5, Windows, macOS, Linux, iOS and Android with OpenGL.
 
-Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a Figma Extension to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
+Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a [Figma Plugin](figma_plugin/code.ts) to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
 
 Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/). 
 
-
-## Code Sample:
-
-```nim
-var textValue = ""
-frame "main":
-  box 0, 0, parent.box.w, 1000
-  font "Inconsolata", 16, 400, 20, -1, -1
-  rectangle "#F7F7F9"
-
-  text "codebox":
-    box 0, 0, parent.box.w, 1000
-    fill "#000000"
-    multiline true
-    binding textValue
-```
-
-## Output Sample:
+## Example:
 
 <p align="center">
   <br>
@@ -35,6 +18,30 @@ frame "main":
 </p>
 <p align="center" style='font-size:12px'>
   <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Available for hire.</a>
+</p>
+
+See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
+
+## Minimal Sample:
+
+```nim
+import fidget, vmath
+
+drawMain = proc() =
+  frame "main":
+    box 0, 0, 620, 140
+    for i in 0 .. 4:
+      group "block":
+        box 20+i*120, 20, 100, 100
+        fill "#2B9FEA"
+       
+windowFrame = vec2(620, 140)
+startFidget()
+```
+
+<p align="center">
+  <br>
+  <img src="docs/minimal.png">
 </p>
 
 # Backends
@@ -49,18 +56,19 @@ Fidget has several backends that are planned:
 
 # Philosophy - Minimalism 
 
-* Mimic how Figma does it.
+* Mimic how Figma](https://www.figma.com/) (Amazing UI/UX app) does it.
 * Everything is a Node.
 * There are Group, Rectangle, Image and Text Nodes.
 * Nodes are positions relative to the parent
 * Nodes have minimal set of properties that match Figma.
-* Resizing with simple constraint rules that match Figma.
+* Resizing is done same way as Fimga's [Constraints](https://www.youtube.com/watch?v=rRQAQ1d9q9w).
+* Layout is done same was as Figma's [Auto Layout](https://www.youtube.com/watch?v=NrKX46DzkGQ).
 
 The main idea of fidget is to use standard imperative nim paradigms like nim-procs, nim-for-loops, nim-ifs, nim-templates instead of say providing a custom language, XML templates, HTML, Jinja templates, CSS ... 
 
 Instead of creating CSS classes you just create a nim proc or a nim template with the things you want and reuse that. Instead of having some sort of list controller you just use a for loop to position your list elements.
 
-There is very little UI layout primitives just align left, center, right, both, or scale for the X axis and top, center, bottom, both, or scale for the Y axis. There is none of margin, padding, float, absolute, relative, border box, flex, recycle view controllers, stack layout, constraints ...
+There are very little UI layout primitives just align left, center, right, both, or scale for the X axis and top, center, bottom, both, or scale for the Y axis. There is none of margin, padding, float, absolute, relative, border box, flex, recycle view controllers, stack layout, constraints ...
 
 If you want to do something fancy just do a little math. Many times a simple math formula is smaller, simpler, and easier to figure out then layout puzzles.
 
@@ -75,18 +83,16 @@ I like imperative style of programming. This is a style you probably learned to 
 Each UI frame is drawn completely from start to finish all in the code you control. Use of callbacks is discouraged. Think liner, think simple. After any event by the user, data or timer, the UI is redrawn. The UI is redrawn in an efficient way as to allow this. With HTML a modification cache is used to ensure only a minimal amount of DOM changes are needed. With OpenGL you redraw the whole screen using as few state transitions and batching everything into a texture atlas and single global vertex buffer.
 
 
-## maxOS
+## How to run the examples:
 
-You need to install glfw3
 
 ```sh
-brew install glfw3
+git clone https://github.com/treeform/fidget
+cd fidget 
+nimble install
+cd examples/minimal
+nim c -r minimal
 ```
-
-or just using dlls/macOS/libglfw.3.3.dylib thats provided.
-
-
-## Now to run the examples:
 
 ### Native examples for Windows, macOS, and Linux:
 
@@ -107,13 +113,13 @@ nim c -r basic.nim
 First `cd` to each folder then run `js` compile command then open the `.html` file in a browser.
 
 ```
-nim js -o:bars.js bars.nim
-nim js -o:fonts.js fonts.nim
-nim js -o:hovers.js hovers.nim
-nim js -o:inputs.js inputs.nim
-nim js -o:padoftext.js padoftext.nim
-nim js -o:padofcode.js padofcode.nim
-nim js -o:basic.js basic.nim
+nim js bars.nim
+nim js fonts.nim
+nim js hovers.nim
+nim js inputs.nim
+nim js padoftext.nim
+nim js padofcode.nim
+nim js basic.nim
 ```
 
 
