@@ -3,7 +3,10 @@ import html5_canvas
 import print, vmath
 
 var
-  divCache*: seq[Group]
+  groupCache*: seq[Group]
+
+  domCache*: seq[Element]
+
   rootDomNode*: Element
   canvasNode*: Element
   ctx*: CanvasRenderingContext2D
@@ -54,44 +57,104 @@ proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: 
   let (w, h) = computeTextBox(text, width, fontName, fontSize)
   return h
 
+proc tag(group: Group): string =
+  if group.kind == "":
+    return ""
+  elif group.kind == "text":
+    if group.editableText:
+      if group.multiline:
+        return "textarea"
+      else:
+        return "input"
+    else:
+      return "span"
+  else:
+    return "div"
 
-proc drawDiff(group: Group) =
 
-  while divCache.len <= numGroups:
-    rootDomNode.appendChild(document.createElement("div"))
+proc createDefaultElement(tag: string): Element =
+  result = document.createElement(tag)
+  if tag == "textarea" or tag == "input":
+    result.setAttribute("type", "text")
+    result.style.border = "none"
+    result.style.outline = "none"
+    result.style.backgroundColor = "transparent"
+    result.style.fontFamily = "inherit"
+    result.style.fontSize = "inherit"
+    result.style.fontWeight = "inherit"
+    result.style.padding = "0px"
+    result.style.resize = "none"
+
+
+proc drawDiff(current: Group) =
+
+  assert current.kind != ""
+
+  print "------------------------------------"
+
+  while groupCache.len <= numGroups:
     inc perf.numLowLevelCalls
-    divCache.add(Group())
+
+    var old = Group()
+    old.kind = current.kind
+    old.editableText = current.editableText
+    old.multiline = current.multiline
+    print "created new", old, " from ", current
+    var dom = createDefaultElement(current.tag)
+    rootDomNode.appendChild(dom)
+
+    groupCache.add(old)
+    domCache.add(dom)
+
   var
-    dom = rootDomNode.childNodes[numGroups]
-    cacheGroup = divCache[numGroups]
+    dom = domCache[numGroups]
+    old = groupCache[numGroups]
 
-  if cacheGroup.kind != current.kind:
-    dom.removeAllChildren()
+  if old.kind == "":
+    print "!!!!"
+    print old
+    print numGroups
+    quit()
 
 
-  if cacheGroup.idPath != current.idPath:
+  # When tags don't match we can't convert a node
+  # into another node, so we have to recreate them
+  if old.tag != current.tag:
     inc perf.numLowLevelCalls
-    cacheGroup.id = current.id
-    cacheGroup.idPath = current.idPath
+    rootDomNode.removeChild(dom)
+
+    old = Group()
+    old.kind = current.kind
+    old.editableText = current.editableText
+    old.multiline = current.multiline
+    print "recreated new", old, " from ", current
+    dom = createDefaultElement(current.tag)
+    rootDomNode.appendChild(dom)
+
+    domCache[numGroups] = dom
+    groupCache[numGroups] = Group()
+
+  # check ID path
+  if old.idPath != current.idPath:
+    inc perf.numLowLevelCalls
+    old.id = current.id
+    old.idPath = current.idPath
     dom.id = current.idPath
 
-  if cacheGroup.screenBox != current.screenBox:
+  # check position on screen
+  if old.screenBox != current.screenBox:
     inc perf.numLowLevelCalls
-    cacheGroup.screenBox = current.screenBox
+    old.screenBox = current.screenBox
     dom.style.position = "absolute"
     dom.style.left = $current.screenBox.x & "px"
     dom.style.top = $current.screenBox.y & "px"
     dom.style.width = $current.screenBox.w & "px"
     dom.style.height = $current.screenBox.h & "px"
 
-    if current.kind == "text":
-      if dom.childNodes.len > 0:
-        var textAreaNode = dom.childNodes[0]
-        textAreaNode.style.width = $current.box.w & "px"
-        textAreaNode.style.height = $current.box.h & "px"
-  if cacheGroup.fill != current.fill or cacheGroup.kind != current.kind:
+  # check fill (background color or text color)
+  if old.fill != current.fill:
     inc perf.numLowLevelCalls
-    cacheGroup.fill = current.fill
+    old.fill = current.fill
     if current.kind == "text":
       dom.style.color = $current.fill.toHtmlRgba()
       dom.style.backgroundColor = "rgba(0,0,0,0)"
@@ -99,11 +162,12 @@ proc drawDiff(group: Group) =
       dom.style.backgroundColor = $current.fill.toHtmlRgba()
       dom.style.color = "rgba(0,0,0,0)"
 
-  if cacheGroup.stroke != current.stroke or
-      cacheGroup.strokeWeight != current.strokeWeight:
+  # check storke (border color)
+  if old.stroke != current.stroke or
+      old.strokeWeight != current.strokeWeight:
     inc perf.numLowLevelCalls
-    cacheGroup.stroke = current.stroke
-    cacheGroup.strokeWeight = current.strokeWeight
+    old.stroke = current.stroke
+    old.strokeWeight = current.strokeWeight
     if current.strokeWeight > 0:
       dom.style.borderStyle = "solid"
       dom.style.boxSizing = "border-box"
@@ -112,81 +176,67 @@ proc drawDiff(group: Group) =
     else:
       dom.style.borderStyle = "none"
 
-  if cacheGroup.transparency != current.transparency:
+  # check cornerRadius (border raidus)
+  if old.cornerRadius != current.cornerRadius:
+    old.cornerRadius = current.cornerRadius
+    dom.style.borderRadius = (
+      $current.cornerRadius[0] & "px " &
+      $current.cornerRadius[1] & "px " &
+      $current.cornerRadius[2] & "px " &
+      $current.cornerRadius[3] & "px"
+    )
+
+  # check transparency
+  if old.transparency != current.transparency:
     inc perf.numLowLevelCalls
-    cacheGroup.transparency = current.transparency
+    old.transparency = current.transparency
     dom.style.opacity = $current.transparency
 
-  if cacheGroup.textStyle != current.textStyle:
+  # check text style
+  if old.textStyle != current.textStyle:
     inc perf.numLowLevelCalls
-    cacheGroup.textStyle = current.textStyle
+    old.textStyle = current.textStyle
     dom.style.fontFamily = current.textStyle.fontFamily
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
+    # TODO check this
     #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
-  if cacheGroup.kind == "text" and current.kind != "text":
-    cacheGroup.text = ""
+  # check imageName (background image)
+  if old.imageName != current.imageName:
+    inc perf.numLowLevelCalls
+    old.imageName = current.imageName
+    if current.imageName != "":
+      dom.style.backgroundImage = "url(" & current.imageName & ".png)"
+      dom.style.backgroundSize = "100% 100%"
+    else:
+      dom.style.backgroundImage = ""
 
   if current.kind == "text":
     if current.editableText:
-      # input element were you can type
-      var textAreaNode: Node
-      if cacheGroup.editableText == false or dom.childNodes.len == 0:
-        if current.multiline:
-          textAreaNode = document.createElement("textarea")
-        else:
-          textAreaNode = document.createElement("input")
-        textAreaNode.setAttribute("type", "text")
-        textAreaNode.style.border = "none"
-        textAreaNode.style.outline = "none"
-        textAreaNode.style.width = $current.box.w & "px"
-        textAreaNode.style.height = $current.box.h & "px"
-        textAreaNode.style.backgroundColor = "transparent"
-        textAreaNode.style.fontFamily = "inherit"
-        textAreaNode.style.fontSize = "inherit"
-        textAreaNode.style.fontWeight = "inherit"
-        textAreaNode.style.padding = "0px"
-        textAreaNode.style.resize = "none"
-        #textAreaNode.style.overflow = "hidden"
-        dom.appendChild(textAreaNode)
-        cacheGroup.text = ""
-        cacheGroup.placeholder = ""
-        cacheGroup.editableText = current.editableText
-      else:
-        textAreaNode = dom.childNodes[0]
+      if old.text != current.text:
+        if document.activeElement != dom:
+          cast[TextAreaElement](dom).value = current.text
 
-      cacheGroup.editableText = true
+      #   old.text = ""
+      #   old.placeholder = ""
+      #   old.editableText = current.editableText
 
-      if cacheGroup.text != current.text:
-        cacheGroup.text = current.text
-        #textAreaNode.setAttribute("value", current.text)
-        cast[TextAreaElement](textAreaNode).value = current.text
+      # if old.text != current.text:
+      #   old.text = current.text
+      #   #textAreaNode.setAttribute("value", current.text)
+      #   cast[TextAreaElement](textAreaNode).value = current.text
 
-      if cacheGroup.placeholder != current.placeholder:
-        cacheGroup.placeholder = current.placeholder
-        textAreaNode.setAttribute("placeholder", current.placeholder)
+      # if old.placeholder != current.placeholder:
+      #   old.placeholder = current.placeholder
+      #   textAreaNode.setAttribute("placeholder", current.placeholder)
 
     else:
-      # normal text element
-      if cacheGroup.editableText == true:
-        cacheGroup.text = ""
-        cacheGroup.editableText = current.editableText
-
-      if cacheGroup.text != current.text:
+      if old.text != current.text:
         inc perf.numLowLevelCalls
-        cacheGroup.text = current.text
+        old.text = current.text
 
-        # remove old text
-        dom.removeAllChildren()
-
-        var textDiv = document.createElement("span")
-        dom.appendChild(textDiv)
-
-        if current.text != "":
-          # group has text, add text
-          var textDom = document.createTextNode(current.text)
-          textDiv.appendChild(textDom)
+        dom.innerText = current.text
 
         if current.textStyle.textAlignHorizontal != -1 or current.textStyle.textAlignVertical != -1:
           var box = computeTextBox(
@@ -195,7 +245,7 @@ proc drawDiff(group: Group) =
             current.textStyle.fontFamily,
             current.textStyle.fontSize
           )
-          textDiv.style.position = "absolute"
+
           var left = 0.0
           case current.textStyle.textAlignHorizontal:
             of -1:
@@ -218,28 +268,13 @@ proc drawDiff(group: Group) =
           left -= 2
           top -= 1
 
-          textDiv.style.left = $left & "px"
-          textDiv.style.top = $top & "px"
+          dom.style.left = $left & "px"
+          dom.style.top = $top & "px"
 
-  if cacheGroup.imageName != current.imageName:
-    cacheGroup.imageName = current.imageName
-    if current.imageName != "":
-      dom.style.backgroundImage = "url(" & current.imageName & ".png)"
-      dom.style.backgroundSize = "100% 100%"
-    else:
-      dom.style.backgroundImage = ""
-
-  if cacheGroup.cornerRadius != current.cornerRadius:
-    cacheGroup.cornerRadius = current.cornerRadius
-    dom.style.borderRadius = (
-      $current.cornerRadius[0] & "px " &
-      $current.cornerRadius[1] & "px " &
-      $current.cornerRadius[2] & "px " &
-      $current.cornerRadius[3] & "px"
-    )
-
-  # kind should be the last thing to change
-  cacheGroup.kind = current.kind
+  # this can never be out of sync
+  print old.kind, current.kind
+  print old.tag, current.tag
+  assert old.kind == current.kind
 
   inc numGroups
 
@@ -318,7 +353,8 @@ proc drawFinish() =
   # remove left over nodes
   while rootDomNode.childNodes.len > numGroups:
     rootDomNode.removeChild(rootDomNode.lastChild)
-    discard divCache.pop()
+    discard groupCache.pop()
+    discard domCache.pop()
 
   # Only set mouse style when it changes.
   if prevMouseCursorStyle != mouse.cursorStyle:
