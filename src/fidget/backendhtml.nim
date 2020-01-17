@@ -4,7 +4,6 @@ import print, vmath
 
 var
   groupCache*: seq[Group]
-
   domCache*: seq[Element]
 
   rootDomNode*: Element
@@ -86,53 +85,53 @@ proc createDefaultElement(tag: string): Element =
     result.style.resize = "none"
 
 
+proc insertChildAtIndex(parent: Element, index: int, child: Element) =
+  parent.insertBefore(child, parent.children[index])
+
+
 proc drawDiff(current: Group) =
 
   assert current.kind != ""
 
-  print "------------------------------------"
 
-  while groupCache.len <= numGroups:
+  #print "------------------------------------"
+
+  if groupCache.len == numGroups:
     inc perf.numLowLevelCalls
 
     var old = Group()
     old.kind = current.kind
     old.editableText = current.editableText
     old.multiline = current.multiline
-    print "created new", old, " from ", current
     var dom = createDefaultElement(current.tag)
     rootDomNode.appendChild(dom)
 
     groupCache.add(old)
     domCache.add(dom)
 
+
+
   var
     dom = domCache[numGroups]
     old = groupCache[numGroups]
 
-  if old.kind == "":
-    print "!!!!"
-    print old
-    print numGroups
-    quit()
-
+  assert old.kind != ""
 
   # When tags don't match we can't convert a node
   # into another node, so we have to recreate them
   if old.tag != current.tag:
     inc perf.numLowLevelCalls
-    rootDomNode.removeChild(dom)
 
     old = Group()
     old.kind = current.kind
     old.editableText = current.editableText
     old.multiline = current.multiline
-    print "recreated new", old, " from ", current
     dom = createDefaultElement(current.tag)
-    rootDomNode.appendChild(dom)
-
+    rootDomNode.replaceChild(dom, rootDomNode.children[numGroups])
     domCache[numGroups] = dom
-    groupCache[numGroups] = Group()
+    groupCache[numGroups] = old
+
+
 
   # check ID path
   if old.idPath != current.idPath:
@@ -200,7 +199,7 @@ proc drawDiff(current: Group) =
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
     # TODO check this
-    #dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+    dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
   # check imageName (background image)
   if old.imageName != current.imageName:
@@ -218,18 +217,8 @@ proc drawDiff(current: Group) =
         if document.activeElement != dom:
           cast[TextAreaElement](dom).value = current.text
 
-      #   old.text = ""
-      #   old.placeholder = ""
-      #   old.editableText = current.editableText
-
-      # if old.text != current.text:
-      #   old.text = current.text
-      #   #textAreaNode.setAttribute("value", current.text)
-      #   cast[TextAreaElement](textAreaNode).value = current.text
-
-      # if old.placeholder != current.placeholder:
-      #   old.placeholder = current.placeholder
-      #   textAreaNode.setAttribute("placeholder", current.placeholder)
+        if current.tag == "input":
+          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
 
     else:
       if old.text != current.text:
@@ -271,9 +260,6 @@ proc drawDiff(current: Group) =
           dom.style.left = $left & "px"
           dom.style.top = $top & "px"
 
-  # this can never be out of sync
-  print old.kind, current.kind
-  print old.tag, current.tag
   assert old.kind == current.kind
 
   inc numGroups
@@ -352,7 +338,7 @@ proc drawFinish() =
 
   # remove left over nodes
   while rootDomNode.childNodes.len > numGroups:
-    rootDomNode.removeChild(rootDomNode.lastChild)
+    rootDomNode.removeChild(domCache[^1])
     discard groupCache.pop()
     discard domCache.pop()
 
