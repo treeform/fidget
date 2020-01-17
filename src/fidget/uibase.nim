@@ -138,6 +138,7 @@ proc setupRoot*() =
   root = Group()
   groupStack = @[root]
   current = root
+  root.kind = "group"
   root.id = "root"
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color
