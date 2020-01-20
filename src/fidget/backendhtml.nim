@@ -91,11 +91,6 @@ proc insertChildAtIndex(parent: Element, index: int, child: Element) =
 
 proc drawDiff(current: Group) =
 
-  assert current.kind != ""
-
-
-  #print "------------------------------------"
-
   if groupCache.len == numGroups:
     inc perf.numLowLevelCalls
 
@@ -109,13 +104,9 @@ proc drawDiff(current: Group) =
     groupCache.add(old)
     domCache.add(dom)
 
-
-
   var
     dom = domCache[numGroups]
     old = groupCache[numGroups]
-
-  assert old.kind != ""
 
   # When tags don't match we can't convert a node
   # into another node, so we have to recreate them
@@ -131,7 +122,9 @@ proc drawDiff(current: Group) =
     domCache[numGroups] = dom
     groupCache[numGroups] = old
 
-
+  # change kinds
+  if old.kind != current.kind:
+    old.kind = current.kind
 
   # check ID path
   if old.idPath != current.idPath:
@@ -257,10 +250,8 @@ proc drawDiff(current: Group) =
           left -= 2
           top -= 1
 
-          dom.style.left = $left & "px"
-          dom.style.top = $top & "px"
-
-  assert old.kind == current.kind
+          dom.style.left = $(current.screenBox.x + left) & "px"
+          dom.style.top = $(current.screenBox.y + top) & "px"
 
   inc numGroups
 
@@ -473,7 +464,7 @@ proc startFidget*() =
     ## When INPUT element has keyboard input this is called
     if document.activeElement.isTextTag:
       keyboard.input = $(cast[TextAreaElement](document.activeElement).value)
-      keyboard.inputFocusIdPath = $document.activeElement.parentElement.id
+      keyboard.inputFocusIdPath = $document.activeElement.id
       keyboard.state = Press
       redraw()
 
@@ -483,7 +474,7 @@ proc startFidget*() =
     ## Note: "focus" does not bubble, so its not used here.
     if document.activeElement.isTextTag:
       keyboard.input = $(cast[TextAreaElement](document.activeElement).value)
-      keyboard.inputFocusIdPath = $document.activeElement.parentElement.id
+      keyboard.inputFocusIdPath = $document.activeElement.id
       redraw()
 
   dom.window.addEventListener "focusout", proc(event: Event) =
