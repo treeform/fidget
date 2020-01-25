@@ -246,6 +246,7 @@ type
     borderWidth*: cstring
     bottom*: cstring
     boxSizing*: cstring
+    boxShadow*: cstring
     captionSide*: cstring
     clear*: cstring
     clip*: cstring

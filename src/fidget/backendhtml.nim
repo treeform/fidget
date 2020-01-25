@@ -1,4 +1,4 @@
-import uibase, dom2 as dom, chroma, strutils, math, tables
+import uibase, dom2 as dom, chroma, strutils, math, tables, strformat
 import html5_canvas
 import print, vmath
 
@@ -183,6 +183,25 @@ proc drawDiff(current: Group) =
     inc perf.numLowLevelCalls
     old.transparency = current.transparency
     dom.style.opacity = $current.transparency
+
+  # check shadows
+  if old.shadows != current.shadows:
+    inc perf.numLowLevelCalls
+
+    old.shadows = current.shadows
+
+    var boxShadowString = ""
+    for s in current.shadows:
+      if s.kind == DropShadow:
+        boxShadowString.add &"{s.x}px {s.y}px {s.blur}px {s.color.toHtmlRgba},"
+      if s.kind == InnerShadow:
+        boxShadowString.add &"inset {s.x}px {s.y}px {s.blur}px {s.color.toHtmlRgba},"
+    if boxShadowString.len > 0:
+      boxShadowString.setLen(boxShadowString.len - 1)
+
+    echo boxShadowString
+    dom.style.boxShadow = boxShadowString
+
 
   # check text style
   if old.textStyle != current.textStyle:
