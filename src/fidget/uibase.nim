@@ -30,6 +30,17 @@ type
     color*: Color
     width*: float
 
+  ShadowStyle* = enum
+    DropShadow
+    InnerShadow
+
+  Shadow* = object
+    kind*: ShadowStyle
+    blur*: float
+    x*: float
+    y*: float
+    color*: Color
+
   Group* = ref object
     id*: string
     idPath*: string
@@ -58,6 +69,7 @@ type
     drawable*: bool
     cursorColor*: Color
     highlightColor*: Color
+    shadows*: seq[Shadow]
 
   KeyState* = enum
     Empty

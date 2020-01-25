@@ -341,6 +341,17 @@ proc highlightColor*(color: string, alpha=1.0) =
   current.highlightColor = parseHtmlColor(color)
   current.highlightColor.a = alpha
 
+proc dropShadow*(blur, x, y: float, color: string, alpha: float) =
+  ## Sets drawable, drawable in HTML creates a canvas
+  var c = parseHtmlColor(color)
+  c.a = alpha
+  current.shadows.add Shadow(kind: DropShadow, blur: blur, x: x, y: y, color: c)
+
+proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
+  ## Sets drawable, drawable in HTML creates a canvas
+  var c = parseHtmlColor(color)
+  c.a = alpha
+  current.shadows.add Shadow(kind: InnerShadow, blur: blur, x: x, y: y, color: c)
 
 proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas
