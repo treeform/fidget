@@ -79,18 +79,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     pixels = cast[pointer](image.data[0].addr)
   )
 
-  when defined(useGL45):
-    glTextureSubImage2D(
-      texture = texture.id,
-      level = GLint(level),
-      xoffset = GLint(x),
-      yoffset = GLint(y),
-      width = GLsizei(image.width),
-      height = GLsizei(image.height),
-      format = GL_RGBA,
-      `type` = GL_UNSIGNED_BYTE,
-      pixels = cast[pointer](image.data[0].addr)
-    )
+
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   var
