@@ -187,9 +187,7 @@ proc drawDiff(current: Group) =
   # check shadows
   if old.shadows != current.shadows:
     inc perf.numLowLevelCalls
-
     old.shadows = current.shadows
-
     var boxShadowString = ""
     for s in current.shadows:
       if s.kind == DropShadow:
@@ -198,10 +196,7 @@ proc drawDiff(current: Group) =
         boxShadowString.add &"inset {s.x}px {s.y}px {s.blur}px {s.color.toHtmlRgba},"
     if boxShadowString.len > 0:
       boxShadowString.setLen(boxShadowString.len - 1)
-
-    echo boxShadowString
     dom.style.boxShadow = boxShadowString
-
 
   # check text style
   if old.textStyle != current.textStyle:
@@ -318,20 +313,20 @@ proc drawStart() =
   ctx = canvas.getContext2D()
   var devicePixelRatio = 2.0
   var
-    width = float(canvasNode.clientWidth)
-    height = float(canvasNode.clientHeight)
+    width = float(dom.window.innerWidth)
+    height = float(dom.window.innerHeight)
   canvas.clientWidth = int(width)
   canvas.clientHeight = int(height)
-  canvas.width = int(scrollBox.w * devicePixelRatio)
-  canvas.height = int(scrollBox.h * devicePixelRatio)
+  canvas.width = int(width * devicePixelRatio)
+  canvas.height = int(height * devicePixelRatio)
 
   canvas.style.display = "block"
   canvas.style.position = "absolute"
   canvas.style.zIndex = -1
   canvas.style.left = cstring($scrollBox.x & "px")
   canvas.style.top = cstring($scrollBox.y & "px")
-  canvas.style.width = cstring($scrollBox.w & "px")
-  canvas.style.height = cstring($scrollBox.h & "px")
+  canvas.style.width = cstring($width & "px")
+  canvas.style.height = cstring($height & "px")
 
   ctx.scale(devicePixelRatio, devicePixelRatio)
 
@@ -553,3 +548,10 @@ proc `url`*(win: uibase.Window): string =
   ## Gets window url
   #win.innerUrl
   return $dom.window.location.pathname
+
+
+proc setItem*(key, value: string) =
+  dom.window.localStorage.setItem(key, value)
+
+proc getItem*(key: string): string =
+  $dom.window.localStorage.getItem(key)

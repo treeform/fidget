@@ -15,53 +15,52 @@ drawMain = proc() =
     box root.box
     constraints cMin, cMin
     fill "#70bdcf"
-    fill "#70bdcf"
     cornerRadius 0
     strokeWeight 1
     rectangle "LeftTop":
-      box 0, 0, 20, 20
+      box 20, 20, 20, 20
       constraints cMin, cMin
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "LeftBottom":
-      box 0, 133, 20, 20
+      box 20, 113, 20, 20
       constraints cMin, cMax
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "RightTop":
-      box 348, 0, 20, 20
+      box 328, 20, 20, 20
       constraints cMax, cMin
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "RightCenter":
-      box 348, 67, 20, 20
+      box 328, 67, 20, 20
       constraints cMax, cCenter
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "RightBottom":
-      box 348, 134, 20, 20
+      box 328, 113, 20, 20
       constraints cMax, cMax
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "LeftCenter":
-      box 0, 67, 20, 20
+      box 20, 67, 20, 20
       constraints cMin, cCenter
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "CenterTop":
-      box 174, 0, 20, 20
+      box 174, 20, 20, 20
       constraints cCenter, cMin
       fill "#ffffff", 0.5
       cornerRadius 0
       strokeWeight 1
     rectangle "CenterBottom":
-      box 174, 133, 20, 20
+      box 174, 113, 20, 20
       constraints cCenter, cMax
       fill "#ffffff", 0.5
       cornerRadius 0
@@ -73,17 +72,18 @@ drawMain = proc() =
       cornerRadius 0
       strokeWeight 1
     rectangle "ScaleScale":
-      box 40, 40, 288, 74
+      box 40, 40, 288, 73
       constraints cScale, cScale
       fill "#ffffff", 0.25
       cornerRadius 0
       strokeWeight 1
     rectangle "BothBoth":
-      box 40, 40, 288, 74
-      constraints cBoth, cBoth
+      box 40, 40, 288, 73
+      constraints cStretch, cStretch
       fill "#ffffff", 0.25
       cornerRadius 0
       strokeWeight 1
+
 
 when not defined(js):
   windowFrame = vec2(530, 185)

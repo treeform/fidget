@@ -66,20 +66,20 @@ proc texture*(image: Image): Texture =
 
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
-  when defined(ios) or defined(android) or defined(osx):
-    glBindTexture(GL_TEXTURE_2D, texture.id)
-    glTexSubImage2D(
-      GL_TEXTURE_2D,
-      level = GLint(level),
-      xoffset = GLint(x),
-      yoffset = GLint(y),
-      width = GLsizei(image.width),
-      height = GLsizei(image.height),
-      format = GLenum GL_RGBA,
-      `type` = GLenum GL_UNSIGNED_BYTE,
-      pixels = cast[pointer](image.data[0].addr)
-    )
-  else:
+  glBindTexture(GL_TEXTURE_2D, texture.id)
+  glTexSubImage2D(
+    GL_TEXTURE_2D,
+    level = GLint(level),
+    xoffset = GLint(x),
+    yoffset = GLint(y),
+    width = GLsizei(image.width),
+    height = GLsizei(image.height),
+    format = GL_RGBA,
+    `type` = GL_UNSIGNED_BYTE,
+    pixels = cast[pointer](image.data[0].addr)
+  )
+
+  when defined(useGL45):
     glTextureSubImage2D(
       texture = texture.id,
       level = GLint(level),
@@ -87,8 +87,8 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
       yoffset = GLint(y),
       width = GLsizei(image.width),
       height = GLsizei(image.height),
-      format = GLenum GL_RGBA,
-      `type` = GLenum GL_UNSIGNED_BYTE,
+      format = GL_RGBA,
+      `type` = GL_UNSIGNED_BYTE,
       pixels = cast[pointer](image.data[0].addr)
     )
 

@@ -369,7 +369,7 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
       let xScale = parent.box.w / parent.orgBox.w
       current.box.x *= xScale
       current.box.w *= xScale
-    of cBoth:
+    of cStretch:
       let xDiff = parent.box.w - parent.orgBox.w
       current.box.w += xDiff
     of cCenter:
@@ -384,7 +384,7 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
       let yScale = parent.box.h / parent.orgBox.h
       current.box.y *= yScale
       current.box.h *= yScale
-    of cBoth:
+    of cStretch:
       let yDiff = parent.box.h - parent.orgBox.h
       current.box.h += yDiff
     of cCenter:
