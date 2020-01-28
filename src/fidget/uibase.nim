@@ -15,7 +15,7 @@ type
     cMin
     cMax
     cScale
-    cBoth
+    cStretch
     cCenter
 
   TextStyle* = object
