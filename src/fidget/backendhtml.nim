@@ -227,9 +227,9 @@ proc drawDiff(current: Group) =
     if current.editableText:
       if old.text != current.text:
         if document.activeElement != dom:
-          cast[TextAreaElement](dom).value = current.text          
+          cast[TextAreaElement](dom).value = current.text
         if current.tag == "input":
-          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"          
+          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
     else:
       if old.text != current.text:
         inc perf.numLowLevelCalls
