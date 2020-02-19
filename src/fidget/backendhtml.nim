@@ -204,15 +204,18 @@ proc drawDiff(current: Group) =
     else:
       dom.style.backgroundImage = ""
 
+  # check placeholder (gray text that appears inside when no text)
+  if old.placeholder != current.placeholder:
+    old.placeholder = current.placeholder
+    dom.setAttribute("placeholder", current.placeholder)
+
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
         if document.activeElement != dom:
-          cast[TextAreaElement](dom).value = current.text
-
+          cast[TextAreaElement](dom).value = current.text          
         if current.tag == "input":
-          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
-
+          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"          
     else:
       if old.text != current.text:
         inc perf.numLowLevelCalls
@@ -248,7 +251,7 @@ proc drawDiff(current: Group) =
 
           # TODO: figure out why this adjustment is needed
           left -= 2
-          top -= 1
+          top += 2
 
           dom.style.left = $(current.screenBox.x + left) & "px"
           dom.style.top = $(current.screenBox.y + top) & "px"
