@@ -367,10 +367,10 @@ drawMain = proc() =
 
     group "verticalTabs":
       box 0, 0, 130, 185
-      constraints cMin, cBoth
+      constraints cMin, cStretch
       rectangle "bg":
         box 0, 0, 130, 185
-        constraints cMin, cBoth
+        constraints cMin, cStretch
         fill "#e5f7fe"
         cornerRadius 0
         strokeWeight 1
@@ -429,22 +429,22 @@ drawMain = proc() =
 
     group "shadow":
       box 0, 0, 530, 3
-      constraints cBoth, cMin
+      constraints cStretch, cMin
       rectangle "l1":
         box 0, 0, 530, 1
-        constraints cBoth, cMin
+        constraints cStretch, cMin
         fill "#000000", 0.10000000149011612
         cornerRadius 0
         strokeWeight 1
       rectangle "l2":
         box 0, 1, 530, 1
-        constraints cBoth, cMin
+        constraints cStretch, cMin
         fill "#000000", 0.07000000029802322
         cornerRadius 0
         strokeWeight 1
       rectangle "l3":
         box 0, 2, 530, 1
-        constraints cBoth, cMin
+        constraints cStretch, cMin
         fill "#000000", 0.029999999329447746
         cornerRadius 0
         strokeWeight 1
