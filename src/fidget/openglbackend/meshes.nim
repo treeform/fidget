@@ -1,5 +1,5 @@
 import opengl, vmath, math, strformat
-
+import ../uibase
 import shaders
 import textures
 when defined(ios) or defined(android):
@@ -466,10 +466,3 @@ proc printMeshTree*(mesh: Mesh, indent=0) =
   echo space, mesh.name, " [", $mesh.numVerts, "] ", mesh.mat.pos
   for kid in mesh.kids:
     printMeshTree(kid, indent + 1)
-
-
-
-
-
-
-
