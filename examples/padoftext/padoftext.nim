@@ -6,7 +6,7 @@ import math
 
 when not defined(js):
   import ../../src/fidget/backendopengl, typography, tables
-  fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
+  fonts["Ubuntu"] = readFontSVG("data/Ubuntu.svg")
 
 
 var
