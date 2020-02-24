@@ -553,8 +553,16 @@ proc `url`*(win: uibase.Window): string =
   return $dom.window.location.pathname
 
 
+proc loadFont*(name: string, pathOrUrl: string) =
+  ## Loads a font.
+  discard
+
+
 proc setItem*(key, value: string) =
+  ## Saves value into local storage or file.
   dom.window.localStorage.setItem(key, value)
 
+
 proc getItem*(key: string): string =
+  ## Gets a value into local storage or file.
   $dom.window.localStorage.getItem(key)

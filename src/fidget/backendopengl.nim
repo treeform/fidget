@@ -304,3 +304,18 @@ proc `url=`*(win: uibase.Window, url: string) =
 proc `url`*(win: uibase.Window): string =
   ## Gets window url
   return win.innerUrl
+
+
+proc loadFont*(name: string, pathOrUrl: string) =
+  ## Loads a font.
+  print "loadFont", name, pathOrUrl
+
+
+proc setItem*(key, value: string) =
+  ## Saves value into local storage or file.
+  writeFile(key & ".data", value)
+
+
+proc getItem*(key: string): string =
+  ## Gets a value into local storage or file.
+  readFile(key & ".data")
