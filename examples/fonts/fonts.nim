@@ -11,7 +11,7 @@ for i, bar in bars:
 
 when not defined(js):
   import typography, tables
-  fonts["IBM Plex Sans Regular"] = readFontSvg("IBMPlexSans-Regular.svg")
+  fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
 
 drawMain = proc() =
 
