@@ -555,7 +555,9 @@ proc `url`*(win: uibase.Window): string =
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
-  discard
+  dom.window.document.write &"""
+    <style>@font-face {{font-family: '{name}'; src: URL('{pathOrUrl}') format('truetype');}}</style>
+  """
 
 
 proc setItem*(key, value: string) =
