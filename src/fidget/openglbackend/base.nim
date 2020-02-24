@@ -275,7 +275,7 @@ proc start*() =
             textBox.selectAll()
         else:
           discard
-    elif key < buttonDown.len:
+    elif key < buttonDown.len and key >= 0:
       if buttonDown[key] == false and setKey:
         buttonToggle[key] = not buttonToggle[key]
         buttonPress[key] = true

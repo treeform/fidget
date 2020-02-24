@@ -65,7 +65,7 @@ type
     screen*: Screen
     performance*: Performance
     onpopstate*: proc (event: Event)
-
+    localStorage*: LocalStorage
 
   Frame* = ref FrameObj
   FrameObj {.importc.} = object of WindowObj
@@ -103,6 +103,8 @@ type
     parentNode*: Node
     previousSibling*: Node
     innerHTML*: cstring
+    innerText*: cstring
+    textContent *: cstring
     style*: Style
 
   Document* = ref DocumentObj
@@ -244,6 +246,7 @@ type
     borderWidth*: cstring
     bottom*: cstring
     boxSizing*: cstring
+    boxShadow*: cstring
     captionSide*: cstring
     clear*: cstring
     clip*: cstring
@@ -468,6 +471,7 @@ type
 
   Selection* {.importc.} = ref object
 
+  LocalStorage* {.importc.} = ref object
 
 {.push importcpp.}
 
@@ -608,6 +612,13 @@ proc now*(p: Performance): float
 
 # Selection "methods"
 proc removeAllRanges*(s: Selection)
+
+# LocalStorage "methods"
+proc getItem*(ls: LocalStorage, key: cstring): cstring
+proc setItem*(ls: LocalStorage, key, value: cstring)
+proc hasItem*(ls: LocalStorage, key: cstring): bool
+proc clear*(ls: LocalStorage)
+proc removeItem*(ls: LocalStorage, key: cstring)
 
 {.pop.}
 
