@@ -15,7 +15,7 @@ type
     cMin
     cMax
     cScale
-    cBoth
+    cStretch
     cCenter
 
   TextStyle* = object
@@ -29,6 +29,17 @@ type
   BorderStyle* = object
     color*: Color
     width*: float
+
+  ShadowStyle* = enum
+    DropShadow
+    InnerShadow
+
+  Shadow* = object
+    kind*: ShadowStyle
+    blur*: float
+    x*: float
+    y*: float
+    color*: Color
 
   Group* = ref object
     id*: string
@@ -58,6 +69,7 @@ type
     drawable*: bool
     cursorColor*: Color
     highlightColor*: Color
+    shadows*: seq[Shadow]
 
   KeyState* = enum
     Empty
@@ -148,6 +160,7 @@ proc setupRoot*() =
   root = Group()
   groupStack = @[root]
   current = root
+  root.kind = "group"
   root.id = "root"
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color

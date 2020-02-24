@@ -341,6 +341,17 @@ proc highlightColor*(color: string, alpha=1.0) =
   current.highlightColor = parseHtmlColor(color)
   current.highlightColor.a = alpha
 
+proc dropShadow*(blur, x, y: float, color: string, alpha: float) =
+  ## Sets drawable, drawable in HTML creates a canvas
+  var c = parseHtmlColor(color)
+  c.a = alpha
+  current.shadows.add Shadow(kind: DropShadow, blur: blur, x: x, y: y, color: c)
+
+proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
+  ## Sets drawable, drawable in HTML creates a canvas
+  var c = parseHtmlColor(color)
+  c.a = alpha
+  current.shadows.add Shadow(kind: InnerShadow, blur: blur, x: x, y: y, color: c)
 
 proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas
@@ -352,12 +363,13 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
   case vCon
     of cMin: discard
     of cMax:
-      current.box.x = parent.box.w - current.box.w
+      let righSpace = parent.orgbox.w - current.box.x
+      current.box.x = parent.box.w - righSpace
     of cScale:
       let xScale = parent.box.w / parent.orgBox.w
       current.box.x *= xScale
       current.box.w *= xScale
-    of cBoth:
+    of cStretch:
       let xDiff = parent.box.w - parent.orgBox.w
       current.box.w += xDiff
     of cCenter:
@@ -366,12 +378,13 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
   case hCon
     of cMin: discard
     of cMax:
-      current.box.y = parent.box.h - current.box.h
+      let bottomSpace = parent.orgbox.h - current.box.y
+      current.box.y = parent.box.h - bottomSpace
     of cScale:
       let yScale = parent.box.h / parent.orgBox.h
       current.box.y *= yScale
       current.box.h *= yScale
-    of cBoth:
+    of cStretch:
       let yDiff = parent.box.h - parent.orgBox.h
       current.box.h += yDiff
     of cCenter:
