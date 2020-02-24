@@ -1,5 +1,5 @@
 include system/timers
-import unicode, sequtils
+import unicode, sequtils, os
 import chroma, opengl, vmath, print, input, perf, typography/textboxes
 import staticglfw
 
@@ -12,9 +12,6 @@ var
   window*: staticglfw.Window
   view*: Mat4
   proj*: Mat4
-  windowSize*: Vec2
-  windowFrame*: Vec2
-  dpi*: float
   frameCount* = 0
   clearColor*: Vec4
 
@@ -24,10 +21,12 @@ var
   fpsTimeSeries = newTimeSeries()
   avgFrameTime*: float64
   fps*: float64 = 60
+  eventHappend*: bool
 
 windowFrame = vec2(2000, 1000)
 
 proc onResize() =
+  eventHappend = true
   var cwidth, cheight: cint
   window.getWindowSize(addr cwidth, addr cheight)
   windowSize.x = float(cwidth)
@@ -62,7 +61,17 @@ proc tick*(poll=true) =
 
   if windowSize == vec2(0, 0):
     # window is minimized, don't do any drawing
+    os.sleep(16)
     return
+
+  if not repainEveryFrame:
+    if not eventHappend:
+      # repainEveryFrame is false
+      # so only repain on evnets, event did not happen!
+      os.sleep(16)
+      return
+    else:
+      eventHappend = false
 
   block:
     var x, y: float64
@@ -147,25 +156,22 @@ proc start*() =
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
   # Open a window
-  perfMark("start open window")
-
 
   # var monitor = GetPrimaryMonitor()
   # var mode = GetVideoMode(monitor)
   # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
 
-  window = createWindow(cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
-  perfMark("open window")
+  perf "open window":
+    window = createWindow(cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
+
 
   if window.isNil:
     quit("Failed to open GLFW window.")
 
-  window.makeContextCurrent()
-  #window.focusWindow()
+  perf "makeContextCurrent":
+    window.makeContextCurrent()
+    #window.focusWindow()
 
-  # view = mat4()
-  # view.pos = vec3(0.0, 0.0, -10.0)
-  # proj = perspective(160, 800.0/800.0, 0.0001, 100.0)
 
   # Load opengl
   when defined(ios) or defined(android):
@@ -173,7 +179,8 @@ proc start*() =
     #loadExtensions()
     discard
   else:
-    loadExtensions()
+    perf "loadExtensions":
+      loadExtensions()
 
   # var flags: GLint
   # glGetIntegerv(GL_CONTEXT_FLAGS, addr flags)
@@ -213,6 +220,7 @@ proc start*() =
   # discard SetWindowRefreshCallback(window, onRefresh)
 
   proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
+    eventHappend = true
     var setKey = action != 0
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
     keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
@@ -271,13 +279,14 @@ proc start*() =
       if buttonDown[key] == false and setKey:
         buttonToggle[key] = not buttonToggle[key]
         buttonPress[key] = true
-      if buttonDown[key] == false and setKey == false:
+      if buttonDown[key] == true and setKey == false:
         buttonUp[key] = true
       buttonDown[key] = setKey
 
   discard window.setKeyCallback(onSetKey)
 
   proc onScroll(window: staticglfw.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
+    eventHappend = true
     if keyboard.inputFocusIdPath != "":
       textBox.scrollBy(-yoffset * 50)
     else:
@@ -285,6 +294,7 @@ proc start*() =
   discard window.setScrollCallback(onScroll)
 
   proc onMouseButton(window: staticglfw.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
+    eventHappend = true
     var setKey = action != 0
     let button = button + 1
     mouse.down = setKey
@@ -300,7 +310,12 @@ proc start*() =
       buttonUp[button] = true
   discard window.setMouseButtonCallback(onMouseButton)
 
+  proc onMouseMove(window: staticglfw.Window; x, y: cdouble) {.cdecl.} =
+    eventHappend = true
+  discard window.setCursorPosCallback(onMouseMove)
+
   proc onSetCharCallback(window: staticglfw.Window; character: cuint) {.cdecl.} =
+    eventHappend = true
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
       textBox.typeCharacter(Rune(character))
@@ -329,3 +344,5 @@ proc start*() =
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
+
+  perfMark("end start base")
