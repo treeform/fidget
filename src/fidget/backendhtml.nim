@@ -206,14 +206,17 @@ proc drawDiff(current: Group) =
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
     # TODO check this
-    dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+    if current.textStyle.lineHeight == 0:
+      dom.style.lineHeight = "normal"
+    else:
+      dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
   # check imageName (background image)
   if old.imageName != current.imageName:
     inc perf.numLowLevelCalls
     old.imageName = current.imageName
     if current.imageName != "":
-      dom.style.backgroundImage = "url(" & current.imageName & ".png)"
+      dom.style.backgroundImage = "url(" & current.imageName & ")"
       dom.style.backgroundSize = "100% 100%"
     else:
       dom.style.backgroundImage = ""
@@ -503,6 +506,10 @@ proc startFidget*() =
     ## Called when users presses back or forward buttons.
     redraw()
 
+  document.fonts.ready.then proc() =
+    echo "fonts loaded"
+    computeTextBoxCache.clear()
+    redraw()
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
@@ -555,3 +562,13 @@ proc setItem*(key, value: string) =
 
 proc getItem*(key: string): string =
   $dom.window.localStorage.getItem(key)
+
+
+
+proc loadGoogleFontUrl*(url: string) =
+  var link = document.createElement("link")
+  link.setAttribute("href", url)
+  link.setAttribute("rel", "stylesheet")
+  document.head.appendChild(link)
+
+

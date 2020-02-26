@@ -130,6 +130,7 @@ type
     applets*: seq[Element]
     embeds*: seq[EmbedElement]
     links*: seq[LinkElement]
+    fonts*: FontFaceSet
 
   Element* = ref ElementObj
   ElementObj {.importc.} = object of NodeObj
@@ -472,6 +473,12 @@ type
   Selection* {.importc.} = ref object
 
   LocalStorage* {.importc.} = ref object
+
+  FontFaceSetReady* {.importc.} = ref object
+    then*: proc(cb: proc())
+
+  FontFaceSet* {.importc.} = ref object
+    ready*: FontFaceSetReady
 
 {.push importcpp.}
 
