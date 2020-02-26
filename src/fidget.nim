@@ -25,10 +25,10 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   current.id = name
   current.kind = kindStr
   current.wasDrawn = false
-  current.transparency = 1.0
   current.textStyle = parent.textStyle
   current.cursorColor = parent.cursorColor
   current.highlightColor = parent.highlightColor
+  current.transparency = parent.transparency
   groupStack.add(current)
 
   for g in groupStack:
@@ -421,5 +421,3 @@ proc parseParams*(): TableRef[string, string] =
         key = arr[0]
         val = arr[1]
       result[key] = val
-
-
