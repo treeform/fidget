@@ -4,7 +4,7 @@ when defined(ios) or defined(android):
   import openglbackend/basemobile as base
 else:
   import openglbackend/base as base
-import openglbackend/context, openglbackend/input
+import openglbackend/context, openglbackend/input, openglbackend/perf
 import uibase
 
 export windowFrame
@@ -211,13 +211,15 @@ proc goto*(url: string) =
 
 proc setupFidget*() {.exportc.} =
   base.start()
+
   when defined(ios):
     ctx = newContext(1024*4)
   else:
+    # TODO: growing context texture
     ctx = newContext(1024*8)
 
   base.drawFrame = proc() =
-    proj = ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100)
+    proj = ortho(0, windowFrame.x/dpi, windowFrame.y/dpi, 0, -100, 100)
     #print $proj
     setupRoot()
 
@@ -236,39 +238,14 @@ proc setupFidget*() {.exportc.} =
     ctx.startFrame(windowFrame)
 
     ctx.saveTransform()
-    # 4k 3840x2160
-    # 2k 2048×1080
-    # let rez = vec2(2048, 1080)
 
-    #ctx.translate(windowFrame/2)
-    # ctx.scale(max(windowFrame.x/rez.x, windowFrame.y/rez.y))
-    # ctx.translate(-rez/2)
-
-
-    # zoom height and window width
-    # let zoom = windowFrame.y/1080
-    # root.box.w = windowSize.x / zoom
-    # root.box.h = 1080
-    # ctx.scale(zoom)
-    # mouse.pos = mousePos / zoom
-
-    mouse.pos = mousePos
+    mouse.pos = mousePos / dpi
 
     drawMain()
 
     ctx.restoreTransform()
 
-    # ctx.drawImage("mainMenu.png", vec2(0, 0))
-    # ctx.drawImage("fleetA.png", vec2(500, 100))
-    # ctx.saveTransform()
-    # #ctx.translate(vec2(500, 500))
-    # ctx.scale(5.0)
-    # ctx.drawImage("circle100.png")
-    # ctx.restoreTransform()
-
     ctx.endFrame()
-
-
 
   useDepthBuffer(false)
 
@@ -304,3 +281,18 @@ proc `url=`*(win: uibase.Window, url: string) =
 proc `url`*(win: uibase.Window): string =
   ## Gets window url
   return win.innerUrl
+
+
+proc loadFont*(name: string, pathOrUrl: string) =
+  ## Loads a font.
+  print "loadFont", name, pathOrUrl
+
+
+proc setItem*(key, value: string) =
+  ## Saves value into local storage or file.
+  writeFile(key & ".data", value)
+
+
+proc getItem*(key: string): string =
+  ## Gets a value into local storage or file.
+  readFile(key & ".data")

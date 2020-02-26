@@ -59,3 +59,8 @@ proc `url=`*(win: uibase.Window, url: string) =
 proc `url`*(win: uibase.Window): string =
   ## Gets window url
   return win.innerUrl
+
+
+proc loadFont*(name: string, pathOrUrl: string) =
+  ## Loads a font.
+  discard
