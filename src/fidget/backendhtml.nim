@@ -24,7 +24,8 @@ proc removeAllChildren(dom: Node) =
     dom.removeChild(dom.firstChild)
 
 
-proc removeTextSelection*() =
+proc removeTextSelection*() {.exportc.} =
+  echo dom.window.document.getSelection()
   dom.window.document.getSelection().removeAllRanges()
 
 
@@ -391,7 +392,7 @@ proc redraw*() =
     discard dom.window.requestAnimationFrame(requestHardRedraw)
 
 
-proc set*(keyboard: Keyboard, state: KeyState, event: Event) =
+proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
   keyboard.state = state
   keyboard.keyCode = event.keyCode
   var keyString: cstring
@@ -426,6 +427,7 @@ proc startFidget*() =
 
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
+    let event = cast[MouseEvent](event)
     mouse.pos.x = float event.pageX
     mouse.pos.y = float event.pageY
     mouse.click = true
@@ -440,6 +442,7 @@ proc startFidget*() =
 
   dom.window.addEventListener "mousemove", proc(event: Event) =
     # When mouse moves
+    let event = cast[MouseEvent](event)
     mouse.pos.x = float event.pageX
     mouse.pos.y = float event.pageY
     redraw()
@@ -447,6 +450,7 @@ proc startFidget*() =
   dom.window.addEventListener "keydown", proc(event: Event) =
     ## When keyboards key is pressed down
     ## Used together with keyup for continuous things like scroll or games
+    let event = cast[KeyboardEvent](event)
     keyboard.set(Down, event)
     hardRedraw()
     if keyboard.state != Empty:
@@ -457,6 +461,7 @@ proc startFidget*() =
   dom.window.addEventListener "keyup", proc(event: Event) =
     ## When keyboards key is pressed down
     ## Used together with keydown
+    let event = cast[KeyboardEvent](event)
     keyboard.set(Up, event)
     hardRedraw()
     if keyboard.state != Empty:
