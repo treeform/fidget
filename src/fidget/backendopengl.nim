@@ -285,8 +285,7 @@ proc `url`*(win: uibase.Window): string =
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
-  print "loadFont", name, pathOrUrl
-
+  fonts[name] = readFontTtf(pathOrUrl)
 
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.
