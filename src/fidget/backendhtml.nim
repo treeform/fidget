@@ -221,15 +221,18 @@ proc drawDiff(current: Group) =
     else:
       dom.style.backgroundImage = ""
 
+  # check placeholder (gray text that appears inside when no text)
+  if old.placeholder != current.placeholder:
+    old.placeholder = current.placeholder
+    dom.setAttribute("placeholder", current.placeholder)
+
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
         if document.activeElement != dom:
           cast[TextAreaElement](dom).value = current.text
-
         if current.tag == "input":
           dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
-
     else:
       if old.text != current.text:
         inc perf.numLowLevelCalls
@@ -265,7 +268,7 @@ proc drawDiff(current: Group) =
 
           # TODO: figure out why this adjustment is needed
           left -= 2
-          top -= 1
+          top += 2
 
           dom.style.left = $(current.screenBox.x + left) & "px"
           dom.style.top = $(current.screenBox.y + top) & "px"
@@ -292,6 +295,7 @@ proc drawStart() =
   root.box.y = 0
   root.box.w = float dom.window.innerWidth #document.body.clientWidth #
   root.box.h = float document.body.clientHeight
+  root.transparency = 1.0
 
   scrollBox.x = float dom.window.scrollX
   scrollBox.y = float dom.window.scrollY
@@ -557,12 +561,20 @@ proc `url`*(win: uibase.Window): string =
   return $dom.window.location.pathname
 
 
+proc loadFont*(name: string, pathOrUrl: string) =
+  ## Loads a font.
+  discard
+
+
 proc setItem*(key, value: string) =
+  ## Saves value into local storage or file.
   dom.window.localStorage.setItem(key, value)
 
-proc getItem*(key: string): string =
-  $dom.window.localStorage.getItem(key)
 
+proc getItem*(key: string): string =
+
+  ## Gets a value into local storage or file.
+  $dom.window.localStorage.getItem(key)
 
 
 proc loadGoogleFontUrl*(url: string) =
@@ -570,5 +582,3 @@ proc loadGoogleFontUrl*(url: string) =
   link.setAttribute("href", url)
   link.setAttribute("rel", "stylesheet")
   document.head.appendChild(link)
-
-

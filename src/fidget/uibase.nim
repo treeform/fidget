@@ -126,6 +126,12 @@ var
   scrollBox*: Rect
   scrollBoxMega*: Rect # scroll box is 500px biger in y direction
   scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
+
+  ## Set to true so that it repains every frame, used for:
+  ##   games and multimidia with animations apps.
+  ## Set to false so that it repains only following user action, used for:
+  ##   animationless UI apps.
+  repainEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
   drawMain*: proc()
@@ -136,6 +142,10 @@ var
   popupActive*: bool
   inPopup*: bool
   #fonts* = newTable[string, Font]()
+
+  windowSize*: Vec2
+  windowFrame*: Vec2
+  dpi*: float
 
 when not defined(js):
   var
@@ -199,9 +209,3 @@ proc `+`*(a, b: Rect): Rect =
   result.y = a.y + b.y
   result.w = a.w
   result.h = a.h
-
-
-
-
-
-

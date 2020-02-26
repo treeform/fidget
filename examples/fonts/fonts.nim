@@ -9,9 +9,11 @@ var bars = newSeq[int](1000)
 for i, bar in bars:
   bars[i] = rand(40)
 
-when not defined(js):
-  import typography, tables
-  fonts["IBM Plex Sans Regular"] = readFontSvg("IBMPlexSans-Regular.svg")
+# when not defined(js):
+#   import typography, tables
+#   fonts["IBM Plex Sans Regular"] = readFontSvg("IBMPlexSans-Regular.svg")
+
+loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 
 drawMain = proc() =
 
