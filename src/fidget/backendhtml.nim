@@ -293,6 +293,7 @@ proc drawStart() =
   root.box.y = 0
   root.box.w = float dom.window.innerWidth #document.body.clientWidth #
   root.box.h = float document.body.clientHeight
+  root.transparency = 1.0
 
   scrollBox.x = float dom.window.scrollX
   scrollBox.y = float dom.window.scrollY
