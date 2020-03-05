@@ -23,6 +23,8 @@ var
   fps*: float64 = 60
   eventHappend*: bool
 
+  multisampling*: int
+
 windowFrame = vec2(2000, 1000)
 
 proc onResize() =
@@ -113,7 +115,7 @@ proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
 
 proc clearColorBuffer*(color: Color) =
-  glCLearColor(color.r, color.g, color.b, color.a)
+  glClearColor(color.r, color.g, color.b, color.a)
   glClear(GL_COLOR_BUFFER_BIT)
 
 proc useDepthBuffer*(on: bool) =
@@ -148,12 +150,15 @@ proc start*() =
 
   running = true
 
-  #WindowHint(SAMPLES, 32)
+  if multisampling > 0:
+    windowHint(SAMPLES, multisampling.cint)
 
   windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
   windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
+
+
 
   # Open a window
 
