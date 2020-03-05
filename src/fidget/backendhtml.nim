@@ -11,6 +11,8 @@ var
   ctx*: CanvasRenderingContext2D
   windowFrame*: Vec2
 
+  forceTextRelayout*: bool
+
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -49,6 +51,9 @@ proc computeTextBox*(text: string, width: float, fontName: string, fontSize: flo
   result[1] = float tempDiv.clientHeight
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
+  # echo "---"
+  # echo key
+  # echo result
 
 
 proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
@@ -56,6 +61,7 @@ proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: 
   ## text will fill down the hight of the box.
   let (w, h) = computeTextBox(text, width, fontName, fontSize)
   return h
+
 
 proc tag(group: Group): string =
   if group.kind == "":
@@ -133,16 +139,6 @@ proc drawDiff(current: Group) =
     old.id = current.id
     old.idPath = current.idPath
     dom.id = current.idPath
-
-  # check position on screen
-  if old.screenBox != current.screenBox:
-    inc perf.numLowLevelCalls
-    old.screenBox = current.screenBox
-    dom.style.position = "absolute"
-    dom.style.left = $current.screenBox.x & "px"
-    dom.style.top = $current.screenBox.y & "px"
-    dom.style.width = $current.screenBox.w & "px"
-    dom.style.height = $current.screenBox.h & "px"
 
   # check fill (background color or text color)
   if old.fill != current.fill:
@@ -227,6 +223,9 @@ proc drawDiff(current: Group) =
     old.placeholder = current.placeholder
     dom.setAttribute("placeholder", current.placeholder)
 
+  if old.screenBox.wh == current.box.wh:
+    current.textOffset = old.textOffset
+
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
@@ -235,7 +234,7 @@ proc drawDiff(current: Group) =
         if current.tag == "input":
           dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
     else:
-      if old.text != current.text:
+      if forceTextRelayout or (old.text != current.text):
         inc perf.numLowLevelCalls
         old.text = current.text
 
@@ -267,12 +266,25 @@ proc drawDiff(current: Group) =
             else:
               top = current.screenBox.h / 2 - box[1] / 2
 
-          # TODO: figure out why this adjustment is needed
-          left -= 2
-          top += 2
+          current.textOffset.x = left
+          current.textOffset.y = top
 
-          dom.style.left = $(current.screenBox.x + left) & "px"
-          dom.style.top = $(current.screenBox.y + top) & "px"
+        else:
+
+          current.textOffset.x = 0
+          current.textOffset.y = 0
+
+  # check position on screen
+  if old.screenBox != current.screenBox or old.textOffset != current.textOffset:
+    inc perf.numLowLevelCalls
+    old.screenBox = current.screenBox
+    old.textOffset = current.textOffset
+    dom.style.position = "absolute"
+    dom.style.left = $(current.screenBox.x + current.textOffset.x) & "px"
+    dom.style.top = $(current.screenBox.y + current.textOffset.y) & "px"
+    dom.style.width = $current.screenBox.w & "px"
+    dom.style.height = $current.screenBox.h & "px"
+
 
   inc numGroups
 
@@ -515,10 +527,12 @@ proc startFidget*() =
     ## Called when users presses back or forward buttons.
     redraw()
 
-  document.fonts.ready.then proc() =
-    echo "fonts loaded"
+  document.fonts.onloadingdone = proc(event: Event) =
     computeTextBoxCache.clear()
-    redraw()
+    forceTextRelayout = true
+    hardRedraw()
+    forceTextRelayout = false
+
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
