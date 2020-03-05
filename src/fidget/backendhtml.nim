@@ -499,6 +499,10 @@ proc startFidget*() =
     ## When INPUT element looses focus this is called, clear keyboard.input and
     ## the keyboard.inputFocusId
     ## Note: "blur" does not bubble, so its not used here.
+
+    # redraw everything to sync up the bind(string)
+    redraw()
+
     keyboard.input = ""
     keyboard.inputFocusIdPath = ""
     redraw()
