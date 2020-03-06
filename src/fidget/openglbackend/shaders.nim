@@ -9,9 +9,12 @@ proc getShaderLog(shader: GLuint): string =
   return log
 
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
-  # Shader source
-  var vertShaderArray = allocCStringArray([vertShaderSrc])  # dealloc'd at the end
-  var fragShaderArray = allocCStringArray([fragShaderSrc])  # dealloc'd at the end
+  var vertShaderArray = allocCStringArray([vertShaderSrc])
+  var fragShaderArray = allocCStringArray([fragShaderSrc])
+
+  defer:
+    dealloc(vertShaderArray)
+    dealloc(fragShaderArray)
 
   # Status variables
   var isCompiled: GLint
