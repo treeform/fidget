@@ -1,9 +1,4 @@
 import opengl
-import tables
-import times
-import vmath
-
-var shaderCache = newTable[string, GLuint]()
 
 
 proc getShaderLog(shader: GLuint): string =
@@ -14,11 +9,6 @@ proc getShaderLog(shader: GLuint): string =
   return log
 
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
-  var key = vertShaderSrc & "->" & fragShaderSrc
-
-  if key in shaderCache:
-    return shaderCache[key]
-
   # Shader source
   var vertShaderArray = allocCStringArray([vertShaderSrc])  # dealloc'd at the end
   var fragShaderArray = allocCStringArray([fragShaderSrc])  # dealloc'd at the end
@@ -99,7 +89,6 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   #else:
     #echo "Shader Program ready!"
 
-  shaderCache[key] = shaderProgram
   return shaderProgram
 
 
