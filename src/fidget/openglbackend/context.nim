@@ -89,16 +89,16 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
 
 when defined(ios) or defined(android):
   const
-    atlastVertSrc = staticRead("atlas.es.vert")
-    atlastFragSrc = staticRead("atlas.es.frag")
-    maskVertSrc = staticRead("mask.es.vert")
-    maskFragSrc = staticRead("mask.es.frag")
+    atlastVertSrc = staticRead("glsl/atlas.es.vert")
+    atlastFragSrc = staticRead("glsl/atlas.es.frag")
+    maskVertSrc = staticRead("glsl/mask.es.vert")
+    maskFragSrc = staticRead("glsl/mask.es.frag")
 else:
   const
-    atlastVertSrc = staticRead("atlas.vert")
-    atlastFragSrc = staticRead("atlas.frag")
-    maskVertSrc = staticRead("mask.vert")
-    maskFragSrc = staticRead("mask.frag")
+    atlastVertSrc = staticRead("glsl/atlas.vert")
+    atlastFragSrc = staticRead("glsl/atlas.frag")
+    maskVertSrc = staticRead("glsl/mask.vert")
+    maskFragSrc = staticRead("glsl/mask.frag")
 
 
 proc newContext*(

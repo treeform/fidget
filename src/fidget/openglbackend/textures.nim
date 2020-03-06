@@ -1,9 +1,8 @@
-import os, streams, tables, strutils, times
-import opengl, print, vmath, flippy
+import opengl, flippy
 
 type
   TextureKind* = enum
-    Texsture2d, CubeMap
+    Texture2d, CubeMap
 
   Texture* = ref object
     kind*: TextureKind
@@ -12,7 +11,7 @@ type
 
 proc texture*(image: Image): Texture =
   var texture = Texture()
-  texture.kind = Texsture2d
+  texture.kind = Texture2d
   glGenTextures(1, texture.id.addr)
   glBindTexture(GL_TEXTURE_2D, texture.id)
 
@@ -97,5 +96,5 @@ proc textureBind*(texture:Texture, number:int) =
   glActiveTexture(GLenum(int(GL_TEXTURE0) + number))
   if texture.kind == CubeMap:
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture.id)
-  if texture.kind == Texsture2d:
+  if texture.kind == Texture2d:
     glBindTexture(GL_TEXTURE_2D, texture.id)
