@@ -1,4 +1,4 @@
-import macros, tables, json, strutils, chroma, print, vmath
+import macros, tables, json, strutils, chroma, vmath
 import fidget/uibase
 when defined(js):
   import fidget/backendhtml
@@ -13,7 +13,7 @@ export uibase, chroma
 
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
-  ## Base temaptle for group, frame, rectange ...
+  ## Base template for group, frame, rectange ...
 
   # we should draw the parent first as we are drawing the a child now
   parent = groupStack[^1]
@@ -107,7 +107,7 @@ template onClick*(inner: untyped) =
     inner
 
 template onClickOutside*(inner: untyped) =
-  ## On click outside event handler. Usefull for deselecting things.
+  ## On click outside event handler. Useful for deselecting things.
   if mouse.click and not mouseOverlapLogic():
     inner
 
@@ -136,12 +136,12 @@ template onKeyDown*(inner: untyped) =
 
 
 proc hasKeyboardFocus*(group: Group): bool =
-  ## Does a group have keyboard input focus
+  ## Does a group have keyboard input focus.
   return keyboard.inputFocusIdPath == group.idPath
 
 
 template onInput*(inner: untyped) =
-  ## This is called when key is pressed and this element has focus
+  ## This is called when key is pressed and this element has focus.
   if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
@@ -166,7 +166,7 @@ template onFocus*(inner: untyped) =
 
 
 template onUnFocus*(inner: untyped) =
-  ## On loosing focus on an imput element
+  ## On loosing focus on an imput element.
   if keyboard.inputFocusIdPath != current.idPath and
       keyboard.inputFocusIdPath == current.idPath:
     inner
@@ -177,7 +177,7 @@ proc id*(id: string) =
 
 
 proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlignHorizontal, textAlignVertical: int) =
-  ## Sets the font
+  ## Sets the font.
   current.textStyle.fontFamily = fontFamily
   current.textStyle.fontSize = fontSize
   current.textStyle.fontWeight = fontWeight
@@ -186,23 +186,23 @@ proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlig
   current.textStyle.textAlignVertical = textAlignVertical
 
 proc fontFamily*(fontFamily: string) =
-  ## Sets the font family
+  ## Sets the font family.
   current.textStyle.fontFamily = fontFamily
 
 proc fontSize*(fontSize: float) =
-  ## Sets the font size in pixels
+  ## Sets the font size in pixels.
   current.textStyle.fontSize = fontSize
 
 proc fontWeight*(fontWeight: float) =
-  ## Sets the font weight
+  ## Sets the font weight.
   current.textStyle.fontWeight = fontWeight
 
 proc lineHeight*(lineHeight: float) =
-  ## Sets the font size
+  ## Sets the font size.
   current.textStyle.lineHeight = lineHeight
 
 proc textAlign*(textAlignHorizontal, textAlignVertical: int) =
-  ## Sets the horizontal and vertical alignment
+  ## Sets the horizontal and vertical alignment.
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
 
@@ -229,7 +229,7 @@ proc image*(imageName: string) =
 
 
 proc box*(x, y, w, h: float) =
-  ## Sets the box dimentions.
+  ## Sets the box dimensions.
   current.box.x = x
   current.box.y = y
   current.box.w = w
@@ -240,16 +240,16 @@ proc box*(x, y, w, h: float) =
 
 
 proc box*(x, y, w, h: int|float32|float) =
-  ## Sets the box dimentions with integers
+  ## Sets the box dimensions with integers
   box(float x, float y, float w, float h)
 
 
 proc box*(rect: Rect) =
-  ## Sets the box dimentions with integers
+  ## Sets the box dimensions with integers
   box(rect.x, rect.y, rect.w, rect.h)
 
 proc orgBox*(x, y, w, h: int|float32|float) =
-  ## Sets the box dimentions of the original element for constraints.
+  ## Sets the box dimensions of the original element for constraints.
   #box(float x, float y, float w, float h)
   current.orgBox.x = float x
   current.orgBox.y = float y
@@ -257,7 +257,7 @@ proc orgBox*(x, y, w, h: int|float32|float) =
   current.orgBox.h = float h
 
 proc rotation*(rotationInDeg: float) =
-  ## Sets rotation in degrees
+  ## Sets rotation in degrees.
   current.rotation = rotationInDeg
 
 
@@ -305,32 +305,32 @@ proc zLevel*(zLevel: int) =
 
 
 proc cornerRadius*(a, b, c, d: float) =
-  ## Sets all radius of all 4 corners
+  ## Sets all radius of all 4 corners.
   current.cornerRadius = (a, b, c, d)
 
 
 proc cornerRadius*(radius: float) =
-  ## Sets all radius of all 4 corners
+  ## Sets all radius of all 4 corners.
   cornerRadius(radius, radius, radius, radius)
 
 
 proc editableText*(editableText: bool) =
-  ## Sets the code for this group
+  ## Sets the code for this group.
   current.editableText = editableText
 
 
 proc multiline*(multiline: bool) =
-  ## Sets if editible text is multiline (textarea) or single line
+  ## Sets if editable text is multiline (textarea) or single line.
   current.multiline = multiline
 
 
 proc cursorColor*(color: Color) =
-  ## Sets the color of the text cursor
+  ## Sets the color of the text cursor.
   current.cursorColor = color
 
 
 proc cursorColor*(color: string, alpha=1.0) =
-  ## Sets the color of the text cursor
+  ## Sets the color of the text cursor.
   current.cursorColor = parseHtmlColor(color)
   current.cursorColor.a = alpha
 
@@ -346,24 +346,24 @@ proc highlightColor*(color: string, alpha=1.0) =
   current.highlightColor.a = alpha
 
 proc dropShadow*(blur, x, y: float, color: string, alpha: float) =
-  ## Sets drawable, drawable in HTML creates a canvas
+  ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
   current.shadows.add Shadow(kind: DropShadow, blur: blur, x: x, y: y, color: c)
 
 proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
-  ## Sets drawable, drawable in HTML creates a canvas
+  ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
   current.shadows.add Shadow(kind: InnerShadow, blur: blur, x: x, y: y, color: c)
 
 proc drawable*(drawable: bool) =
-  ## Sets drawable, drawable in HTML creates a canvas
+  ## Sets drawable, drawable in HTML creates a canvas.
   current.drawable = drawable
 
 
 proc constraints*(vCon: Contraints, hCon: Contraints) =
-  ## Sets vertical or horizontal contraint.
+  ## Sets vertical or horizontal constraint.
   case vCon
     of cMin: discard
     of cMax:
@@ -396,14 +396,13 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
 
   current.screenBox = current.box + parent.screenBox
 
-template binding*(stringVarible: untyped) =
-  ## Makes the current object text-editable and binds it to the
-  ## stringVarible
+template binding*(stringVariable: untyped) =
+  ## Makes the current object text-editable and binds it to the stringVariable.
   editableText true
   onInput:
-    stringVarible = keyboard.input
+    stringVariable = keyboard.input
     redraw()
-  characters stringVarible
+  characters stringVariable
 
 template override*(name: string, inner: untyped) =
   template `name`(): untyped =
@@ -416,7 +415,7 @@ template override*(name: string, inner: untyped) =
 
 
 proc parseParams*(): TableRef[string, string] =
-  ## Parses the params of the main URL
+  ## Parses the params of the main URL.
   result = newTable[string, string]()
   if window.innerUrl.len > 0:
     for pair in window.innerUrl[1..^1].split("&"):
