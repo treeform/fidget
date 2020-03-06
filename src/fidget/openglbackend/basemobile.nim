@@ -49,7 +49,7 @@ proc tick*(poll=true) =
   # reset key and mouse press to default state
   for i in 0..<buttonPress.len:
     buttonPress[i] = false
-    buttonUp[i] = false
+    buttonRelease[i] = false
 
 
   perfMark("--- end frame")
@@ -220,5 +220,3 @@ proc glfmMain*(display: ptr GLFMDisplay) {.exportc.} =
 
   # test reading a file
   echo readAssetFile("data.txt")
-
-

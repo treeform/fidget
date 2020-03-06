@@ -23,6 +23,8 @@ var
   fps*: float64 = 60
   eventHappend*: bool
 
+  multisampling*: int
+
 windowFrame = vec2(2000, 1000)
 
 proc onResize() =
@@ -99,7 +101,7 @@ proc tick*(poll=true) =
   # reset key and mouse press to default state
   for i in 0..<buttonPress.len:
     buttonPress[i] = false
-    buttonUp[i] = false
+    buttonRelease[i] = false
 
   perfMark("pre SwapBuffers")
   window.swapBuffers()
@@ -113,7 +115,7 @@ proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
 
 proc clearColorBuffer*(color: Color) =
-  glCLearColor(color.r, color.g, color.b, color.a)
+  glClearColor(color.r, color.g, color.b, color.a)
   glClear(GL_COLOR_BUFFER_BIT)
 
 proc useDepthBuffer*(on: bool) =
@@ -148,12 +150,15 @@ proc start*() =
 
   running = true
 
-  #WindowHint(SAMPLES, 32)
+  if multisampling > 0:
+    windowHint(SAMPLES, multisampling.cint)
 
   windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
   windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
+
+
 
   # Open a window
 
@@ -221,7 +226,7 @@ proc start*() =
 
   proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     eventHappend = true
-    var setKey = action != 0
+    var setKey = action != RELEASE
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
     keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
     keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
@@ -280,7 +285,7 @@ proc start*() =
         buttonToggle[key] = not buttonToggle[key]
         buttonPress[key] = true
       if buttonDown[key] == true and setKey == false:
-        buttonUp[key] = true
+        buttonRelease[key] = true
       buttonDown[key] = setKey
 
   discard window.setKeyCallback(onSetKey)
@@ -307,7 +312,7 @@ proc start*() =
         buttonPress[button] = true
       buttonDown[button] = setKey
     if buttonDown[button] == false and setKey == false:
-      buttonUp[button] = true
+      buttonRelease[button] = true
   discard window.setMouseButtonCallback(onMouseButton)
 
   proc onMouseMove(window: staticglfw.Window; x, y: cdouble) {.cdecl.} =

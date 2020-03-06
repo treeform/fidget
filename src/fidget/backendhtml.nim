@@ -11,6 +11,7 @@ var
   ctx*: CanvasRenderingContext2D
   windowFrame*: Vec2
 
+  forceTextRelayout*: bool
 
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
@@ -50,6 +51,9 @@ proc computeTextBox*(text: string, width: float, fontName: string, fontSize: flo
   result[1] = float tempDiv.clientHeight
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
+  # echo "---"
+  # echo key
+  # echo result
 
 
 proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
@@ -57,6 +61,7 @@ proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: 
   ## text will fill down the hight of the box.
   let (w, h) = computeTextBox(text, width, fontName, fontSize)
   return h
+
 
 proc tag(group: Group): string =
   if group.kind == "":
@@ -135,16 +140,6 @@ proc drawDiff(current: Group) =
     old.idPath = current.idPath
     dom.id = current.idPath
 
-  # check position on screen
-  if old.screenBox != current.screenBox:
-    inc perf.numLowLevelCalls
-    old.screenBox = current.screenBox
-    dom.style.position = "absolute"
-    dom.style.left = $current.screenBox.x & "px"
-    dom.style.top = $current.screenBox.y & "px"
-    dom.style.width = $current.screenBox.w & "px"
-    dom.style.height = $current.screenBox.h & "px"
-
   # check fill (background color or text color)
   if old.fill != current.fill:
     inc perf.numLowLevelCalls
@@ -208,14 +203,17 @@ proc drawDiff(current: Group) =
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
     # TODO check this
-    dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+    if current.textStyle.lineHeight == 0:
+      dom.style.lineHeight = "normal"
+    else:
+      dom.style.lineHeight = $current.textStyle.lineHeight & "px"
 
   # check imageName (background image)
   if old.imageName != current.imageName:
     inc perf.numLowLevelCalls
     old.imageName = current.imageName
     if current.imageName != "":
-      dom.style.backgroundImage = "url(" & current.imageName & ".png)"
+      dom.style.backgroundImage = "url(" & current.imageName & ")"
       dom.style.backgroundSize = "100% 100%"
     else:
       dom.style.backgroundImage = ""
@@ -230,6 +228,9 @@ proc drawDiff(current: Group) =
     dom.style.padding = $current.textPadding & "px"
     dom.style.boxSizing = "border-box"
 
+  if old.screenBox.wh == current.box.wh:
+    current.textOffset = old.textOffset
+
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
@@ -238,7 +239,7 @@ proc drawDiff(current: Group) =
         if current.tag == "input":
           dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
     else:
-      if old.text != current.text:
+      if forceTextRelayout or (old.text != current.text):
         inc perf.numLowLevelCalls
         old.text = current.text
 
@@ -270,12 +271,25 @@ proc drawDiff(current: Group) =
             else:
               top = current.screenBox.h / 2 - box[1] / 2
 
-          # TODO: figure out why this adjustment is needed
-          left -= 2
-          top += 2
+          current.textOffset.x = left
+          current.textOffset.y = top
 
-          dom.style.left = $(current.screenBox.x + left) & "px"
-          dom.style.top = $(current.screenBox.y + top) & "px"
+        else:
+
+          current.textOffset.x = 0
+          current.textOffset.y = 0
+
+  # check position on screen
+  if old.screenBox != current.screenBox or old.textOffset != current.textOffset:
+    inc perf.numLowLevelCalls
+    old.screenBox = current.screenBox
+    old.textOffset = current.textOffset
+    dom.style.position = "absolute"
+    dom.style.left = $(current.screenBox.x + current.textOffset.x) & "px"
+    dom.style.top = $(current.screenBox.y + current.textOffset.y) & "px"
+    dom.style.width = $current.screenBox.w & "px"
+    dom.style.height = $current.screenBox.h & "px"
+
 
   inc numGroups
 
@@ -522,6 +536,12 @@ proc startFidget*() =
     ## Called when users presses back or forward buttons.
     redraw()
 
+  document.fonts.onloadingdone = proc(event: Event) =
+    computeTextBoxCache.clear()
+    forceTextRelayout = true
+    hardRedraw()
+    forceTextRelayout = false
+
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
@@ -582,5 +602,13 @@ proc setItem*(key, value: string) =
 
 
 proc getItem*(key: string): string =
+
   ## Gets a value into local storage or file.
   $dom.window.localStorage.getItem(key)
+
+
+proc loadGoogleFontUrl*(url: string) =
+  var link = document.createElement("link")
+  link.setAttribute("href", url)
+  link.setAttribute("rel", "stylesheet")
+  document.head.appendChild(link)

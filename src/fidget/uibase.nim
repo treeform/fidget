@@ -53,6 +53,7 @@ type
     orgBox*: Rect
     rotation*: float
     screenBox*: Rect
+    textOffset*: Vec2
     fill*: Color
     transparency*: float
     strokeWeight*: float
