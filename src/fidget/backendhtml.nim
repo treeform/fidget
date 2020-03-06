@@ -11,6 +11,7 @@ var
   ctx*: CanvasRenderingContext2D
   windowFrame*: Vec2
 
+
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -223,6 +224,11 @@ proc drawDiff(current: Group) =
   if old.placeholder != current.placeholder:
     old.placeholder = current.placeholder
     dom.setAttribute("placeholder", current.placeholder)
+
+  if current.textPadding != old.textPadding:
+    old.textPadding = current.textPadding
+    dom.style.padding = $current.textPadding & "px"
+    dom.style.boxSizing = "border-box"
 
   if current.kind == "text":
     if current.editableText:

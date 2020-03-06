@@ -61,6 +61,7 @@ type
     resizeDone*: bool
     htmlDone*: bool
     textStyle*: TextStyle
+    textPadding*: int
     imageName*: string
     cornerRadius*: (float, float, float, float)
     wasDrawn*: bool # was group drawn or it still needs to be drawn
