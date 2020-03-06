@@ -101,7 +101,7 @@ proc tick*(poll=true) =
   # reset key and mouse press to default state
   for i in 0..<buttonPress.len:
     buttonPress[i] = false
-    buttonUp[i] = false
+    buttonRelease[i] = false
 
   perfMark("pre SwapBuffers")
   window.swapBuffers()
@@ -226,7 +226,7 @@ proc start*() =
 
   proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
     eventHappend = true
-    var setKey = action != 0
+    var setKey = action != RELEASE
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
     keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
     keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
@@ -285,7 +285,7 @@ proc start*() =
         buttonToggle[key] = not buttonToggle[key]
         buttonPress[key] = true
       if buttonDown[key] == true and setKey == false:
-        buttonUp[key] = true
+        buttonRelease[key] = true
       buttonDown[key] = setKey
 
   discard window.setKeyCallback(onSetKey)
@@ -312,7 +312,7 @@ proc start*() =
         buttonPress[button] = true
       buttonDown[button] = setKey
     if buttonDown[button] == false and setKey == false:
-      buttonUp[button] = true
+      buttonRelease[button] = true
   discard window.setMouseButtonCallback(onMouseButton)
 
   proc onMouseMove(window: staticglfw.Window; x, y: cdouble) {.cdecl.} =

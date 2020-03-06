@@ -1,4 +1,3 @@
-import unicode
 import vmath
 
 
@@ -141,7 +140,7 @@ type
 
 var
   buttonDown* = newSeq[bool](348)
-  buttonUp* = newSeq[bool](348)
+  buttonRelease* = newSeq[bool](348)
   buttonToggle* = newSeq[bool](348)
   buttonPress* = newSeq[bool](348)
 
