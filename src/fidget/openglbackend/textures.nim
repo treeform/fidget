@@ -2,27 +2,29 @@ import opengl, flippy
 
 type
   TextureKind* = enum
-    Texture2d, CubeMap
+    Texture2D, CubeMap
 
-  Texture* = ref object
+  Texture* = object
     kind*: TextureKind
     id*: GLuint
 
 
 proc texture*(image: Image): Texture =
   var texture = Texture()
-  texture.kind = Texture2d
+  texture.kind = Texture2D
+
   glGenTextures(1, texture.id.addr)
   glBindTexture(GL_TEXTURE_2D, texture.id)
 
-  var target: GLenum = GL_TEXTURE_2D
-  var level: GLint = 0
-  var internalformat = GLint(GL_RGBA)
-  var width: GLsizei = GLsizei image.width
-  var height: GLsizei = GLsizei image.height
-  var border: GLint = 0
-  var format: GLenum = GL_RGBA
-  var `type`: GLenum = GL_UNSIGNED_BYTE
+  var
+    target: GLenum = GL_TEXTURE_2D
+    level: GLint = 0
+    internalformat = GLint(GL_RGBA)
+    width: GLsizei = GLsizei image.width
+    height: GLsizei = GLsizei image.height
+    border: GLint = 0
+    format: GLenum = GL_RGBA
+    `type`: GLenum = GL_UNSIGNED_BYTE
 
   if image.channels == 4:
     format = GL_RGBA
@@ -61,6 +63,7 @@ proc texture*(image: Image): Texture =
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
   return texture
 
 
@@ -83,18 +86,21 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   var
     x = x
     y = y
+    image = image
     level = 0
-  var image = image
+
   while image.width > 1 and image.height > 1:
     texture.updateSubImage(x, y, image, level)
     image = image.minifyBy2()
     x = x div 2
     y = y div 2
-    inc level
+    inc(level)
 
-proc textureBind*(texture:Texture, number:int) =
+proc textureBind*(texture: Texture, number: int) =
   glActiveTexture(GLenum(int(GL_TEXTURE0) + number))
-  if texture.kind == CubeMap:
-    glBindTexture(GL_TEXTURE_CUBE_MAP, texture.id)
-  if texture.kind == Texture2d:
-    glBindTexture(GL_TEXTURE_2D, texture.id)
+
+  case texture.kind:
+    of CubeMap:
+      glBindTexture(GL_TEXTURE_CUBE_MAP, texture.id)
+    of Texture2D:
+      glBindTexture(GL_TEXTURE_2D, texture.id)
