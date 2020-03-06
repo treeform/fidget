@@ -1,10 +1,10 @@
-import tables, unicode, times
-import vmath, chroma, typography, typography/textboxes, print
+import tables, times
+import vmath, chroma, typography, typography/textboxes
 when defined(ios) or defined(android):
   import openglbackend/basemobile as base
 else:
   import openglbackend/base as base
-import openglbackend/context, openglbackend/input, openglbackend/perf
+import openglbackend/context, openglbackend/input
 import uibase
 
 export windowFrame
