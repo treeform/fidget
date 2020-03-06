@@ -9,16 +9,6 @@ else:
 import chroma
 
 type
-
-  FVec2* = object
-    x, y: float32
-
-  FVec3* = object
-    x, y, z: float32
-
-  FVec4* = object
-    x, y, z, w: float32
-
   VertBufferKind* = enum
     Position, Color, Uv, Normal, BiNormal
 
