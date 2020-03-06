@@ -14,7 +14,7 @@ var
   ctx*: Context
   fonts* = newTable[string, Font]()
 
-  # used for double cliking:
+  # used for double-clicking:
   multiClick: int
   lastClickTime: float
 
@@ -251,7 +251,7 @@ proc setupFidget*() {.exportc.} =
 
 
 proc startFidget*() =
-  ## Starts fidget UI library
+  ## Starts Fidget UI library
 
   when defined(ios) or defined(android):
     discard
