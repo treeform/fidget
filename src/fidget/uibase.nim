@@ -1,4 +1,4 @@
-import chroma, vmath, sequtils
+import chroma, vmath
 # typography
 
 when not defined(js):
@@ -10,7 +10,6 @@ const
   blackColor* = color(0,0,0,1)
 
 type
-
   Contraints* = enum
     cMin
     cMax
