@@ -1,108 +1,65 @@
 import opengl
-import tables
-import times
-import vmath
-
-var shaderCache = newTable[string, GLuint]()
 
 
-proc getShaderLog(shader: GLuint): string =
+proc getLog(id: GLuint,
+    lenProc: proc(id: GLuint, pname: GLenum, params: ptr GLint){.stdcall.},
+    strProc: proc(shader: GLuint, bufSize: GLsizei, length: ptr GLsizei,
+        infoLog: cstring){.stdcall.}): string =
   var length: GLint = 0
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, length.addr)
-  var log: string = newString(length.int)
-  glGetShaderInfoLog(shader, length, nil, log)
+  lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
+  var log = newString(length.int)
+  strProc(id, length, nil, log)
   return log
 
+# Compiles the shader files and links them into a program, returning that id
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
-  var key = vertShaderSrc & "->" & fragShaderSrc
+  var vertShader, fragShader: GLuint
 
-  if key in shaderCache:
-    return shaderCache[key]
+  # Compile the shaders
+  block shaders:
+    var vertShaderArray = allocCStringArray([vertShaderSrc])
+    var fragShaderArray = allocCStringArray([fragShaderSrc])
 
-  # Shader source
-  var vertShaderArray = allocCStringArray([vertShaderSrc])  # dealloc'd at the end
-  var fragShaderArray = allocCStringArray([fragShaderSrc])  # dealloc'd at the end
+    defer:
+      dealloc(vertShaderArray)
+      dealloc(fragShaderArray)
 
-  # Status variables
-  var isCompiled: GLint
+    var isCompiled: GLint
+
+    vertShader = glCreateShader(GL_VERTEX_SHADER)
+    glShaderSource(vertShader, 1, vertShaderArray, nil)
+    glCompileShader(vertShader)
+    glGetShaderiv(vertShader, GL_COMPILE_STATUS, isCompiled.addr)
+
+    if isCompiled == 0:
+      echo vertShaderSrc
+      echo "Vertex shader compilation failed:"
+      echo getLog(vertShader, glGetShaderiv, glGetShaderInfoLog)
+      quit()
+
+    fragShader = glCreateShader(GL_FRAGMENT_SHADER)
+    glShaderSource(fragShader, 1, fragShaderArray, nil)
+    glCompileShader(fragShader)
+    glGetShaderiv(fragShader, GL_COMPILE_STATUS, isCompiled.addr)
+
+    if isCompiled == 0:
+      echo fragShaderSrc
+      echo "Fragment shader compilation failed:"
+      echo getLog(fragShader, glGetShaderiv, glGetShaderInfoLog)
+      quit()
+
+  # Attach shaders to a GL program
+  var program = glCreateProgram()
+  glAttachShader(program, vertShader);
+  glAttachShader(program, fragShader);
+
+  glLinkProgram(program);
+
   var isLinked: GLint
-
-  # Compile shaders
-  # Vertex
-  var vertShader = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(vertShader, 1, vertShaderArray, nil)
-  glCompileShader(vertShader)
-  glGetShaderiv(vertShader, GL_COMPILE_STATUS, isCompiled.addr)
-
-  # Check vertex compilation status
-  if isCompiled == 0:
-    echo vertShaderSrc
-    echo "Vertex Shader wasn't compiled.  Reason:"
-    echo getShaderLog(vertShader)
-    quit()
-
-    # Cleanup
-    # dealloc(logStr)
-  #else:
-    #echo "Vertex Shader compiled successfully."
-
-  # Fragment
-  var fragShader = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(fragShader, 1, fragShaderArray, nil)
-  glCompileShader(fragShader)
-  glGetShaderiv(fragShader, GL_COMPILE_STATUS, isCompiled.addr)
-
-  # Check Fragment compilation status
-  if isCompiled == 0:
-    echo fragShaderSrc
-    echo "Fragment Shader wasn't compiled.  Reason:"
-    echo getShaderLog(fragShader)
-    quit()
-
-    # Cleanup
-    # dealloc(logStr)
-  #else:
-    #echo "Fragment Shader compiled successfully."
-
-  # Attach to a GL program
-  var shaderProgram = glCreateProgram()
-  glAttachShader(shaderProgram, vertShader);
-  glAttachShader(shaderProgram, fragShader);
-
-  # insert locations
-  glBindAttribLocation(shaderProgram, 0, "vertexPos");
-  glBindAttribLocation(shaderProgram, 0, "vertexClr");
-
-  glLinkProgram(shaderProgram);
-
-  # Check for shader linking errors
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, isLinked.addr)
+  glGetProgramiv(program, GL_LINK_STATUS, isLinked.addr)
   if isLinked == 0:
-    echo "Wasn't able to link shaders.  Reason:"
+    echo "Linking shaders failed:"
+    echo getLog(program, glGetProgramiv, glGetProgramInfoLog)
+    quit()
 
-    # Get the log size
-    var logSize: GLint
-    glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, logSize.addr)
-
-    # Get the log itself
-    var
-      logStr = cast[ptr GLchar](alloc(logSize))
-      logLen: GLsizei
-
-    glGetProgramInfoLog(shaderProgram, logSize.GLsizei, logLen.addr, logStr)
-
-    # Print the log
-    quit $logStr
-
-    # cleanup
-    # dealloc(logStr)
-  #else:
-    #echo "Shader Program ready!"
-
-  shaderCache[key] = shaderProgram
-  return shaderProgram
-
-
-#glDeleteProgram(shaderProgram)
-#glDeleteShader(vertShader)
-#glDeleteShader(fragShader)
+  return program
