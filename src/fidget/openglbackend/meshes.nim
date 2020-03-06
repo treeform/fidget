@@ -9,16 +9,6 @@ else:
 import chroma
 
 type
-
-  FVec2* = object
-    x, y: float32
-
-  FVec3* = object
-    x, y, z: float32
-
-  FVec4* = object
-    x, y, z, w: float32
-
   VertBufferKind* = enum
     Position, Color, Uv, Normal, BiNormal
 
@@ -78,8 +68,9 @@ proc newVertBuffer*(kind: VertBufferKind, stride: int = 0, size: int = 0): VertB
 
 
 proc uploadBuf*(buf: VertBuffer) =
-  glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
-  glBufferData(GL_ARRAY_BUFFER, buf.data.len * 4, addr buf.data[0], GL_STATIC_DRAW)
+  if buf.data.len > 0:
+    glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
+    glBufferData(GL_ARRAY_BUFFER, buf.data.len * 4, addr buf.data[0], GL_STATIC_DRAW)
 
 
 proc uploadBuf*(buf: VertBuffer, max: int) =
@@ -201,6 +192,7 @@ proc addVert*(buf: VertBuffer, v: Color) =
   buf.data.add(v.b)
   buf.data.add(v.a)
 
+
 proc len*(buf: VertBuffer): int =
   buf.data.len div buf.stride
 
@@ -286,14 +278,15 @@ proc addVert*(mesh: Mesh, pos: Vec3, uv: Vec2) =
 
 
 proc addVert*(mesh: Mesh, pos: Vec3, uv: Vec2, color: Color) =
-  echo "addVert 3"
-  echo cast[int](unsafeAddr(mesh))
   mesh.getBuf(Position).addVert(pos)
-  echo "."
   mesh.getBuf(Uv).addVert(uv)
-  echo "."
   mesh.getBuf(Color).addVert(color)
-  echo "."
+
+
+proc addVert*(mesh: Mesh, pos: Vec3, color: Vec4, normal: Vec3) =
+  mesh.getBuf(Position).addVert(pos)
+  mesh.getBuf(Color).addVert(color)
+  mesh.getBuf(Normal).addVert(normal)
 
 
 proc addQuad*(mesh: Mesh, a, b, c, d: Vec3) =
@@ -321,6 +314,20 @@ proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec2, b: Vec3, bc: Vec2, c: Vec3, cc: Vec
   mesh.addVert(c, cc)
   mesh.addVert(a, ac)
   mesh.addVert(d, dc)
+
+
+proc addQuad*(mesh: Mesh,
+    a: Vec3, ac: Vec4, an: Vec3,
+    b: Vec3, bc: Vec4, bn: Vec3,
+    c: Vec3, cc: Vec4, cn: Vec3,
+    d: Vec3, dc: Vec4, dn: Vec3
+  ) =
+  mesh.addVert(a, ac, an)
+  mesh.addVert(c, cc, cn)
+  mesh.addVert(b, bc, bn)
+  mesh.addVert(c, cc, cn)
+  mesh.addVert(a, ac, an)
+  mesh.addVert(d, dc, dn)
 
 
 proc addQuad*(mesh: Mesh,
@@ -352,7 +359,6 @@ proc genNormals*(mesh: Mesh) =
     normBuf.addVert(norm)
     normBuf.addVert(norm)
     i += 3
-
 
 proc addUniform*(mesh: Mesh, name: string, v: Vec3) =
   var uniform = Uniform()

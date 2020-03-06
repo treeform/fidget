@@ -80,7 +80,6 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
   )
 
 
-
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   var
     x = x

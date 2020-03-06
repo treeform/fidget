@@ -216,7 +216,7 @@ proc setupFidget*() {.exportc.} =
     ctx = newContext(1024*4)
   else:
     # TODO: growing context texture
-    ctx = newContext(1024*8)
+    ctx = newContext(1024*1)
 
   base.drawFrame = proc() =
     proj = ortho(0, windowFrame.x/dpi, windowFrame.y/dpi, 0, -100, 100)

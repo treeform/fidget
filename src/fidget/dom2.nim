@@ -197,6 +197,7 @@ type
     applets*: seq[Element]
     embeds*: seq[EmbedElement]
     links*: seq[LinkElement]
+    fonts*: FontFaceSet
 
   Element* = ref ElementObj
   ElementObj {.importc.} = object of NodeObj
@@ -998,6 +999,13 @@ type
     once*: bool
     passive*: bool
 
+  FontFaceSetReady* {.importc.} = ref object
+    then*: proc(cb: proc())
+
+  FontFaceSet* {.importc.} = ref object
+    ready*: FontFaceSetReady
+    onloadingdone*: proc(event: Event)
+
 proc id*(n: Node): cstring {.importcpp: "#.id", nodecl.}
 proc `id=`*(n: Node; x: cstring) {.importcpp: "#.id = #", nodecl.}
 proc class*(n: Node): cstring {.importcpp: "#.className", nodecl.}
@@ -1089,6 +1097,7 @@ else:
 
 proc setTimeout*(action: proc(); ms: int): Timeout {.importc, nodecl.}
 proc clearTimeout*(t: Timeout) {.importc, nodecl.}
+
 
 {.push importcpp.}
 
