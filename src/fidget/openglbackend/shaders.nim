@@ -3,13 +3,15 @@ import opengl
 
 proc getLog(id: GLuint,
     lenProc: proc(id: GLuint, pname: GLenum, params: ptr GLint){.stdcall.},
-    strProc: proc(shader: GLuint, bufSize: GLsizei, length: ptr GLsizei, infoLog: cstring){.stdcall.}): string =
+    strProc: proc(shader: GLuint, bufSize: GLsizei, length: ptr GLsizei,
+        infoLog: cstring){.stdcall.}): string =
   var length: GLint = 0
   lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
   var log = newString(length.int)
   strProc(id, length, nil, log)
   return log
 
+# Compiles the shader files and links them into a program, returning that id
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   var vertShader, fragShader: GLuint
 
