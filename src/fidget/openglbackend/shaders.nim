@@ -1,11 +1,13 @@
 import opengl
 
 
-proc getShaderLog(shader: GLuint): string =
+proc getLog(id: GLuint,
+    lenProc: proc(id: GLuint, pname: GLenum, params: ptr GLint){.stdcall.},
+    strProc: proc(shader: GLuint, bufSize: GLsizei, length: ptr GLsizei, infoLog: cstring){.stdcall.}): string =
   var length: GLint = 0
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, length.addr)
+  lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
   var log = newString(length.int)
-  glGetShaderInfoLog(shader, length, nil, log)
+  strProc(id, length, nil, log)
   return log
 
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
@@ -30,7 +32,7 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
     if isCompiled == 0:
       echo vertShaderSrc
       echo "Vertex shader compilation failed:"
-      echo getShaderLog(vertShader)
+      echo getLog(vertShader, glGetShaderiv, glGetShaderInfoLog)
       quit()
 
     fragShader = glCreateShader(GL_FRAGMENT_SHADER)
@@ -41,7 +43,7 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
     if isCompiled == 0:
       echo fragShaderSrc
       echo "Fragment shader compilation failed:"
-      echo getShaderLog(fragShader)
+      echo getLog(fragShader, glGetShaderiv, glGetShaderInfoLog)
       quit()
 
   # Attach shaders to a GL program
@@ -55,12 +57,7 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   glGetProgramiv(program, GL_LINK_STATUS, isLinked.addr)
   if isLinked == 0:
     echo "Linking shaders failed:"
-
-    var length: GLint = 0
-    glGetProgramiv(program, GL_INFO_LOG_LENGTH, length.addr)
-    var log = newString(length.int)
-    glGetProgramInfoLog(program, length, nil, log)
-    echo log
+    echo getLog(program, glGetProgramiv, glGetProgramInfoLog)
     quit()
 
   return program
