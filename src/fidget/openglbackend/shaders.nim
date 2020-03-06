@@ -4,7 +4,7 @@ import opengl
 proc getShaderLog(shader: GLuint): string =
   var length: GLint = 0
   glGetShaderiv(shader, GL_INFO_LOG_LENGTH, length.addr)
-  var log: string = newString(length.int)
+  var log = newString(length.int)
   glGetShaderInfoLog(shader, length, nil, log)
   return log
 
