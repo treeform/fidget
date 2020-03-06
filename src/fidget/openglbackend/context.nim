@@ -1,7 +1,6 @@
 import tables, os, times, strformat
 import vmath, chroma, flippy
-import meshes, textures, shaders, slate
-import opengl, base, print
+import opengl, meshes, textures, shaders, slate
 import ../uibase
 
 
