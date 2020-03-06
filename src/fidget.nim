@@ -206,6 +206,10 @@ proc textAlign*(textAlignHorizontal, textAlignVertical: int) =
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
 
+proc textPadding*(textPadding: int) =
+  ## Sets the text padding on editable multiline text areas.
+  current.textPadding = textPadding
+
 proc characters*(text: string) =
   ## Adds text to the group.
   if current.text == "":
