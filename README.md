@@ -8,7 +8,7 @@ Fidget aims to provide performant natively compiled cross platform UIs for any p
 
 Fidget leverages [Figma](https://www.figma.com/) - an app that is taking the design world by storm. It does this by providing a [Figma Plugin](figma_plugin/code.ts) to export directly to fidget code! No more counting stupid pixels, no more CSS puzzles. Want to change some spaces? Change it in Figma and export.
 
-Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/). 
+Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well as providing only minimal primitives found in [Figma](https://www.figma.com/).
 
 ## Example:
 
@@ -34,7 +34,7 @@ drawMain = proc() =
       group "block":
         box 20+i*120, 20, 100, 100
         fill "#2B9FEA"
-       
+
 windowFrame = vec2(620, 140)
 startFidget()
 ```
@@ -54,7 +54,7 @@ Fidget has several backends that are planned:
 * iOS (proof of concept only)
 * Android (proof of concept only)
 
-# Philosophy - Minimalism 
+# Philosophy - Minimalism
 
 * Mimic how Figma](https://www.figma.com/) (Amazing UI/UX app) does it.
 * Everything is a Node.
@@ -64,7 +64,7 @@ Fidget has several backends that are planned:
 * Resizing is done same way as Fimga's [Constraints](https://www.youtube.com/watch?v=rRQAQ1d9q9w).
 * Layout is done same was as Figma's [Auto Layout](https://www.youtube.com/watch?v=NrKX46DzkGQ).
 
-The main idea of fidget is to use standard imperative nim paradigms like nim-procs, nim-for-loops, nim-ifs, nim-templates instead of say providing a custom language, XML templates, HTML, Jinja templates, CSS ... 
+The main idea of fidget is to use standard imperative nim paradigms like nim-procs, nim-for-loops, nim-ifs, nim-templates instead of say providing a custom language, XML templates, HTML, Jinja templates, CSS ...
 
 Instead of creating CSS classes you just create a nim proc or a nim template with the things you want and reuse that. Instead of having some sort of list controller you just use a for loop to position your list elements.
 
@@ -88,7 +88,7 @@ Each UI frame is drawn completely from start to finish all in the code you contr
 
 ```sh
 git clone https://github.com/treeform/fidget
-cd fidget 
+cd fidget
 nimble install
 cd examples/minimal
 nim c -r minimal
@@ -121,7 +121,3 @@ nim js padoftext.nim
 nim js padofcode.nim
 nim js basic.nim
 ```
-
-
-
-

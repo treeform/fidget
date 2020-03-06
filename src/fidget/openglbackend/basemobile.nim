@@ -220,5 +220,3 @@ proc glfmMain*(display: ptr GLFMDisplay) {.exportc.} =
 
   # test reading a file
   echo readAssetFile("data.txt")
-
-

@@ -26,12 +26,12 @@ drawMain = proc() =
 
       onHover:
         fill "#FF0000"
-       
+
     inPopup = true
     group "center":
       box 150, 150, 100, 100
       fill "#00FF00"
-      
+
       onHover:
         fill "#FF0000"
     inPopup = false

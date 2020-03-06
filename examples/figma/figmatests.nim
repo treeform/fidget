@@ -8,7 +8,7 @@ proc frameTest1Square_root*() =
     fill color(1.000, 1.000, 1.000, 1.000)
 
     rectangle "Rectangle": # 1:3
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#65F8DE"
 
 
@@ -46,7 +46,7 @@ proc frameTest4MultiSquare_root*() =
       fill "#65BAF8"
 
     rectangle "Rectangle 2": # 1:12
-      box 75, 75, 50, 50 
+      box 75, 75, 50, 50
       fill "#F88865"
 
     rectangle "Rectangle 2.1": # 1:13
@@ -84,7 +84,7 @@ proc frameTest5DoubleStretch_root*() =
       fill "#F88865"
 
     rectangle "Rectangle 3": # 1:23
-      box 0, 0, 100, 100 
+      box 0, 0, 100, 100
       fill "#ECECEC"
 
     rectangle "Rectangle 3.1": # 1:24
@@ -106,55 +106,55 @@ proc frameTest6TextBasic_root*() =
     fill color(1.000, 1.000, 1.000, 1.000)
 
     rectangle "Rectangle": # 8:6
-      box 108, 64, 283, 86 
+      box 108, 64, 283, 86
       fill "#F2F2F2"
 
     rectangle "Rectangle 2": # 8:7
-      box 108, 134, 283, 16 
+      box 108, 134, 283, 16
       fill "#E3E3E3"
 
     rectangle "Rectangle 2.1": # 8:8
-      box 108, 64, 283, 18 
+      box 108, 64, 283, 18
       fill "#E3E3E3"
 
     text "Test Text": # 8:5
-      box 108, 64, 283, 86 
+      box 108, 64, 283, 86
       fill "#000000"
       font "Helvetica Neue", 72.0, 400.0, 81, -1, -1
       characters "Test Text"
 
     rectangle "Rectangle": # 8:9
-      box 108, 173, 197, 60 
+      box 108, 173, 197, 60
       fill "#F2F2F2"
 
     rectangle "Rectangle 2.2": # 8:10
-      box 108, 221, 197, 12 
+      box 108, 221, 197, 12
       fill "#E3E3E3"
 
     rectangle "Rectangle 2.3": # 8:11
-      box 108, 173, 197, 12 
+      box 108, 173, 197, 12
       fill "#E3E3E3"
 
     text "Test Text": # 8:12
-      box 108, 173, 197, 60 
+      box 108, 173, 197, 60
       fill "#000000"
       font "Helvetica Neue", 50.0, 400.0, 55, -1, -1
       characters "Test Text"
 
     rectangle "Rectangle": # 8:25
-      box 108, 256, 79, 24 
+      box 108, 256, 79, 24
       fill "#F2F2F2"
 
     rectangle "Rectangle 2.4": # 8:26
-      box 108, 275, 79, 5 
+      box 108, 275, 79, 5
       fill "#E3E3E3"
 
     rectangle "Rectangle 2.5": # 8:27
-      box 108, 256, 79, 4 
+      box 108, 256, 79, 4
       fill "#E3E3E3"
 
     text "Test Text": # 8:28
-      box 108, 256, 79, 24 
+      box 108, 256, 79, 24
       fill "#000000"
       font "Helvetica Neue", 20.0, 400.0, 20, -1, -1
       characters "Test Text"
@@ -166,59 +166,59 @@ proc frameTest7TextAlign_root*() =
     fill color(1.000, 1.000, 1.000, 1.000)
 
     rectangle "Rectangle": # 8:42
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#F2F2F2"
 
     text "right top": # 8:43
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, -1, -1
       characters "right top"
 
     text "center top": # 8:45
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, 0, -1
       characters "center top"
 
     text "left top": # 8:44
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, 1, -1
       characters "left top"
 
     text "right middle": # 8:46
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, -1, 0
       characters "right middle"
 
     text "center middle": # 8:47
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, 0, 0
       characters "center middle"
 
     text "left middle": # 8:48
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, 1, 0
       characters "left middle"
 
     text "right bottom": # 8:49
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, -1, 1
       characters "right bottom"
 
     text "center bottom": # 8:50
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, 0, 1
       characters "center bottom"
 
     text "left bottom": # 8:51
-      box 100, 100, 300, 300 
+      box 100, 100, 300, 300
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, 1, 1
       characters "left bottom"
@@ -230,23 +230,23 @@ proc frameTest8TextInput_root*() =
     fill color(1.000, 1.000, 1.000, 1.000)
 
     rectangle "Rectangle": # 8:53
-      box 100, 190, 300, 60 
+      box 100, 190, 300, 60
       fill "#F2F2F2"
 
     text "enter your name:": # 8:58
-      box 100, 171, 114, 19 
+      box 100, 171, 114, 19
       fill "#000000"
       font "Helvetica Neue", 14.0, 400.0, 13, -1, -1
       characters "enter your name:"
 
     text "Name": # 8:63
-      box 116, 190, 274, 60 
+      box 116, 190, 274, 60
       fill "#000000"
       font "Helvetica Neue", 28.0, 400.0, 29, -1, 0
       characters "Name"
 
     rectangle "Rectangle 2": # 8:64
-      box 220, 60, 60, 60 
+      box 220, 60, 60, 60
       fill "#F88865"
 
 
@@ -257,17 +257,17 @@ proc frameTest10Rotations_root*() =
 
     rectangle "Rectangle": # 9:13
       rotation 45.00000098057549
-      box 8, 291, 200, 200 
+      box 8, 291, 200, 200
       fill "#C4C4C4", 0.450
 
     rectangle "Rectangle": # 9:14
       rotation 15.00000300355992
-      box 98, 201, 200, 200 
+      box 98, 201, 200, 200
       fill "#C4C4C4", 0.150
 
     rectangle "Rectangle": # 9:15
       rotation 30.00000178116811
-      box 50, 250, 200, 200 
+      box 50, 250, 200, 200
       fill "#C4C4C4", 0.300
 
 
@@ -290,5 +290,5 @@ proc frameTest9Images_root*() =
         characters "All that is gold does not glitter,\nNot all those who wander are lost;\nThe old that is strong does not wither,\nDeep roots are not reached by the frost.\nFrom the ashes, a fire shall be woken,\nA light from the shadows shall spring;\nRenewed shall be blade that was broken,\nThe crownless again shall be king."
 
       group "testLogo": # 9:6
-        box 341, 52, 117, 117 
+        box 341, 52, 117, 117
         image "testLogo"

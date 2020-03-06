@@ -106,4 +106,3 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
 #glDeleteProgram(shaderProgram)
 #glDeleteShader(vertShader)
 #glDeleteShader(fragShader)
-
