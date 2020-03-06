@@ -56,7 +56,7 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   if isCompiled == 0:
     echo fragShaderSrc
     echo "Fragment Shader wasn't compiled.  Reason:"
-    echo getShaderLog(vertShader)
+    echo getShaderLog(fragShader)
     quit()
 
     # Cleanup
