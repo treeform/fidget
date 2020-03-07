@@ -3,9 +3,7 @@ import ../../src/fidget
 import print
 import random, tables, math
 
-when not defined(js):
-  import ../../src/fidget/opengl, typography
-  fonts["Inconsolata"] = readFontSVG("data/Inconsolata.svg")
+loadFont("Inconsolata", "../data/Inconsolata.svg")
 
 var
   textValue = """

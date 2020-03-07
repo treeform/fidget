@@ -2,10 +2,8 @@ import ../../src/fidget
 import print
 import vmath
 
-when not defined(js):
-  import typography, tables
-  fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
-  fonts["IBM Plex Sans Bold"] = readFontSvg("data/IBMPlexSans-Bold.svg")
+loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
+loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.svg")
 
 var
   textInputVar = ""
@@ -116,8 +114,6 @@ proc basicText() =
       fill "#46607e"
       cornerRadius 0
       strokeWeight 1
-
-
 
 proc basicControls() =
   group "progress":
@@ -351,7 +347,6 @@ proc basicControls() =
       font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
       characters "Text field:"
 
-
 drawMain = proc() =
   window.title = "Fidget Example"
   component "iceUI":
@@ -448,7 +443,6 @@ drawMain = proc() =
         fill "#000000", 0.029999999329447746
         cornerRadius 0
         strokeWeight 1
-
 
 when not defined(js):
   windowFrame = vec2(530, 185)
