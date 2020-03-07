@@ -131,7 +131,7 @@ var
   ##   games and multimidia with animations apps.
   ## Set to false so that it repains only following user action, used for:
   ##   animationless UI apps.
-  repainEveryFrame*: bool = true
+  repaintEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
   drawMain*: proc()
