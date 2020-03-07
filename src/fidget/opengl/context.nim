@@ -27,7 +27,7 @@ type
     maskShader*: GLuint
     maskTextureId: GLuint
 
-proc rect(x, y, w, h: int): Rect =
+proc rect*(x, y, w, h: int): Rect =
   ## Integer Rect to float Rect.
   rect(float32 x, float32 y, float32 w, float32 h)
 

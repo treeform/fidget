@@ -1,6 +1,6 @@
 import uibase, dom2 as dom, chroma, strutils, math, tables, strformat
 import html5_canvas
-import print, vmath
+import vmath
 
 var
   groupCache*: seq[Group]
@@ -9,7 +9,6 @@ var
   rootDomNode*: Element
   canvasNode*: Element
   ctx*: CanvasRenderingContext2D
-  windowFrame*: Vec2
 
   forceTextRelayout*: bool
 
@@ -55,7 +54,7 @@ proc computeTextBox*(text: string, width: float, fontName: string, fontSize: flo
 proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
-  let (w, h) = computeTextBox(text, width, fontName, fontSize)
+  let (_, h) = computeTextBox(text, width, fontName, fontSize)
   return h
 
 proc tag(group: Group): string =

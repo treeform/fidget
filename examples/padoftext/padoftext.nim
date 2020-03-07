@@ -1,13 +1,9 @@
 import ../../src/fidget
-
-import print
-import random
 import math
 
 when not defined(js):
-  import ../../src/fidget/backendopengl, typography, tables
-  fonts["Ubuntu"] = readFontSVG("data/Ubuntu.svg")
-
+  import ../../src/fidget/opengl, typography, tables
+  fonts["IBMPlexSans"] = readFontSVG("data/IBMPlexSans-Regular.svg")
 
 var
   titleValue = "Lorem ipsum dolor"
@@ -29,7 +25,7 @@ drawMain = proc() =
 
   group "title":
     box 100, 10, 200, 50
-    font "Ubuntu", 40.0, 400.0, 50, -1, 0
+    font "IBMPlexSans", 40.0, 400.0, 50, -1, 0
     rectangle "#F7F7F9"
 
     text "title":
@@ -43,7 +39,7 @@ drawMain = proc() =
 
   group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200
-    font "Ubuntu", 20.0, 400.0, 25, -1, -1
+    font "IBMPlexSans", 20.0, 400.0, 25, -1, -1
     rectangle "#F7F7F9"
 
     text "input":
