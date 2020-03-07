@@ -2,8 +2,8 @@ import ../../src/fidget
 import random
 import math
 
-# Great for GUI applications, that don't have mulitmida or animations.
-repainEveryFrame = false
+# Great for GUI applications, that don't have multimedia or animations.
+repaintEveryFrame = false
 
 # Create an array of 30 bars.
 var bars = newSeq[float](30)

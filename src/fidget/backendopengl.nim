@@ -213,7 +213,6 @@ proc setupFidget*() {.exportc.} =
 
   base.drawFrame = proc() =
     proj = ortho(0, windowFrame.x/dpi, windowFrame.y/dpi, 0, -100, 100)
-    #print $proj
     setupRoot()
 
     root.box.x = float 0
@@ -227,17 +226,13 @@ proc setupFidget*() {.exportc.} =
     scrollBox.h = root.box.h
 
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
-
     ctx.startFrame(windowFrame)
-
     ctx.saveTransform()
-
     mouse.pos = mousePos / dpi
 
     drawMain()
 
     ctx.restoreTransform()
-
     ctx.endFrame()
 
   useDepthBuffer(false)
