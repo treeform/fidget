@@ -5,9 +5,7 @@ var
   textValue: string
   beEdit = false
 
-when not defined(js):
-  import typography, tables
-  fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
+loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 
 window.title = "Inputs Example"
 

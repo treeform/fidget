@@ -1,11 +1,6 @@
 import ../../src/fidget
 import vmath
 
-when not defined(js):
-  import typography, tables
-  fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
-  fonts["IBM Plex Sans Bold"] = readFontSvg("data/IBMPlexSans-Bold.svg")
-
 drawMain = proc() =
   frame "ConstraintsFrame":
     orgBox 16, 16, 368, 153

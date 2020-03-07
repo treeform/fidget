@@ -1,10 +1,7 @@
-import ../../src/fidget
-import ../../src/fidget/dom2
+import fidget, print
+#import ../../src/fidget/dom2
 
-import print
-import random
 import math
-
 
 type
   Area = ref object
@@ -21,26 +18,24 @@ var
   editingArea: Area
 
 areas.add Area(
-  queryCode: "active unique by day",
+  queryCode: "1+1",
   heightCode: 200,
   heightOuput: 200
 )
 
 areas.add Area(
-  queryCode: "post_submit unique by hour",
+  queryCode: "1*3*32",
   expanded: false,
   heightCode: 200,
   heightOuput: 100
 )
 
 areas.add Area(
-  queryCode: "comments = comment_submit unique by week",
-  label: "comments",
+  queryCode: "one three two",
+  label: "text",
   heightCode: 200,
   heightOuput: 300
 )
-
-
 
 drawMain = proc() =
   var totalPageHeight = 120
@@ -49,11 +44,11 @@ drawMain = proc() =
     if area.expanded:
       totalPageHeight += area.heightCode
 
-  totalPageHeight = max(totalPageHeight, dom2.window.innerHeight)
+  totalPageHeight = max(totalPageHeight, root.box.h.int)
   let width = 1000
 
   frame "main":
-    box 0, 0, dom2.window.innerWidth, totalPageHeight
+    box 0, 0, root.box.w, totalPageHeight
     rectangle "#F7F7F9"
 
     group "center":

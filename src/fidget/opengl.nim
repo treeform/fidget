@@ -1,4 +1,4 @@
-import tables, times
+import tables, times, strutils
 import vmath, chroma, typography, typography/textboxes
 when defined(ios) or defined(android):
   import opengl/basemobile as base
@@ -266,7 +266,10 @@ proc `url`*(win: uibase.Window): string =
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
-  fonts[name] = readFontTtf(pathOrUrl)
+  if pathOrUrl.endsWith(".svg"):
+    fonts[name] = readFontSVG(pathOrUrl)
+  elif pathOrUrl.endsWith(".ttf"):
+    fonts[name] = readFontTTF(pathOrUrl)
 
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.

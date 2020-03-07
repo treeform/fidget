@@ -4,12 +4,14 @@ import print
 import random
 import math
 
-
 var bars = newSeq[int](1000)
 for i, bar in bars:
   bars[i] = rand(40)
 
-loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
+when defined(js):
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+else:
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 
 drawMain = proc() =
 

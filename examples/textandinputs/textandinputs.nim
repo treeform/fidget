@@ -2,15 +2,16 @@ import ../../src/fidget
 import random
 import math
 
-when not defined(js):
-  import ../../src/fidget/opengl, typography, tables
-  fonts["IBMPlexSans"] = readFontSVG("data/IBMPlexSans-Regular.svg")
+when defined(js):
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+else:
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 
 drawMain = proc() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
-  font "IBMPlexSans", 16.0, 400.0, 15, -1, -1
+  font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, -1
 
   var i = 0
   for y in 0 ..< 100:

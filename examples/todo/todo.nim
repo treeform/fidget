@@ -1,9 +1,7 @@
 import ../../src/fidget
 
-when not defined(js):
-  import typography, tables
-  fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
-  fonts["IBM Plex Sans Bold"] = readFontSvg("data/IBMPlexSans-Bold.svg")
+loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.ttf")
 
 var todoItems: seq[string]
 var newItem: string
