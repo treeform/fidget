@@ -3,7 +3,6 @@ import vmath, chroma, flippy
 import opengl, meshes, textures, shaders, slate
 import ../uibase
 
-
 type
   Context* = ref object
     entries*: ref Table[string, Rect] ## Mapping of image name to UV position in the texture
@@ -28,16 +27,13 @@ type
     maskShader*: GLuint
     maskTextureId: GLuint
 
-
 proc rect(x, y, w, h: int): Rect =
   ## Integer Rect to float Rect.
   rect(float32 x, float32 y, float32 w, float32 h)
 
-
 proc translate*(ctx: Context, v: Vec2) =
   ## Translate the internal transform.
   ctx.mat = ctx.mat * translate(vec3(v))
-
 
 proc rotate*(ctx: Context, angle: float) =
   ## Rotates internal transform.
@@ -48,43 +44,35 @@ proc rotate*(ctx: Context, angle: float) =
     0,           0,          0, 1
   )
 
-
 proc scale*(ctx: Context, scale: float) =
   ## Rotates internal transform.
   ctx.mat = ctx.mat * scaleMat(scale)
-
 
 proc scale*(ctx: Context, scale: Vec2) =
   ## Rotates internal transform.
   ctx.mat = ctx.mat * scaleMat(vec3(scale, 1))
 
-
 proc saveTransform*(ctx: Context) =
   ## Pushes a transform onto the stack.
   ctx.mats.add ctx.mat
 
-
 proc restoreTransform*(ctx: Context) =
   ## Pops a transform off the stack.
   ctx.mat = ctx.mats.pop()
-
 
 proc clearTransform*(ctx: Context) =
   ## Clears transform and transform stack.
   ctx.mat = mat4()
   ctx.mats.setLen(0)
 
-
 proc fromScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   ## Takes a point from screen and translates it to point inside the current transform.
   (ctx.mat.inverse() * vec3(v.x, windowFrame.y - v.y, 0)).xy
-
 
 proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   ## Takes a point from current transform and translates it to screen.
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
-
 
 when defined(ios) or defined(android):
   const
@@ -98,7 +86,6 @@ else:
     atlastFragSrc = staticRead("glsl/atlas.frag")
     maskVertSrc = staticRead("glsl/mask.vert")
     maskFragSrc = staticRead("glsl/mask.frag")
-
 
 proc newContext*(
     size = 1024,
@@ -139,7 +126,6 @@ proc newContext*(
   ctx.mesh.finalize()
   return ctx
 
-
 proc findEmptyRect*(ctx: Context, width, height: int): Rect =
   var imgWidth = width + ctx.margin * 2
   var imgHeight = height + ctx.margin * 2
@@ -178,7 +164,6 @@ proc findEmptyRect*(ctx: Context, width, height: int): Rect =
 
   return rect
 
-
 proc putImage*(ctx: Context, path: string, image: Image) =
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.size)
@@ -187,7 +172,6 @@ proc putImage*(ctx: Context, path: string, image: Image) =
     int(rect.y),
     image
   )
-
 
 proc putSlate*(ctx: Context, path: string, slate: SlateImage) =
   let rect = ctx.findEmptyRect(slate.width, slate.height)
@@ -205,14 +189,12 @@ proc putSlate*(ctx: Context, path: string, slate: SlateImage) =
     x = x div 2
     y = y div 2
 
-
 proc checkBatch*(ctx: Context) =
   if ctx.quadCount == ctx.maxQuads:
     # ctx is full dump the images in the ctx now and start a new batch
     ctx.mesh.upload(ctx.quadCount*6)
     ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
     ctx.quadCount = 0
-
 
 proc drawUvRect*(
     ctx: Context,
@@ -269,7 +251,6 @@ proc drawUvRect*(
 
   inc ctx.quadCount
 
-
 proc drawUvRect*(
     ctx: Context,
     rect: Rect,
@@ -277,7 +258,6 @@ proc drawUvRect*(
     color: Color
   ) =
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy, uvRect.xy + uvRect.wh, color)
-
 
 proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
@@ -303,13 +283,11 @@ proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
     ctx.putSlate(imagePath, slate)
   return ctx.entries[imagePath]
 
-
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), color=color(1,1,1,1)) =
   ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
-
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), size = vec2(0, 0), color=color(1,1,1,1)) =
   ## Draws image the UI way - pos at top-left.
@@ -317,20 +295,17 @@ proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), size = 
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
 
-
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale = 1.0, color=color(1,1,1,1)) =
   ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size) * scale
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
-
 proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale=1.0, color=color(1,1,1,1)) =
   ## Draws image the game way - pos at center.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size) * scale
   ctx.drawUvRect(pos - wh/2, pos + wh/2, rect.xy, rect.xy + rect.wh, color)
-
 
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   let imgKey = "rect"
@@ -378,7 +353,6 @@ proc drawMesh*(ctx: Context) =
     ctx.mesh.upload(ctx.quadCount*6)
     ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
     ctx.quadCount = 0
-
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
@@ -430,7 +404,6 @@ proc beginMask*(ctx: Context) =
   ctx.mesh.textures.setLen(0)
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
 
-
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
   ctx.drawMesh()
@@ -448,7 +421,6 @@ proc endMask*(ctx: Context) =
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
   ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
 
-
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
   if ctx.maskImage == nil or (ctx.maskImage.width != int screenSize.x) or
@@ -458,7 +430,6 @@ proc startFrame*(ctx: Context, screenSize: Vec2) =
     glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
     glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width, GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     ctx.clearMask()
-
 
 proc endFrame*(ctx: Context) =
   ## Ends a frame.

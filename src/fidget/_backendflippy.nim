@@ -1,6 +1,5 @@
 ## Flippy backend uses Flippy and glfw3 libarires to provide graphics and input
 
-
 import
   times, math, vmath, opengl, os, unicode, tables,
   glfw3 as glfw, chroma, print, flippy, typography,
@@ -15,7 +14,6 @@ var
   dpi*: float = 1.0
   windowFrame: Box
   viewPort: Box
-
 
 # readFontSvg("examples/Ubuntu.svg")
 #var font = readFontTtf("examples/IBMPlexSans-Regular.ttf")
@@ -35,7 +33,6 @@ proc vAlignNum(num: int): VAlignMode =
     of 0: Middle
     of 1: Bottom
     else: Top
-
 
 proc drawText(group: Group) =
   if group.textStyle.fontFamily notin fonts:
@@ -153,7 +150,6 @@ proc drawText(group: Group) =
         if keyboard.inputFocusId == group.id:
           keyboard.inputFocusId = ""
 
-
 var imageCache = newTable[string, flippy.Image]()
 
 proc draw*(group: Group) =
@@ -182,11 +178,9 @@ proc redraw*() =
   if not requestedFrame:
     requestedFrame = true
 
-
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
-
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
@@ -246,7 +240,6 @@ proc closestPowerOf2(v: int): int =
       return
     result *= 2
 
-
 proc resize() =
   var cwidth, cheight: cint
   GetWindowSize(window, addr cwidth, addr cheight)
@@ -276,11 +269,9 @@ proc resize() =
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
     glEnable(GL_TEXTURE_2D)
 
-
 proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
   resize()
   display()
-
 
 proc onMouseButton(window: glfw.Window, button: cint, action: cint, modifiers: cint) {.cdecl.} =
   if action == 0:
@@ -306,10 +297,8 @@ proc `title=`*(win: uibase.Window, title: string) =
     win.innerTitle = title
     window.SetWindowTitle(title)
 
-
 proc `title`*(win: uibase.Window): string =
   win.innerTitle
-
 
 proc startFidget*() =
   ## Starts cairo backend
@@ -352,7 +341,6 @@ proc startFidget*() =
     keyboard.ctrlKey = (modifiers and glfw.MOD_CONTROL) != 0
     keyboard.shiftKey = (modifiers and glfw.MOD_SHIFT) != 0
     keyboard.superKey = (modifiers and glfw.MOD_SUPER) != 0
-
 
     if keyboard.inputFocusId != "":
       if keyboard.state in {uibase.Down, uibase.Repeat}:

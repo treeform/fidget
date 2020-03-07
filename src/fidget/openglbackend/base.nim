@@ -38,11 +38,9 @@ proc onResize() =
   dpi = windowFrame.x / windowSize.x
   glViewport(0, 0, cwidth, cheight)
 
-
 proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
-
 
 proc tick*(poll=true) =
   perfMark("--- start frame")
@@ -83,7 +81,6 @@ proc tick*(poll=true) =
 
   perfMark("pre user draw")
 
-
   assert drawFrame != nil
   drawFrame()
 
@@ -108,7 +105,6 @@ proc tick*(poll=true) =
   perfMark("--- end frame")
   prefDump = buttonDown[F10]
 
-
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
 
@@ -124,12 +120,10 @@ proc useDepthBuffer*(on: bool) =
     glDepthMask(GL_FALSE)
     glDisable(GL_DEPTH_TEST)
 
-
 proc exit*() =
   # cleanup GLFW
   window.destroyWindow()
   terminate()
-
 
 proc glGetInteger(what: GLenum): int =
   var val: cint
@@ -156,8 +150,6 @@ proc start*() =
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
-
-
   # Open a window
 
   # var monitor = GetPrimaryMonitor()
@@ -167,14 +159,12 @@ proc start*() =
   perf "open window":
     window = createWindow(cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
 
-
   if window.isNil:
     quit("Failed to open GLFW window.")
 
   perf "makeContextCurrent":
     window.makeContextCurrent()
     #window.focusWindow()
-
 
   # Load opengl
   when defined(ios) or defined(android):
