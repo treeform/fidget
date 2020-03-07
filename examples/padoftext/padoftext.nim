@@ -20,7 +20,7 @@ Vivamus mattis congue faucibus. Nullam venenatis ipsum sed lacus pharetra pharet
 Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris mi magna, blandit non pharetra id, convallis in ex. Curabitur ut odio arcu. Praesent nec maximus lectus, eu varius massa. Quisque nec libero a turpis laoreet placerat a a felis. Vivamus dignissim augue vitae accumsan facilisis. Nunc at imperdiet risus. Aliquam elementum, purus id rhoncus eleifend, mauris nisl scelerisque nisl, vitae aliquam nulla enim ac metus.
 """
 
-drawMain = proc() =
+proc drawMain() =
 
   window.title = titleValue
 
@@ -49,4 +49,4 @@ drawMain = proc() =
       multiline true
       binding textValue
 
-startFidget()
+startFidget(drawMain)

@@ -347,7 +347,7 @@ proc basicControls() =
       font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
       characters "Text field:"
 
-drawMain = proc() =
+proc drawMain() =
   window.title = "Fidget Example"
   component "iceUI":
     orgBox 0, 0, 530, 185
@@ -447,4 +447,4 @@ drawMain = proc() =
 when not defined(js):
   windowFrame = vec2(530, 185)
 
-startFidget()
+startFidget(drawMain)

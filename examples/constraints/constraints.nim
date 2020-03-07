@@ -1,7 +1,7 @@
 import ../../src/fidget
 import vmath
 
-drawMain = proc() =
+proc drawMain() =
   frame "ConstraintsFrame":
     orgBox 16, 16, 368, 153
     box root.box
@@ -79,4 +79,4 @@ drawMain = proc() =
 when not defined(js):
   windowFrame = vec2(530, 185)
 
-startFidget()
+startFidget(drawMain)

@@ -252,8 +252,9 @@ proc `title=`*(win: uibase.Window, title: string) =
 proc `title`*(win: uibase.Window): string =
   win.innerTitle
 
-proc startFidget*() =
-  ## Starts cairo backend
+proc startFidget*(draw: proc()) =
+  ## Starts cairo backend.
+  drawMain = draw
   if glfw.Init() == 0:
     quit("Failed to Initialize GLFW")
   window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)

@@ -403,8 +403,10 @@ proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
   keyboard.ctrlKey = event.ctrlKey
   keyboard.shiftKey = event.shiftKey
 
-proc startFidget*() =
-  ## Start the Fidget UI
+proc startFidget*(draw: proc()) =
+  ## Start the HTML backend
+  ## NOTE: returns instantly!
+  drawMain = draw
 
   uibase.window.innerUrl = $dom.window.location.pathname
 

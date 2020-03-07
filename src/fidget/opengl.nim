@@ -237,8 +237,9 @@ proc setupFidget*() {.exportc.} =
 
   useDepthBuffer(false)
 
-proc startFidget*() =
+proc startFidget*(draw: proc()) =
   ## Starts Fidget UI library
+  drawMain = draw
   when defined(ios) or defined(android):
     discard
   else:

@@ -9,7 +9,7 @@ loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 
 window.title = "Inputs Example"
 
-drawMain = proc() =
+proc drawMain() =
 
   frame "main":
     box 100, 100, 500, 30
@@ -42,4 +42,4 @@ drawMain = proc() =
 
       echo "textValue is ", repr(textValue), " s ", keyboard.state
 
-startFidget()
+startFidget(drawMain)
