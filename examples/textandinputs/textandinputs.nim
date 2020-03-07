@@ -3,14 +3,14 @@ import random
 import math
 
 when not defined(js):
-  import ../../src/fidget/backendopengl, typography, tables
-  fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
+  import ../../src/fidget/opengl, typography, tables
+  fonts["IBMPlexSans"] = readFontSVG("data/IBMPlexSans-Regular.svg")
 
 drawMain = proc() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
-  font "Ubuntu", 16.0, 400.0, 15, -1, -1
+  font "IBMPlexSans", 16.0, 400.0, 15, -1, -1
 
   var i = 0
   for y in 0 ..< 100:

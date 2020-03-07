@@ -1,14 +1,14 @@
 import macros, tables, json, strutils, chroma, vmath
 import fidget/uibase
 when defined(js):
-  import fidget/backendhtml
-  export backendhtml
-elif defined(backendnull):
-  import fidget/backendnull
-  export backendnull
+  import fidget/html
+  export html
+elif defined(null):
+  import fidget/null
+  export null
 else:
-  import fidget/backendopengl
-  export backendopengl
+  import fidget/opengl
+  export opengl
 export uibase, chroma
 
 template node(kindStr: string, name: string, inner: untyped): untyped =

@@ -1,13 +1,10 @@
 import ../../src/fidget
-import print
 import vmath
 
 when not defined(js):
   import typography, tables
   fonts["IBM Plex Sans Regular"] = readFontSvg("data/IBMPlexSans-Regular.svg")
   fonts["IBM Plex Sans Bold"] = readFontSvg("data/IBMPlexSans-Bold.svg")
-
-
 
 drawMain = proc() =
   frame "ConstraintsFrame":
@@ -83,7 +80,6 @@ drawMain = proc() =
       fill "#ffffff", 0.25
       cornerRadius 0
       strokeWeight 1
-
 
 when not defined(js):
   windowFrame = vec2(530, 185)
