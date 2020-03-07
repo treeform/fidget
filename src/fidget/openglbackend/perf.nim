@@ -6,14 +6,12 @@ var indent = ""
 var timeStack = newSeq[float64]()
 var perfBuffer = newSeq[string]()
 
-
 proc perfMark*(what: string) =
   ## Prints out [time-since-last-action] what.
   if prefDump:
     let time = epochTime()
     let delta = time - prevTime
     perfBuffer.add fmt"[{delta:>8.6f}] {indent}{what}"
-
 
 proc perfBegin*(what: string) =
   ## Prints out [time-since-last-action] what.
@@ -25,7 +23,6 @@ proc perfBegin*(what: string) =
     prevTime = epochTime()
     timeStack.add(prevTime)
 
-
 proc perfEnd*(what: string = "") =
   ## Prints out [time-since-last-action] what.
   if prefDump:
@@ -35,13 +32,11 @@ proc perfEnd*(what: string = "") =
     perfBuffer.add fmt"({delta:>8.6f}) {indent}] {what}"
     prevTime = epochTime()
 
-
 template perf*(what: string, body: untyped) =
   ## Measures perf with a body block.
   perfBegin what
   body
   perfEnd what
-
 
 proc perfDump*() =
   for line in perfBuffer:
@@ -49,13 +44,11 @@ proc perfDump*() =
   perfBuffer.setLen(0)
   indent.setLen(0)
 
-
 type TimeSeries* = ref object
   ## Time series help you time stuff over multiple frames.
   max: int
   at: int
   data: seq[float]
-
 
 proc newTimeSeries*(max = 1000): TimeSeries =
   ## Time series help you time stuff over multiple frames.
@@ -64,14 +57,12 @@ proc newTimeSeries*(max = 1000): TimeSeries =
   result.at = 0
   result.data = newSeq[float](result.max)
 
-
 proc addTime*(timeSeries: var TimeSeries) =
   ## Add current time to time series.
   if timeSeries.at >= timeSeries.max:
     timeSeries.at = 0
   timeSeries.data[timeSeries.at] = epochTime()
   inc timeSeries.at
-
 
 proc num*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): int =
   ## Get number of things in last N seconds.
@@ -81,19 +72,16 @@ proc num*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): int =
     if startTime - inLastSeconds < f:
       inc result
 
-
 proc avg*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): float64 =
   ## Average out last N seconds.
   ## Example: 1/fps or avarage frame time.
   return inLastSeconds / float64(timeSeries.num(inLastSeconds))
-
 
 template timeIt*(name: string, inner: untyped) =
   ## Quick template to time an operation.
   let start = epochTime()
   inner
   echo name, ": ", epochTime() - start, "s"
-
 
 proc byteFmt*(bytes: int): string =
   ## Formats computer sizes in B, KB, MB, GB etc...
@@ -109,7 +97,6 @@ proc byteFmt*(bytes: int): string =
     var scaled = float(bytes) / pow(float 1024, i)
     result.add &"{scaled:0.2f}{sizes[int i]}"
 
-
 assert byteFmt(12) == "12B"
 assert byteFmt(1000) == "1000B"
 assert byteFmt(1024) == "1.00KB"
@@ -118,7 +105,6 @@ assert byteFmt(1200_000) == "1.14MB"
 assert byteFmt(1200_000_000) == "1.12GB"
 assert byteFmt(-12) == "-12B"
 assert byteFmt(-1000) == "-1000B"
-
 
 type CountSize = object
   name: string

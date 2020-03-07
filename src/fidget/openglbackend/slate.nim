@@ -2,18 +2,14 @@ import streams, strformat
 import flippy, snappy, print, opengl
 import textures, perf
 
-
 type SlateImage* = object
   mipmaps*: seq[Image]
-
 
 proc width*(slate: SlateImage): int =
   slate.mipmaps[0].width
 
-
 proc height*(slate: SlateImage): int =
   slate.mipmaps[0].height
-
 
 proc save*(slate: SlateImage, filePath: string) =
   ## Slate is a special file format that is fast to load and save with mip maps
@@ -29,7 +25,6 @@ proc save*(slate: SlateImage, filePath: string) =
     f.writeData(unsafeAddr zipped[0], zipped.len)
   f.close()
 
-
 proc pngToSlate*(pngPath, slatePath: string) =
   var image = loadImage(pngPath)
   var slate = SlateImage()
@@ -41,7 +36,6 @@ proc pngToSlate*(pngPath, slatePath: string) =
       break
     mip = mip.minify(2)
   slate.save(slatePath)
-
 
 proc loadSlate*(filePath: string): SlateImage =
   ## Slate is a special file format that is fast to load and save with mip maps

@@ -20,16 +20,13 @@ proc toHtmlRgbaCached(color: Color): string =
     result = color.toHtmlRgba()
     colorCache[color] = result
 
-
 proc removeAllChildren(dom: Node) =
   while dom.firstChild != nil:
     dom.removeChild(dom.firstChild)
 
-
 proc removeTextSelection*() {.exportc.} =
   echo dom.window.document.getSelection()
   dom.window.document.getSelection().removeAllRanges()
-
 
 var computeTextBoxCache = newTable[string, (float, float)]()
 proc computeTextBox*(text: string, width: float, fontName: string, fontSize: float): (float, float) =
@@ -55,13 +52,11 @@ proc computeTextBox*(text: string, width: float, fontName: string, fontSize: flo
   # echo key
   # echo result
 
-
 proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
   let (w, h) = computeTextBox(text, width, fontName, fontSize)
   return h
-
 
 proc tag(group: Group): string =
   if group.kind == "":
@@ -77,7 +72,6 @@ proc tag(group: Group): string =
   else:
     return "div"
 
-
 proc createDefaultElement(tag: string): Element =
   result = document.createElement(tag)
   if tag == "textarea" or tag == "input":
@@ -91,10 +85,8 @@ proc createDefaultElement(tag: string): Element =
     result.style.padding = "0px"
     result.style.resize = "none"
 
-
 proc insertChildAtIndex(parent: Element, index: int, child: Element) =
   parent.insertBefore(child, parent.children[index])
-
 
 proc drawDiff(current: Group) =
 
@@ -290,13 +282,10 @@ proc drawDiff(current: Group) =
     dom.style.width = $current.screenBox.w & "px"
     dom.style.height = $current.screenBox.h & "px"
 
-
   inc numGroups
-
 
 proc draw*(group: Group) =
   drawDiff(group)
-
 
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
@@ -333,7 +322,6 @@ proc drawStart() =
   document.body.style.overflowX = "hidden"
   document.body.style.overflowY = "scroll"
 
-
   var canvas = cast[Canvas](canvasNode)
   ctx = canvas.getContext2D()
   var devicePixelRatio = 2.0
@@ -356,7 +344,6 @@ proc drawStart() =
   ctx.scale(devicePixelRatio, devicePixelRatio)
 
   mouse.cursorStyle = Default
-
 
 proc drawFinish() =
 
@@ -385,11 +372,8 @@ proc drawFinish() =
       of NSResize:
         rootDomNode.style.cursor = "ns-resize"
 
-
-
   # Used for onFocus/onUnFocus.
   keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
-
 
 proc hardRedraw() =
   if rootDomNode == nil: # check if we have loaded
@@ -401,17 +385,14 @@ proc hardRedraw() =
   drawMain()
   drawFinish()
 
-
 proc requestHardRedraw(time: float = 0.0) =
   requestedFrame = false
   hardRedraw()
-
 
 proc redraw*() =
   if not requestedFrame:
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
-
 
 proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
   keyboard.state = state
@@ -422,7 +403,6 @@ proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
   keyboard.altKey = event.altKey
   keyboard.ctrlKey = event.ctrlKey
   keyboard.shiftKey = event.shiftKey
-
 
 proc startFidget*() =
   ## Start the Fidget UI
@@ -542,7 +522,6 @@ proc startFidget*() =
     hardRedraw()
     forceTextRelayout = false
 
-
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   type dummy = object
@@ -551,17 +530,14 @@ proc goto*(url: string) =
   uibase.window.innerUrl = url
   redraw()
 
-
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard dom.window.open(url, "_blank")
-
 
 proc openBrowserWithText*(text: string) =
   ## Opens a URL in a browser
   var window = dom.window.open("", "_blank")
   window.document.write("<code style=display:block;white-space:pre-wrap>" & text & "</code>")
-
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window title
@@ -570,11 +546,9 @@ proc `title=`*(win: uibase.Window, title: string) =
     win.innerTitle = title
     redraw()
 
-
 proc `title`*(win: uibase.Window): string =
   ## Gets window title
   win.innerTitle
-
 
 proc `url=`*(win: uibase.Window, url: string) =
   ## Sets window url
@@ -582,12 +556,10 @@ proc `url=`*(win: uibase.Window, url: string) =
     win.innerUrl = url
     redraw()
 
-
 proc `url`*(win: uibase.Window): string =
   ## Gets window url
   #win.innerUrl
   return $dom.window.location.pathname
-
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
@@ -595,17 +567,14 @@ proc loadFont*(name: string, pathOrUrl: string) =
     <style>@font-face {{font-family: '{name}'; src: URL('{pathOrUrl}') format('truetype');}}</style>
   """
 
-
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.
   dom.window.localStorage.setItem(key, value)
-
 
 proc getItem*(key: string): string =
 
   ## Gets a value into local storage or file.
   $dom.window.localStorage.getItem(key)
-
 
 proc loadGoogleFontUrl*(url: string) =
   var link = document.createElement("link")

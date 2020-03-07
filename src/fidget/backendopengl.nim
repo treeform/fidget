@@ -25,7 +25,6 @@ proc hAlignNum(num: int): HAlignMode =
     of 1: HAlignMode.Right
     else: HAlignMode.Left
 
-
 proc vAlignNum(num: int): VAlignMode =
   case num:
     of -1: Top
@@ -148,7 +147,6 @@ proc drawText(group: Group) =
 
   ctx.clearMask()
 
-
 proc draw*(group: Group) =
   ## Draws the group
   ctx.saveTransform()
@@ -180,7 +178,6 @@ proc draw*(group: Group) =
       group.screenBox.w, group.screenBox.h
     ), group.stroke, group.strokeWeight, group.cornerRadius[0])
 
-
   if group.imageName != "":
     let path = "data/" & group.imageName & ".png"
     ctx.drawImage(path, vec2(0, 0), vec2(group.screenBox.w, group.screenBox.h))
@@ -192,22 +189,18 @@ proc redraw*() =
   if not requestedFrame:
     requestedFrame = true
 
-
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
-
 
 proc openBrowserWithText*(text: string) =
   ## Opens a new window with just this text on it
   discard
 
-
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   rootUrl = url
   redraw()
-
 
 proc setupFidget*() {.exportc.} =
   base.start()
@@ -249,10 +242,8 @@ proc setupFidget*() {.exportc.} =
 
   useDepthBuffer(false)
 
-
 proc startFidget*() =
   ## Starts Fidget UI library
-
   when defined(ios) or defined(android):
     discard
   else:
@@ -261,27 +252,22 @@ proc startFidget*() =
       base.tick()
     base.exit()
 
-
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window url
   win.innerTitle = title
   setWindowTitle(title)
 
-
 proc `title`*(win: uibase.Window): string =
   ## Gets window url
   return win.innerTitle
-
 
 proc `url=`*(win: uibase.Window, url: string) =
   ## Sets window url
   win.innerUrl = url
 
-
 proc `url`*(win: uibase.Window): string =
   ## Gets window url
   return win.innerUrl
-
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
@@ -290,7 +276,6 @@ proc loadFont*(name: string, pathOrUrl: string) =
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.
   writeFile(key & ".data", value)
-
 
 proc getItem*(key: string): string =
   ## Gets a value into local storage or file.

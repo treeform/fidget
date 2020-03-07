@@ -20,7 +20,6 @@ var
   windowFrame: Box
   viewPort: Box
 
-
 proc setSource(ctx: quickcairo.Context, color: Color) =
   ctx.setSource(
     color.r,
@@ -107,11 +106,9 @@ proc redraw*() =
   if not requestedFrame:
     requestedFrame = true
 
-
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
-
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
@@ -188,7 +185,6 @@ proc closestPowerOf2(v: int): int =
       return
     result *= 2
 
-
 proc resize() =
   var cwidth, cheight: cint
   GetWindowSize(window, addr cwidth, addr cheight)
@@ -225,11 +221,9 @@ proc resize() =
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
       glEnable(GL_TEXTURE_2D)
 
-
 proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
   resize()
   display()
-
 
 proc onMouseButton(window: glfw.Window, button: cint, action: cint, modifiers: cint) {.cdecl.} =
   if action == 0:
@@ -255,10 +249,8 @@ proc `title=`*(win: uibase.Window, title: string) =
     win.innerTitle = title
     window.SetWindowTitle(title)
 
-
 proc `title`*(win: uibase.Window): string =
   win.innerTitle
-
 
 proc startFidget*() =
   ## Starts cairo backend

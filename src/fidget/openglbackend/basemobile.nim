@@ -21,7 +21,6 @@ var
   avgFrameTime*: float64
   fps*: float64 = 60
 
-
 proc tick*(poll=true) =
   perfMark("--- start frame")
 
@@ -30,9 +29,7 @@ proc tick*(poll=true) =
   fps = float(fpsTimeSeries.num())
   avgFrameTime = float(fpsTimeSeries.avg())
 
-
   perfMark("pre user draw")
-
 
   assert drawFrame != nil
   drawFrame()
@@ -51,10 +48,8 @@ proc tick*(poll=true) =
     buttonPress[i] = false
     buttonRelease[i] = false
 
-
   perfMark("--- end frame")
   prefDump = buttonDown[F10]
-
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
@@ -71,7 +66,6 @@ proc useDepthBuffer*(on: bool) =
     glDepthMask(GL_FALSE)
     glDisable(GL_DEPTH_TEST)
 
-
 proc exit*() =
   discard
 
@@ -83,10 +77,8 @@ proc glGetInteger(what: GLenum): int =
 proc start*() =
   running = true
 
-
 proc setWindowTitle*(title: string) =
   discard
-
 
 proc setupFidget*() {.importc.}
 

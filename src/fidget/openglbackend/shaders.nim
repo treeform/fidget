@@ -1,6 +1,5 @@
 import opengl
 
-
 proc getErrorLog(
     id: GLuint,
     lenProc: typeof(glGetShaderiv),
@@ -12,7 +11,6 @@ proc getErrorLog(
   var log = newString(length.int)
   strProc(id, length, nil, log)
   return log
-
 
 proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
   ## Compiles the shader files and links them into a program, returning that id.

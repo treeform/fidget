@@ -1,6 +1,5 @@
 import vmath
 
-
 type
   Button* = enum
     UNBOUND = 0
@@ -137,7 +136,6 @@ type
     ALT = 0x0004
     SUPER = 0x0008
 
-
 var
   buttonDown* = newSeq[bool](348)
   buttonRelease* = newSeq[bool](348)
@@ -148,7 +146,6 @@ var
   mousePosPrev*: Vec2
   mouseDelta*: Vec2
   mouseWheelDelta*: float
-
 
 proc `[]`*(buttons: seq[bool], button:Button): bool =
   return buttons[cast[int](button)]

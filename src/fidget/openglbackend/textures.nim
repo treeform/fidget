@@ -8,7 +8,6 @@ type
     kind*: TextureKind
     id*: GLuint
 
-
 proc texture*(image: Image): Texture =
   var texture = Texture()
   texture.kind = Texture2D
@@ -66,7 +65,6 @@ proc texture*(image: Image): Texture =
 
   return texture
 
-
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
   glBindTexture(GL_TEXTURE_2D, texture.id)
   glTexSubImage2D(
@@ -80,7 +78,6 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     `type` = GL_UNSIGNED_BYTE,
     pixels = cast[pointer](image.data[0].addr)
   )
-
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   var
