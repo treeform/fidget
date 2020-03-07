@@ -13,7 +13,7 @@ when defined(js):
 else:
   loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 
-drawMain = proc() =
+proc drawMain() =
 
   window.title = "Fidget Fonts Example"
 
@@ -147,4 +147,4 @@ drawMain = proc() =
         textAlign 0, 1
         characters "BM"
 
-startFidget()
+startFidget(drawMain)

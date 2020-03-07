@@ -8,7 +8,7 @@ var newItem: string
 
 todoItems = @["clean the house", "get milk"]
 
-drawMain = proc() =
+proc drawMain() =
   window.title = "Fidget Example"
 
   frame "todoApp":
@@ -112,4 +112,4 @@ drawMain = proc() =
           placeholder "add new item..."
           binding newItem
 
-startFidget()
+startFidget(drawMain)

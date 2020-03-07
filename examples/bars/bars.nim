@@ -10,7 +10,7 @@ var bars = newSeq[float](30)
 for i, bar in bars:
   bars[i] = rand(1.0)
 
-drawMain = proc() =
+proc drawMain() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
@@ -62,4 +62,4 @@ drawMain = proc() =
                 box 0, 0, (barW - 80*2) * float(bar), 40
                 fill "#46D15F"
 
-startFidget()
+startFidget(drawMain)

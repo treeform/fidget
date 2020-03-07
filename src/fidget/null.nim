@@ -24,10 +24,10 @@ proc goto*(url: string) =
   rootUrl = url
   redraw()
 
-proc startFidget*() =
+proc startFidget*(draw: proc()) =
   ## Starts fidget UI library
   ## Null backend only draws drawMain() once
-
+  drawMain = draw
   let startTime = epochTime()
   setupRoot()
   drawMain()

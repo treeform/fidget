@@ -7,7 +7,7 @@ when defined(js):
 else:
   loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 
-drawMain = proc() =
+proc drawMain() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
@@ -45,4 +45,4 @@ drawMain = proc() =
             characters "the textarea is " & $i
             inc i
 
-startFidget()
+startFidget(drawMain)

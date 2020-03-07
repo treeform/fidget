@@ -5,7 +5,7 @@ import figmatests
 
 var screen = 0
 
-drawMain = proc() =
+proc drawMain() =
   frame "main":
     onKey:
       if keyboard.keyString == " ":
@@ -27,4 +27,4 @@ drawMain = proc() =
 
 echo "Press space bar to advance to next scene."
 
-startFidget()
+startFidget(drawMain)

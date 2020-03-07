@@ -37,7 +37,7 @@ areas.add Area(
   heightOuput: 300
 )
 
-drawMain = proc() =
+proc drawMain() =
   var totalPageHeight = 120
   for area in areas:
     totalPageHeight += area.heightOuput
@@ -132,4 +132,4 @@ drawMain = proc() =
 
           atY += innerAtY
 
-startFidget()
+startFidget(drawMain)

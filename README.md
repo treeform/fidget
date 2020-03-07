@@ -27,7 +27,7 @@ See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
 ```nim
 import fidget, vmath
 
-drawMain = proc() =
+proc drawMain() =
   frame "main":
     box 0, 0, 620, 140
     for i in 0 .. 4:
@@ -36,7 +36,7 @@ drawMain = proc() =
         fill "#2B9FEA"
 
 windowFrame = vec2(620, 140)
-startFidget()
+startFidget(drawMain)
 ```
 
 <p align="center">

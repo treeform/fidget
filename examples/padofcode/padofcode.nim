@@ -13,7 +13,7 @@ FROM bar
 WHERE a = 234 and b = "nothing"
 """
 
-drawMain = proc() =
+proc drawMain() =
 
   window.title = "Pad of Code"
 
@@ -28,4 +28,4 @@ drawMain = proc() =
       multiline true
       binding textValue
 
-startFidget()
+startFidget(drawMain)
