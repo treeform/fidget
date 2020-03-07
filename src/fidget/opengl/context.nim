@@ -104,7 +104,7 @@ proc newContext*(
   ctx.heights = newSeq[uint16](size)
   ctx.image = newImage("", size, size, 4)
   ctx.image.fill(rgba(255, 255, 255, 0))
-  ctx.texture = ctx.image.texture()
+  ctx.texture = ctx.image.initTexture()
 
   ctx.mesh = newUvColorMesh(size=maxQuads*2*3)
 
@@ -114,7 +114,7 @@ proc newContext*(
 
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
-  ctx.maskTexture = ctx.maskImage.texture()
+  ctx.maskTexture = ctx.maskImage.initTexture()
 
   ctx.shader = compileShaderFiles(atlastVertSrc, atlastFragSrc)
   ctx.maskShader = compileShaderFiles(maskVertSrc, maskFragSrc)
