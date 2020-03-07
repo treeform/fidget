@@ -1,4 +1,4 @@
-import ../../src/fidget
+import fidget
 import vmath
 
 proc drawMain() =
