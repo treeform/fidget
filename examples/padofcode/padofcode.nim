@@ -1,4 +1,4 @@
-import ../../src/fidget
+import fidget
 
 import print
 import random, tables, math

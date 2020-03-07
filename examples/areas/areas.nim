@@ -1,5 +1,5 @@
 import fidget, print
-#import ../../src/fidget/dom2
+#import fidget/dom2
 
 import math
 
