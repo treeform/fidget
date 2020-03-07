@@ -1,29 +1,28 @@
 import tables, os, times, strformat
 import vmath, chroma, flippy
-import meshes, textures, shaders, slate
-import opengl, base, print
+import opengl, meshes, textures, shaders, slate
 import ../uibase
 
 
 type
   Context* = ref object
-    entries*: ref Table[string, Rect] ## maping of image name to UV position in the texture
+    entries*: ref Table[string, Rect] ## Mapping of image name to UV position in the texture
 
-    mesh*: Mesh ## where the quads are drawn
-    quadCount: int ## number of quads drawn so far
-    maxQuads: int ## max quads to draw before issuing an openGL call and starting again.
+    mesh*: Mesh ## Where the quads are drawn
+    quadCount: int ## Number of quads drawn so far
+    maxQuads: int ## Max quads to draw before issuing an OpenGL call and starting again
 
     image*: Image ## Image of the atlas remove?
     texture*: Texture ## Texture of the atlas
-    heights*: seq[uint16] ## Hight map of the free space in the atlas
-    size*: int ## size x size dementions of the atlas
-    margin*: int ## default margin between images
+    heights*: seq[uint16] ## Height map of the free space in the atlas
+    size*: int ## Size x size dimensions of the atlas
+    margin*: int ## Default margin between images
     shader*: GLuint
-    mat*: Mat4 ## current matrix
-    mats: seq[Mat4] ## matrix stack
+    mat*: Mat4 ## Current matrix
+    mats: seq[Mat4] ## Matrix stack
 
     # mask
-    maskImage*: Image ## Maskimage
+    maskImage*: Image ## Mask image
     maskTexture*: Texture ## Mask texture
     maskFBO*: GLuint
     maskShader*: GLuint
@@ -31,17 +30,17 @@ type
 
 
 proc rect(x, y, w, h: int): Rect =
-  ## integer rext to float rect
+  ## Integer Rect to float Rect.
   rect(float32 x, float32 y, float32 w, float32 h)
 
 
 proc translate*(ctx: Context, v: Vec2) =
-  ## Translate the internal transform
+  ## Translate the internal transform.
   ctx.mat = ctx.mat * translate(vec3(v))
 
 
 proc rotate*(ctx: Context, angle: float) =
-  ## Rotates internal transform
+  ## Rotates internal transform.
   ctx.mat = ctx.mat * mat4(
     cos(angle),  sin(angle), 0, 0,
     -sin(angle), cos(angle), 0, 0,
@@ -51,38 +50,38 @@ proc rotate*(ctx: Context, angle: float) =
 
 
 proc scale*(ctx: Context, scale: float) =
-  ## Rotates internal transform
+  ## Rotates internal transform.
   ctx.mat = ctx.mat * scaleMat(scale)
 
 
 proc scale*(ctx: Context, scale: Vec2) =
-  ## Rotates internal transform
+  ## Rotates internal transform.
   ctx.mat = ctx.mat * scaleMat(vec3(scale, 1))
 
 
 proc saveTransform*(ctx: Context) =
-  ## Pushes a transform onto the stack
+  ## Pushes a transform onto the stack.
   ctx.mats.add ctx.mat
 
 
 proc restoreTransform*(ctx: Context) =
-  ## Pushes a transform onto the stack
+  ## Pops a transform off the stack.
   ctx.mat = ctx.mats.pop()
 
 
 proc clearTransform*(ctx: Context) =
-  ## Clears transform and transform stack
+  ## Clears transform and transform stack.
   ctx.mat = mat4()
   ctx.mats.setLen(0)
 
 
 proc fromScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
-  ## Takes a point from screen and translates it to point inside the current transform
+  ## Takes a point from screen and translates it to point inside the current transform.
   (ctx.mat.inverse() * vec3(v.x, windowFrame.y - v.y, 0)).xy
 
 
 proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
-  ## Takes a point from current transform and translates it to screen
+  ## Takes a point from current transform and translates it to screen.
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
@@ -106,7 +105,7 @@ proc newContext*(
     margin = 4,
     maxQuads = 1024,
   ): Context =
-  ## Creates a new context
+  ## Creates a new context.
   var ctx = Context()
   ctx.entries = newTable[string, Rect]()
   ctx.size = size
@@ -306,28 +305,28 @@ proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
 
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), color=color(1,1,1,1)) =
-  ## Draws image the UI way - pos at top-left
+  ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), size = vec2(0, 0), color=color(1,1,1,1)) =
-  ## Draws image the UI way - pos at top-left
+  ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
 
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale = 1.0, color=color(1,1,1,1)) =
-  ## Draws image the UI way - pos at top-left
+  ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size) * scale
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
 
 proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0), scale=1.0, color=color(1,1,1,1)) =
-  ## Draws image the Game way pos at center
+  ## Draws image the game way - pos at center.
   let rect = ctx.getOrLoadImageRect(imagePath)
   let wh = rect.wh * float32(ctx.size) * scale
   ctx.drawUvRect(pos - wh/2, pos + wh/2, rect.xy, rect.xy + rect.wh, color)
@@ -382,7 +381,7 @@ proc drawMesh*(ctx: Context) =
 
 
 proc clearMask*(ctx: Context) =
-  ## Sets mask off (acutally fills the mask with white)
+  ## Sets mask off (actually fills the mask with white).
   ctx.drawMesh()
 
   if ctx.maskFBO != 0:

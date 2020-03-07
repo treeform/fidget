@@ -1,4 +1,4 @@
-## Cairo backend uses cairo and glfw3 libarires to provide graphics and input
+## Flippy backend uses Flippy and glfw3 libarires to provide graphics and input
 
 
 import

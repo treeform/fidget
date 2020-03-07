@@ -1,7 +1,5 @@
-include system/timers
-import unicode, sequtils, os
-import chroma, opengl, vmath, print, input, perf, typography/textboxes
-import staticglfw
+import unicode, os, chroma, opengl, vmath, input, perf
+import staticglfw, typography/textboxes
 
 import ../uibase
 

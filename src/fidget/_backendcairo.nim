@@ -1,4 +1,4 @@
-## Cairo backend uses cairo and glfw3 libarires to provide graphics and input
+## Cairo backend uses Cairo and glfw3 libarires to provide graphics and input
 
 import uibase, times
 
