@@ -8,7 +8,7 @@ type
     kind*: TextureKind
     id*: GLuint
 
-proc texture*(image: Image): Texture =
+proc initTexture*(image: Image): Texture =
   var texture = Texture()
   texture.kind = Texture2D
 
