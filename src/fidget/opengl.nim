@@ -148,6 +148,15 @@ proc drawText(group: Group) =
 
   ctx.clearMask()
 
+proc capture*(mouse: Mouse) =
+  captureMouse()
+
+proc release*(mouse: Mouse) =
+  releaseMouse()
+
+proc hide*(mouse: Mouse) =
+  hideMouse()
+
 proc draw*(group: Group) =
   ## Draws the group
   ctx.saveTransform()
