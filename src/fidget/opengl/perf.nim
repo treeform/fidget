@@ -1,4 +1,4 @@
-import strformat, strutils, times, tables, math, sequtils, algorithm
+import algorithm, math, sequtils, strformat, strutils, tables, times
 
 var prevTime: float64 = epochTime()
 var prefDump*: bool = true

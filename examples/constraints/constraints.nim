@@ -1,5 +1,4 @@
-import fidget
-import vmath
+import fidget, vmath
 
 proc drawMain() =
   frame "ConstraintsFrame":

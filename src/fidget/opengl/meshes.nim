@@ -1,7 +1,4 @@
-import opengl, vmath, math, strformat
-import ../uibase
-import shaders
-import textures
+import ../uibase, math, opengl, shaders, strformat, textures, vmath
 when defined(ios) or defined(android):
   import basemobile as base
 else:
@@ -45,7 +42,8 @@ type
     drawMode*: GLenum
     vao*: GLuint
 
-proc newVertBuffer*(kind: VertBufferKind, stride: int = 0, size: int = 0): VertBuffer =
+proc newVertBuffer*(kind: VertBufferKind, stride: int = 0,
+    size: int = 0): VertBuffer =
   result = VertBuffer()
   result.kind = kind
   if stride == 0:
@@ -267,7 +265,8 @@ proc addQuad*(mesh: Mesh, a, b, c, d: Vec3) =
   mesh.addVert(a)
   mesh.addVert(d)
 
-proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec4, b: Vec3, bc: Vec4, c: Vec3, cc: Vec4, d: Vec3, dc: Vec4) =
+proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec4, b: Vec3, bc: Vec4, c: Vec3,
+    cc: Vec4, d: Vec3, dc: Vec4) =
   mesh.addVert(a, ac)
   mesh.addVert(c, cc)
   mesh.addVert(b, bc)
@@ -275,7 +274,8 @@ proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec4, b: Vec3, bc: Vec4, c: Vec3, cc: Vec
   mesh.addVert(a, ac)
   mesh.addVert(d, dc)
 
-proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec2, b: Vec3, bc: Vec2, c: Vec3, cc: Vec2, d: Vec3, dc: Vec2) =
+proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec2, b: Vec3, bc: Vec2, c: Vec3,
+    cc: Vec2, d: Vec3, dc: Vec2) =
   mesh.addVert(a, ac)
   mesh.addVert(c, cc)
   mesh.addVert(b, bc)
@@ -355,59 +355,60 @@ proc find*(mesh: Mesh, name: string): Mesh =
       return found
 
 proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
-    glUseProgram(mesh.shader)
+  glUseProgram(mesh.shader)
 
-    var uniTextureSize = glGetUniformLocation(mesh.shader, "windowFrame")
-    if uniTextureSize > -1:
-      var arr: array[2, float32]
-      arr[0] = float32 windowFrame.x
-      arr[1] = float32 windowFrame.y
-      glUniform2f(uniTextureSize, arr[0], arr[1])
+  var uniTextureSize = glGetUniformLocation(mesh.shader, "windowFrame")
+  if uniTextureSize > -1:
+    var arr: array[2, float32]
+    arr[0] = float32 windowFrame.x
+    arr[1] = float32 windowFrame.y
+    glUniform2f(uniTextureSize, arr[0], arr[1])
 
-    var uniModel = glGetUniformLocation(mesh.shader, "model")
-    if uniModel > -1:
-      var arr = mat.toFloat32()
-      glUniformMatrix4fv(uniModel, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+  var uniModel = glGetUniformLocation(mesh.shader, "model")
+  if uniModel > -1:
+    var arr = mat.toFloat32()
+    glUniformMatrix4fv(uniModel, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
-    var uniView = glGetUniformLocation(mesh.shader, "view")
-    if uniView > -1:
-      var arr = view.toFloat32()
-      glUniformMatrix4fv(uniView, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+  var uniView = glGetUniformLocation(mesh.shader, "view")
+  if uniView > -1:
+    var arr = view.toFloat32()
+    glUniformMatrix4fv(uniView, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
-    var uniProj = glGetUniformLocation(mesh.shader, "proj")
-    if uniProj > -1:
-      var arr = proj.toFloat32()
-      glUniformMatrix4fv(uniProj, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+  var uniProj = glGetUniformLocation(mesh.shader, "proj")
+  if uniProj > -1:
+    var arr = proj.toFloat32()
+    glUniformMatrix4fv(uniProj, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
 
-    var uniSuperTrans = glGetUniformLocation(mesh.shader, "superTrans")
-    if uniSuperTrans > -1:
-      var superTrans = proj * view * mat
-      var arr = superTrans.toFloat32()
-      glUniformMatrix4fv(uniSuperTrans, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+  var uniSuperTrans = glGetUniformLocation(mesh.shader, "superTrans")
+  if uniSuperTrans > -1:
+    var superTrans = proj * view * mat
+    var arr = superTrans.toFloat32()
+    glUniformMatrix4fv(uniSuperTrans, GLsizei 1, GL_FALSE, cast[ptr GLfloat](
+        arr[0].addr))
 
-    # Do the drawing
-    when defined(android):
-      glBindVertexArrayOES(mesh.vao)
-    else:
-      glBindVertexArray(mesh.vao)
+  # Do the drawing
+  when defined(android):
+    glBindVertexArrayOES(mesh.vao)
+  else:
+    glBindVertexArray(mesh.vao)
 
-    for uniform in mesh.uniforms:
-      mesh.uniformBind(uniform)
+  for uniform in mesh.uniforms:
+    mesh.uniformBind(uniform)
 
-    for i, uniform in mesh.textures:
-      uniform.texture.textureBind(i)
-      glUniform1i(GLint uniform.loc, GLint i)
+  for i, uniform in mesh.textures:
+    uniform.texture.textureBind(i)
+    glUniform1i(GLint uniform.loc, GLint i)
 
-    glDrawArrays(mesh.drawMode, 0, GLsizei max)
-    #if mesh.drawMode == Lines:
-    #  glDrawArrays(GL_LINES, 0, GLsizei mesh.numVerts)
+  glDrawArrays(mesh.drawMode, 0, GLsizei max)
+  #if mesh.drawMode == Lines:
+  #  glDrawArrays(GL_LINES, 0, GLsizei mesh.numVerts)
 
-    # Unbind
-    when defined(android):
-      glBindVertexArrayOES(0)
-    else:
-      glBindVertexArray(0)
-    glUseProgram(0)
+  # Unbind
+  when defined(android):
+    glBindVertexArrayOES(0)
+  else:
+    glBindVertexArray(0)
+  glUseProgram(0)
 
 proc draw*(mesh: Mesh, parentMat: Mat4) =
   var thisMat = parentMat * mesh.mat
@@ -424,7 +425,7 @@ proc draw*(mesh: Mesh) =
   for kid in mesh.kids.mitems:
     kid.draw(mesh.mat)
 
-proc printMeshTree*(mesh: Mesh, indent=0) =
+proc printMeshTree*(mesh: Mesh, indent = 0) =
   var space = ""
   for i in 0..<indent:
     space &= "  "

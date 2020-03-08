@@ -1,13 +1,11 @@
 ## Cairo backend uses Cairo and glfw3 libarires to provide graphics and input
 
-import uibase, times
-
-import glfw3 as glfw, quickcairo, math, vmath, opengl, chroma, print, os, unicode
-import random
-
+import chroma, glfw3 as glfw, math, opengl, os, print, quickcairo, random,
+    times, uibase, unicode, vmath
 when defined(Windows):
   import windows
-  proc GetWin32Window*(window: glfw.Window): pointer {.cdecl, importc: "glfwGetWin32Window", dynlib: "glfw3.dll".}
+  proc GetWin32Window*(window: glfw.Window): pointer {.cdecl,
+      importc: "glfwGetWin32Window", dynlib: "glfw3.dll".}
 else:
   const GlfwLib = "libglfw.so.3"
 
@@ -46,7 +44,7 @@ proc draw*(group: Group) =
         if group.editableText:
 
           if group.text.len == 0 and group.placeholder.len > 0:
-             text = group.placeholder
+            text = group.placeholder
 
           if mouse.click and mouse.pos.inside(current.screenBox):
             echo "gain focus"
@@ -59,7 +57,8 @@ proc draw*(group: Group) =
             if keyboard.inputFocusId == group.id:
               keyboard.inputFocusId = ""
 
-        ctx.selectFontFace(group.textStyle.fontFamily, FONT_SLANT.normal, FONT_WEIGHT.normal)
+        ctx.selectFontFace(group.textStyle.fontFamily, FONT_SLANT.normal,
+            FONT_WEIGHT.normal)
         ctx.setFontSize(group.textStyle.fontSize)
         ctx.setSource(group.fill)
         var extents = TextExtents()
@@ -92,8 +91,8 @@ proc draw*(group: Group) =
         ctx.moveTo(x, y)
         ctx.showText(text)
 
-        ctx.rectangle(Box(x:x, y:y, w:4, h:4))
-        ctx.setSource(color(1,0,0,1))
+        ctx.rectangle(Box(x: x, y: y, w: 4, h: 4))
+        ctx.setSource(color(1, 0, 0, 1))
         ctx.stroke()
 
     else:
@@ -130,7 +129,7 @@ proc display() =
   scrollBox.h = root.box.h
 
   ctx.rectangle(root.box)
-  ctx.setSource(color(1,1,1,1))
+  ctx.setSource(color(1, 1, 1, 1))
   ctx.fill()
 
   drawMain()
@@ -153,11 +152,13 @@ proc display() =
     info.bmiHeader.biSize = DWORD sizeof(BITMAPINFOHEADER)
     info.bmiHeader.biSizeImage = int32(w * h * 4)
     info.bmiHeader.biCompression = BI_RGB
-    discard StretchDIBits(dc, 0, int32 h - 1, int32 w, int32 -h, 0, 0, int32 w, int32 h, dataPtr, info, DIB_RGB_COLORS, SRCCOPY)
+    discard StretchDIBits(dc, 0, int32 h - 1, int32 w, int32 -h, 0, 0, int32 w,
+        int32 h, dataPtr, info, DIB_RGB_COLORS, SRCCOPY)
     discard ReleaseDC(hwnd, dc)
   else:
     # openGL way
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_BGRA, GL_UNSIGNED_BYTE, dataPtr)
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_BGRA,
+        GL_UNSIGNED_BYTE, dataPtr)
     # draw a quad over the whole screen
     glClear(GL_COLOR_BUFFER_BIT)
     glBegin(GL_QUADS)
@@ -214,7 +215,8 @@ proc resize() =
     when defined(windows):
       discard
     else:
-      glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_BGRA, GL_UNSIGNED_BYTE, dataPtr)
+      glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_BGRA,
+          GL_UNSIGNED_BYTE, dataPtr)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
@@ -225,7 +227,8 @@ proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
   resize()
   display()
 
-proc onMouseButton(window: glfw.Window, button: cint, action: cint, modifiers: cint) {.cdecl.} =
+proc onMouseButton(window: glfw.Window, button: cint, action: cint,
+    modifiers: cint) {.cdecl.} =
   if action == 0:
     mouse.down = false
     mouse.click = false
@@ -257,7 +260,8 @@ proc startFidget*(draw: proc()) =
   drawMain = draw
   if glfw.Init() == 0:
     quit("Failed to Initialize GLFW")
-  window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)
+  window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.",
+      nil, nil)
   glfw.MakeContextCurrent(window)
 
   when defined(windows):
@@ -280,7 +284,8 @@ proc startFidget*(draw: proc()) =
     redraw()
   discard SetCharCallback(window, onCharCallback)
 
-  proc onKeyCallback(window: glfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
+  proc onKeyCallback(window: glfw.Window; key: cint; scancode: cint;
+      action: cint; modifiers: cint) {.cdecl.} =
     echo "keyboard.key ", key, " action ", action
     #keyboard.input.add keyboard.keyString
     #echo keyboard.input

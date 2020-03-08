@@ -1,6 +1,4 @@
-import fidget
-import random
-import math
+import fidget, math, random
 
 when defined(js):
   loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")

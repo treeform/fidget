@@ -1,5 +1,4 @@
-import fidget
-import math
+import fidget, math
 
 when defined(js):
   loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")

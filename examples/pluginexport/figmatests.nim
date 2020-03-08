@@ -1,7 +1,5 @@
 import fidget
 
-
-
 proc frameTest1Square_root*() =
   frame "test1Square_root": # 1:2
     box 0, 0, root.box.w, root.box.h # ROOT ROOT
@@ -10,7 +8,6 @@ proc frameTest1Square_root*() =
     rectangle "Rectangle": # 1:3
       box 100, 100, 300, 300
       fill "#65F8DE"
-
 
 proc frameTest2StretchySquare_root*() =
   frame "test2StretchySquare_root": # 1:4
@@ -21,7 +18,6 @@ proc frameTest2StretchySquare_root*() =
       box 100, 100, parent.box.w - 200, parent.box.h - 200 # TOP_BOTTOM LEFT_RIGHT
       fill "#65F8B2"
 
-
 proc frameTest3CenterSquare_root*() =
   frame "test3CenterSquare_root": # 1:6
     box 0, 0, root.box.w, root.box.h # ROOT ROOT
@@ -30,7 +26,6 @@ proc frameTest3CenterSquare_root*() =
     rectangle "Rectangle": # 1:7
       box parent.box.w/2 - 150, parent.box.h/2 - 150, 300, 300 # CENTER CENTER
       fill "#68F865"
-
 
 proc frameTest4MultiSquare_root*() =
   frame "test4MultiSquare_root": # 1:9
@@ -60,7 +55,6 @@ proc frameTest4MultiSquare_root*() =
     rectangle "Rectangle 2.3": # 1:15
       box 75, parent.box.h - 125, 50, 50 # BOTTOM LEFT
       fill "#F88865"
-
 
 proc frameTest5DoubleStretch_root*() =
   frame "test5DoubleStretch_root": # 1:16
@@ -98,7 +92,6 @@ proc frameTest5DoubleStretch_root*() =
     rectangle "Rectangle 3.3": # 1:26
       box parent.box.w - 100, 0, 100, 100 # TOP RIGHT
       fill "#ECECEC"
-
 
 proc frameTest6TextBasic_root*() =
   frame "test6TextBasic_root": # 8:2
@@ -158,7 +151,6 @@ proc frameTest6TextBasic_root*() =
       fill "#000000"
       font "Helvetica Neue", 20.0, 400.0, 20, -1, -1
       characters "Test Text"
-
 
 proc frameTest7TextAlign_root*() =
   frame "test7TextAlign_root": # 8:29
@@ -223,7 +215,6 @@ proc frameTest7TextAlign_root*() =
       font "Helvetica Neue", 14.0, 400.0, 13, 1, 1
       characters "left bottom"
 
-
 proc frameTest8TextInput_root*() =
   frame "test8TextInput_root": # 8:52
     box 0, 0, root.box.w, root.box.h # ROOT ROOT
@@ -249,7 +240,6 @@ proc frameTest8TextInput_root*() =
       box 220, 60, 60, 60
       fill "#F88865"
 
-
 proc frameTest10Rotations_root*() =
   frame "test10Rotations_root": # 9:8
     box 0, 0, root.box.w, root.box.h # ROOT ROOT
@@ -269,7 +259,6 @@ proc frameTest10Rotations_root*() =
       rotation 30.00000178116811
       box 50, 250, 200, 200
       fill "#C4C4C4", 0.300
-
 
 proc frameTest9Images_root*() =
   frame "test9Images_root": # 8:65

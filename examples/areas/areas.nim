@@ -1,7 +1,4 @@
-import fidget, print
-#import fidget/dom2
-
-import math
+import fidget, math, print
 
 type
   Area = ref object

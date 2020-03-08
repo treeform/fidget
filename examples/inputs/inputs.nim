@@ -1,5 +1,4 @@
-import fidget
-import math
+import fidget, math
 
 var
   textValue: string

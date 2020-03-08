@@ -1,5 +1,4 @@
-import macros, tables, json, strutils, chroma, vmath
-import fidget/uibase
+import chroma, fidget/uibase, json, macros, strutils, tables, vmath
 when defined(js):
   import fidget/html
   export html
@@ -156,7 +155,8 @@ proc id*(id: string) =
   ## Sets ID.
   current.id = id
 
-proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlignHorizontal, textAlignVertical: int) =
+proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float,
+    textAlignHorizontal, textAlignVertical: int) =
   ## Sets the font.
   current.textStyle.fontFamily = fontFamily
   current.textStyle.fontSize = fontSize
@@ -257,7 +257,7 @@ proc stroke*(color: Color) =
   ## Sets stroke/border color.
   current.stroke = color
 
-proc stroke*(color: string, alpha=1.0) =
+proc stroke*(color: string, alpha = 1.0) =
   ## Sets stroke/border color.
   current.stroke = parseHtmlColor(color)
   current.stroke.a = alpha
@@ -290,7 +290,7 @@ proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.
   current.cursorColor = color
 
-proc cursorColor*(color: string, alpha=1.0) =
+proc cursorColor*(color: string, alpha = 1.0) =
   ## Sets the color of the text cursor.
   current.cursorColor = parseHtmlColor(color)
   current.cursorColor.a = alpha
@@ -299,7 +299,7 @@ proc highlightColor*(color: Color) =
   ## Sets the color of text selection.
   current.highlightColor = color
 
-proc highlightColor*(color: string, alpha=1.0) =
+proc highlightColor*(color: string, alpha = 1.0) =
   ## Sets the color of text selection.
   current.highlightColor = parseHtmlColor(color)
   current.highlightColor.a = alpha

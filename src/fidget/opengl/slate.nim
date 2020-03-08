@@ -1,5 +1,4 @@
-import streams, strformat
-import flippy, snappy
+import flippy, snappy, streams, strformat
 
 type SlateImage* = object
   mipmaps*: seq[Image]

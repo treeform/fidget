@@ -1,12 +1,9 @@
-import tables, times, strutils
-import vmath, chroma, typography, typography/textboxes
+import chroma, strutils, tables, times, typography, typography/textboxes, vmath
 when defined(ios) or defined(android):
   import opengl/basemobile as base
 else:
   import opengl/base as base
-import opengl/context, opengl/input
-import uibase
-import internal
+import internal, opengl/context, opengl/input, uibase
 
 export windowFrame
 export input
@@ -57,7 +54,8 @@ proc drawText(group: Group) =
   )
   ctx.endMask()
 
-  if current.editableText and mouse.down and mouse.pos.inside(current.screenBox):
+  if current.editableText and mouse.down and mouse.pos.inside(
+      current.screenBox):
     if mouse.click and keyboard.inputFocusIdPath != group.idPath:
       keyboard.inputFocusIdPath = group.idPath
       textBox = newTextBox(
@@ -84,12 +82,12 @@ proc drawText(group: Group) =
         textBox.selectAll()
         mouse.down = false
       else:
-        textBox.mouseAction(mousePos, click=true, keyboard.shiftKey)
+        textBox.mouseAction(mousePos, click = true, keyboard.shiftKey)
 
   if textBox != nil and mouse.down and not mouse.click and
       keyboard.inputFocusIdPath == group.idPath:
     # draggin the mouse
-    textBox.mouseAction(mousePos, click=false, keyboard.shiftKey)
+    textBox.mouseAction(mousePos, click = false, keyboard.shiftKey)
 
   let editing = keyboard.inputFocusIdPath == group.idPath
   var layout: seq[GlyphPosition]
@@ -110,8 +108,8 @@ proc drawText(group: Group) =
       text = group.placeholder
     layout = font.typeset(
       text,
-      pos=vec2(0, -1), #group.screenBox.xy,
-      size=group.screenBox.wh,
+      pos = vec2(0, -1), #group.screenBox.xy,
+      size = group.screenBox.wh,
       hAlignNum(group.textStyle.textAlignHorizontal),
       vAlignNum(group.textStyle.textAlignVertical)
     )
@@ -123,11 +121,13 @@ proc drawText(group: Group) =
     if pos.character in font.glyphs:
       let subPixelShift = floor(pos.subPixelShift*10)/10
 
-      let charKey = "tmp/" & group.textStyle.fontFamily & "." & pos.character & "." & $font.size & "." & $subPixelShift & ".png"
+      let charKey = "tmp/" & group.textStyle.fontFamily & "." & pos.character &
+          "." & $font.size & "." & $subPixelShift & ".png"
       if charKey notin ctx.entries:
         var glyph = font.glyphs[pos.character]
         var glyphOffset: Vec2
-        let img = font.getGlyphImage(glyph, glyphOffset, subPixelShift=subPixelShift)
+        let img = font.getGlyphImage(glyph, glyphOffset,
+            subPixelShift = subPixelShift)
         ctx.putImage(charKey, img)
         glyphOffsets[charKey] = glyphOffset
 
