@@ -1,6 +1,7 @@
 import fidget
 import random
 import math
+import vmath
 
 # Great for GUI applications, that don't have multimedia or animations.
 repaintEveryFrame = false
