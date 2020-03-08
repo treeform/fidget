@@ -6,6 +6,7 @@ else:
   import opengl/base as base
 import opengl/context, opengl/input
 import uibase
+import internal
 
 export windowFrame
 export input
