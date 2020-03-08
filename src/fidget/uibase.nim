@@ -134,7 +134,6 @@ var
   repaintEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
-  drawMain*: proc()
   perf*: Perf
   requestedFrame*: bool
   numGroups*: int

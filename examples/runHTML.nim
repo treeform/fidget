@@ -7,7 +7,8 @@ proc javaScript(folder: string) =
   else:
     echo "[ok] ", folder
 
-    let fileUrl = &"file:///C:/p/fidget/examples/{folder}/{folder}.html"
+    var exeDir = os.getAppDir()
+    let fileUrl = &"file:///{exeDir}/{folder}/{folder}.html"
     if execShellCmd(&"start chrome {fileUrl}") != 0:
       echo "[error] Starting Chrome: ", fileUrl
       quit()
