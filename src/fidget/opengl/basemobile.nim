@@ -78,8 +78,6 @@ proc start*() =
 proc setWindowTitle*(title: string) =
   discard
 
-proc setupFidget*() {.importc.}
-
 proc readAssetFile*(filename: string): string =
   let size = int glfmReadFileSize(filename)
   result = newString(size)
