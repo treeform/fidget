@@ -1,6 +1,7 @@
 import uibase, dom2 as dom, chroma, strutils, math, tables, strformat
 import html5_canvas
 import vmath
+import internal
 
 var
   groupCache*: seq[Group]
