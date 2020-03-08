@@ -141,6 +141,7 @@ var
   inPopup*: bool
   #fonts* = newTable[string, Font]()
 
+  fullscreen* = false
   windowSize*: Vec2
   windowFrame*: Vec2
   dpi*: float
