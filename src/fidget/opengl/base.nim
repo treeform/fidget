@@ -344,3 +344,13 @@ proc start*() =
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
 
   perfMark("end start base")
+
+
+proc captureMouse*() =
+  setInputMode(window, CURSOR, CURSOR_DISABLED)
+
+proc releaseMouse*() =
+  setInputMode(window, CURSOR, CURSOR_NORMAL)
+
+proc hideMouse*() =
+  setInputMode(window, CURSOR, CURSOR_HIDDEN)
