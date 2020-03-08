@@ -175,29 +175,3 @@ proc use*(keyboard: Keyboard) =
 
 proc use*(mouse: Mouse) =
   mouse.click = false
-
-proc clamp*(value, min, max: int): int =
-  ## Makes sure the value is between min and max inclusive
-  max(min, min(value, max))
-
-proc between*(value, min, max: float32|float|int): bool =
-  ## Returns true if value is between min and max or equals to them.
-  (value >= min) and (value <= max)
-
-proc inside*(p: Vec2, b: Rect): bool =
-  ## Return true if position is inside the box.
-  return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
-
-proc overlap*(a, b: Rect): bool =
-  ## Returns true if box a overlaps box b.
-  let
-    xOverlap = between(a.x, b.x, b.x + b.w) or between(b.x, a.x, a.x + a.w)
-    yOverlap = between(a.y, b.y, b.y + b.h) or between(b.y, a.y, a.y + a.h)
-  return xOverlap and yOverlap
-
-proc `+`*(a, b: Rect): Rect =
-  ## Add two boxes together.
-  result.x = a.x + b.x
-  result.y = a.y + b.y
-  result.w = a.w
-  result.h = a.h
