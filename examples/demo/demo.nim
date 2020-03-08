@@ -1,6 +1,4 @@
-import fidget
-import print
-import vmath
+import fidget, print, vmath
 
 loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.svg")

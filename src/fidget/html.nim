@@ -1,7 +1,5 @@
-import uibase, dom2 as dom, chroma, strutils, math, tables, strformat
-import html5_canvas
-import vmath
-import internal
+import chroma, dom2 as dom, html5_canvas, internal, math, strformat, strutils,
+    tables, uibase, vmath
 
 var
   groupCache*: seq[Group]
@@ -29,7 +27,8 @@ proc removeTextSelection*() {.exportc.} =
   dom.window.document.getSelection().removeAllRanges()
 
 var computeTextBoxCache = newTable[string, (float, float)]()
-proc computeTextBox*(text: string, width: float, fontName: string, fontSize: float): (float, float) =
+proc computeTextBox*(text: string, width: float, fontName: string,
+    fontSize: float): (float, float) =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
   let key = text & $width & fontName & $fontSize
@@ -52,7 +51,8 @@ proc computeTextBox*(text: string, width: float, fontName: string, fontSize: flo
   # echo key
   # echo result
 
-proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
+proc computeTextHeight*(text: string, width: float, fontName: string,
+    fontSize: float): float =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
   let (_, h) = computeTextBox(text, width, fontName, fontSize)
@@ -229,7 +229,8 @@ proc drawDiff(current: Group) =
         if document.activeElement != dom:
           cast[TextAreaElement](dom).value = current.text
         if current.tag == "input":
-          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
+          dom.style.paddingBottom = $(current.box.h -
+              current.textStyle.lineHeight) & "px"
     else:
       if forceTextRelayout or (old.text != current.text):
         inc perf.numLowLevelCalls
@@ -237,7 +238,8 @@ proc drawDiff(current: Group) =
 
         dom.innerText = current.text
 
-        if current.textStyle.textAlignHorizontal != -1 or current.textStyle.textAlignVertical != -1:
+        if current.textStyle.textAlignHorizontal != -1 or
+            current.textStyle.textAlignVertical != -1:
           var box = computeTextBox(
             current.text,
             current.screenBox.w,
@@ -539,7 +541,8 @@ proc openBrowser*(url: string) =
 proc openBrowserWithText*(text: string) =
   ## Opens a URL in a browser
   var window = dom.window.open("", "_blank")
-  window.document.write("<code style=display:block;white-space:pre-wrap>" & text & "</code>")
+  window.document.write("<code style=display:block;white-space:pre-wrap>" &
+      text & "</code>")
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window title

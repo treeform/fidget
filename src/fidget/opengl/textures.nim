@@ -1,4 +1,4 @@
-import opengl, flippy
+import flippy, opengl
 
 type
   TextureKind* = enum

@@ -1,8 +1,7 @@
-import unicode, os, chroma, opengl, vmath, input, perf
-import staticglfw, typography/textboxes
+import chroma, input, opengl, os, perf, staticglfw, typography/textboxes,
+    unicode, vmath
 
 import ../uibase
-
 # if defined(ios) or defined(android):
 #   {.fatal: "This module can only be used on desktop windows, macos or linux.".}
 
@@ -42,7 +41,7 @@ proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
 
-proc tick*(poll=true) =
+proc tick*(poll = true) =
   perfMark("--- start frame")
 
   inc frameCount
@@ -157,7 +156,8 @@ proc start*() =
   # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
 
   perf "open window":
-    window = createWindow(cint windowFrame.x, cint windowFrame.y, uibase.window.innerTitle, nil, nil)
+    window = createWindow(cint windowFrame.x, cint windowFrame.y,
+        uibase.window.innerTitle, nil, nil)
 
   if window.isNil:
     quit("Failed to open GLFW window.")
@@ -189,7 +189,8 @@ proc start*() =
           length: GLsizei,
           message: ptr GLchar,
           userParam: pointer) {.stdcall.} =
-        echo "source=" & repr(source) & " type=" & repr(typ) & " id=" & repr(id) & " severity=" & repr(severity) & ": " & $message
+        echo "source=" & repr(source) & " type=" & repr(typ) & " id=" & repr(
+            id) & " severity=" & repr(severity) & ": " & $message
         if severity != GL_DEBUG_SEVERITY_NOTIFICATION:
           running = false
       glDebugMessageCallback(printGlDebug, nil)
@@ -212,11 +213,13 @@ proc start*() =
   #   onResize()
   # discard SetWindowRefreshCallback(window, onRefresh)
 
-  proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint; action: cint; modifiers: cint) {.cdecl.} =
+  proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint;
+      action: cint; modifiers: cint) {.cdecl.} =
     eventHappend = true
     var setKey = action != RELEASE
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
-    keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
+    keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (
+        modifiers and MOD_SUPER) != 0)
     keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
@@ -278,7 +281,8 @@ proc start*() =
 
   discard window.setKeyCallback(onSetKey)
 
-  proc onScroll(window: staticglfw.Window, xoffset: float64, yoffset: float64) {.cdecl.} =
+  proc onScroll(window: staticglfw.Window, xoffset: float64,
+      yoffset: float64) {.cdecl.} =
     eventHappend = true
     if keyboard.inputFocusIdPath != "":
       textBox.scrollBy(-yoffset * 50)
@@ -286,7 +290,8 @@ proc start*() =
       mouseWheelDelta += yoffset
   discard window.setScrollCallback(onScroll)
 
-  proc onMouseButton(window: staticglfw.Window; button: cint; action: cint; modifiers: cint) {.cdecl.} =
+  proc onMouseButton(window: staticglfw.Window; button: cint; action: cint;
+      modifiers: cint) {.cdecl.} =
     eventHappend = true
     var setKey = action != 0
     let button = button + 1

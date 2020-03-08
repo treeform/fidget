@@ -1,8 +1,7 @@
 ## Backend null is a dummy backend used for testing / dec gen
 ## Not a real backend will not draw anything
 
-import uibase, times, internal
-
+import internal, times, uibase
 proc draw*(group: Group) =
   ## Draws the group
 

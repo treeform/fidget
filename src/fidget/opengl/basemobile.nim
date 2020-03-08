@@ -1,10 +1,8 @@
 include system/timers
-import unicode, sequtils
-import chroma, opengl, vmath, print, input, perf, typography/textboxes
-import glfm
+import chroma, glfm, input, opengl, perf, print, sequtils, typography/textboxes,
+    unicode, vmath
 
 import ../uibase
-
 var
   view*: Mat4
   proj*: Mat4
@@ -21,7 +19,7 @@ var
   avgFrameTime*: float64
   fps*: float64 = 60
 
-proc tick*(poll=true) =
+proc tick*(poll = true) =
   perfMark("--- start frame")
 
   inc frameCount

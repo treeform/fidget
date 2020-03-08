@@ -5,9 +5,9 @@ when not defined(js):
   import typography/textboxes
 
 const
-  clearColor* = color(0,0,0,0)
-  whiteColor* = color(1,1,1,1)
-  blackColor* = color(0,0,0,1)
+  clearColor* = color(0, 0, 0, 0)
+  whiteColor* = color(1, 1, 1, 1)
+  blackColor* = color(0, 0, 0, 1)
 
 type
   Contraints* = enum
@@ -88,9 +88,9 @@ type
   Mouse* = ref object
     state: KeyState
     pos*: Vec2
-    click*: bool # mouse button just got held down
-    rightClick*: bool # mouse right click
-    down*: bool # mouse button is held down
+    click*: bool                   # mouse button just got held down
+    rightClick*: bool              # mouse right click
+    down*: bool                    # mouse button is held down
     cursorStyle*: MouseCursorStyle # sets the mouse cursor icon
 
   Keyboard* = ref object
@@ -105,7 +105,7 @@ type
     inputFocusIdPath*: string
     prevInputFocusIdPath*: string
     input*: string
-    textCursor*: int # at which character in the input string are we
+    textCursor*: int      # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 
   Perf* = object

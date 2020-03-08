@@ -1,6 +1,5 @@
 ## Flippy backend uses Flippy and glfw3 libarires to provide graphics and input
 
-import
   times, math, vmath, opengl, os, unicode, tables,
   glfw3 as glfw, chroma, print, flippy, typography,
   uibase

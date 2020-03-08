@@ -1,7 +1,4 @@
-# nim c -r tools/fidgetgen.nim https://www.figma.com/file/RVaDQ9bNVIx7qMHg0TICjK/Fidget-Tests -o:examples/figma/figmatests.nim
-import fidget
-import figmatests
-
+import fidget, figmatests
 
 var screen = 0
 

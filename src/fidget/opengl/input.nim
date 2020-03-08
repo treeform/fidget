@@ -59,7 +59,7 @@ type
     WORLD_1 = 161
     WORLD_2 = 162
 
-#[ Function keys ]#
+    # Function keys
     ESCAPE = 256
     ENTER = 257
     TAB = 258
@@ -147,8 +147,8 @@ var
   mouseDelta*: Vec2
   mouseWheelDelta*: float
 
-proc `[]`*(buttons: seq[bool], button:Button): bool =
+proc `[]`*(buttons: seq[bool], button: Button): bool =
   return buttons[cast[int](button)]
 
-proc `[]=`*(buttons: var seq[bool], button:Button, value: bool) =
+proc `[]=`*(buttons: var seq[bool], button: Button, value: bool) =
   buttons[cast[int](button)] = value

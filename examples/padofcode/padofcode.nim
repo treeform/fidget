@@ -1,7 +1,4 @@
-import fidget
-
-import print
-import random, tables, math
+import fidget, math, print, random, tables
 
 loadFont("Inconsolata", "../data/Inconsolata.svg")
 
