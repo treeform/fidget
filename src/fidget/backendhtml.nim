@@ -51,9 +51,6 @@ proc computeTextBox*(text: string, width: float, fontName: string, fontSize: flo
   result[1] = float tempDiv.clientHeight
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
-  # echo "---"
-  # echo key
-  # echo result
 
 
 proc computeTextHeight*(text: string, width: float, fontName: string, fontSize: float): float =
@@ -238,6 +235,13 @@ proc drawDiff(current: Group) =
           cast[TextAreaElement](dom).value = current.text
         if current.tag == "input":
           dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
+          case current.textStyle.textAlignVertical:
+            of -1:
+              dom.style.textAlign = "left"
+            of 1:
+              dom.style.textAlign = "right"
+            else:
+              dom.style.textAlign = "center"
     else:
       if forceTextRelayout or (old.text != current.text):
         inc perf.numLowLevelCalls
