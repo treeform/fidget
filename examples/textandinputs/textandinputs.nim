@@ -1,16 +1,15 @@
-import ../../src/fidget
-import random
-import math
+import fidget, math, random
 
-when not defined(js):
-  import ../../src/fidget/backendopengl, typography, tables
-  fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
+when defined(js):
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+else:
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 
-drawMain = proc() =
+proc drawMain() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
-  font "Ubuntu", 16.0, 400.0, 15, -1, -1
+  font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, -1
 
   var i = 0
   for y in 0 ..< 100:
@@ -44,4 +43,4 @@ drawMain = proc() =
             characters "the textarea is " & $i
             inc i
 
-startFidget()
+startFidget(drawMain)

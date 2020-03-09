@@ -1,16 +1,11 @@
-import ../../src/fidget
+import fidget
 
-import print
-import random
-import vmath
-
-
+import print, random, vmath
 var bars = newSeq[int](10)
 for i, bar in bars:
   bars[i] = rand(40)
 
-
-drawMain = proc() =
+proc drawMain() =
 
   window.title = "Hovers Example"
 
@@ -36,4 +31,4 @@ drawMain = proc() =
         fill "#FF0000"
     inPopup = false
 
-startFidget()
+startFidget(drawMain)
