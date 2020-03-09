@@ -225,15 +225,6 @@ proc drawDiff(current: Group) =
       if old.text != current.text:
         if document.activeElement != dom:
           cast[TextAreaElement](dom).value = current.text
-        if current.tag == "input":
-          dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
-          case current.textStyle.textAlignVertical:
-            of -1:
-              dom.style.textAlign = "left"
-            of 1:
-              dom.style.textAlign = "right"
-            else:
-              dom.style.textAlign = "center"
     else:
       if forceTextRelayout or (old.text != current.text):
         inc perf.numLowLevelCalls
@@ -275,6 +266,16 @@ proc drawDiff(current: Group) =
 
           current.textOffset.x = 0
           current.textOffset.y = 0
+
+  if current.tag == "input":
+    dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
+    case current.textStyle.textAlignVertical:
+      of -1:
+        dom.style.textAlign = "left"
+      of 1:
+        dom.style.textAlign = "right"
+      else:
+        dom.style.textAlign = "center"
 
   # check position on screen
   if old.screenBox != current.screenBox or old.textOffset != current.textOffset:
