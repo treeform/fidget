@@ -107,10 +107,6 @@ type
     textCursor*: int      # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 
-  Perf* = object
-    drawMain*: float
-    numLowLevelCalls*: int
-
   Window* = ref object
     innerTitle*: string
     innerUrl*: string
@@ -133,7 +129,6 @@ var
   repaintEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
-  perf*: Perf
   requestedFrame*: bool
   numGroups*: int
   rootUrl*: string
