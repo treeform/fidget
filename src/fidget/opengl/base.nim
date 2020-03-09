@@ -116,7 +116,6 @@ proc useDepthBuffer*(on: bool) =
 
 proc exit*() =
   # cleanup GLFW
-  window.destroyWindow()
   terminate()
 
 proc glGetInteger(what: GLenum): int =
