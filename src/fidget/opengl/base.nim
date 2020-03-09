@@ -18,12 +18,12 @@ var
   fpsTimeSeries = newTimeSeries()
   avgFrameTime*: float64
   fps*: float64 = 60
-  eventHappend*: bool
+  eventHappened*: bool
 
   multisampling*: int
 
 proc onResize() =
-  eventHappend = true
+  eventHappened = true
   var cwidth, cheight: cint
   window.getWindowSize(addr cwidth, addr cheight)
   windowSize.x = float(cwidth)
@@ -60,13 +60,13 @@ proc tick*(poll = true) =
     return
 
   if not repaintEveryFrame:
-    if not eventHappend:
+    if not eventHappened:
       # repaintEveryFrame is false
       # so only repain on evnets, event did not happen!
       os.sleep(16)
       return
     else:
-      eventHappend = false
+      eventHappened = false
 
   block:
     var x, y: float64
@@ -217,7 +217,7 @@ proc start*() =
 
   proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint;
       action: cint; modifiers: cint) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     var setKey = action != RELEASE
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
     keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (
@@ -285,7 +285,7 @@ proc start*() =
 
   proc onScroll(window: staticglfw.Window, xoffset: float64,
       yoffset: float64) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     if keyboard.inputFocusIdPath != "":
       textBox.scrollBy(-yoffset * 50)
     else:
@@ -294,7 +294,7 @@ proc start*() =
 
   proc onMouseButton(window: staticglfw.Window; button: cint; action: cint;
       modifiers: cint) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     var setKey = action != 0
     let button = button + 1
     mouse.down = setKey
@@ -311,11 +311,11 @@ proc start*() =
   discard window.setMouseButtonCallback(onMouseButton)
 
   proc onMouseMove(window: staticglfw.Window; x, y: cdouble) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
   discard window.setCursorPosCallback(onMouseMove)
 
   proc onSetCharCallback(window: staticglfw.Window; character: cuint) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
       textBox.typeCharacter(Rune(character))
