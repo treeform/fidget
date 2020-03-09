@@ -2,8 +2,6 @@ import chroma, input, opengl, os, perf, staticglfw, typography/textboxes,
     unicode, vmath
 
 import ../uibase
-# if defined(ios) or defined(android):
-#   {.fatal: "This module can only be used on desktop windows, macos or linux.".}
 
 var
   window*: staticglfw.Window
@@ -53,6 +51,7 @@ proc tick*(poll = true) =
 
   if window.windowShouldClose() != 0:
     running = false
+    return
 
   if windowSize == vec2(0, 0):
     # window is minimized, don't do any drawing
