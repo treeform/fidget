@@ -1,6 +1,11 @@
 import chroma, dom2 as dom, html5_canvas, internal, math, strformat, strutils,
     tables, uibase, vmath
 
+type
+  PerfCounter* = object
+    drawMain*: float
+    numLowLevelCalls*: int
+
 var
   groupCache*: seq[Group]
   domCache*: seq[Element]
@@ -10,6 +15,9 @@ var
   ctx*: CanvasRenderingContext2D
 
   forceTextRelayout*: bool
+
+  perf*: PerfCounter
+
 
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
