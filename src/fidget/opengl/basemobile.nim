@@ -1,8 +1,8 @@
-include system/timers
-import chroma, glfm, input, opengl, perf, print, sequtils, typography/textboxes,
-    unicode, vmath
+import ../uibase, chroma, glfm, input, opengl, perf, print, sequtils,
+    typography/textboxes, unicode, vmath
 
-import ../uibase
+include system/timers
+
 var
   view*: Mat4
   proj*: Mat4
