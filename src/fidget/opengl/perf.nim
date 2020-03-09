@@ -1,48 +1,68 @@
-import algorithm, math, sequtils, strformat, strutils, tables, times
+import math, strformat, strutils, tables, times
 
-var prevTime: float64 = epochTime()
-var prefDump*: bool = true
-var indent = ""
-var timeStack = newSeq[float64]()
-var perfBuffer = newSeq[string]()
+type
+  EntryType = enum
+    Begin, End, Mark
 
-proc perfMark*(what: string) =
-  ## Prints out [time-since-last-action] what.
-  if prefDump:
-    let time = epochTime()
-    let delta = time - prevTime
-    perfBuffer.add fmt"[{delta:>8.6f}] {indent}{what}"
+  PerfEntry* = ref object
+    tag: string
+    time: float
+    `type`: EntryType
 
-proc perfBegin*(what: string) =
-  ## Prints out [time-since-last-action] what.
-  if prefDump:
-    let time = epochTime()
-    let delta = time - prevTime
-    perfBuffer.add fmt"[{delta:>8.6f}] {indent}{what} ["
-    indent.add(" ")
-    prevTime = epochTime()
-    timeStack.add(prevTime)
+var
+  perfEnabled* = true
+  defaultBuffer: seq[PerfEntry]
 
-proc perfEnd*(what: string = "") =
-  ## Prints out [time-since-last-action] what.
-  if prefDump:
-    let time = epochTime()
-    let delta = time - timeStack.pop()
-    indent = indent[0 .. ^2]
-    perfBuffer.add fmt"({delta:>8.6f}) {indent}] {what}"
-    prevTime = epochTime()
+proc addEntry(tag: string, `type`: EntryType, buffer: var seq[PerfEntry]) =
+  var entry = PerfEntry()
+  entry.tag = tag
+  entry.time = epochTime()
+  entry.`type` = `type`
 
-template perf*(what: string, body: untyped) =
-  ## Measures perf with a body block.
-  perfBegin what
-  body
-  perfEnd what
+  buffer.add(entry)
 
-proc perfDump*() =
-  for line in perfBuffer:
-    echo line
-  perfBuffer.setLen(0)
-  indent.setLen(0)
+template perfMark*(tag: string, buffer: var seq[PerfEntry] = defaultBuffer) =
+  if perfEnabled:
+    addEntry(tag, Mark, buffer)
+
+template perf*(tag: string, buffer: var seq[PerfEntry], body: untyped) =
+  ## Logs the performance of the body block.
+  if perfEnabled:
+    addEntry(tag, Begin, buffer)
+    body
+    addEntry(tag, End, buffer)
+
+template perf*(tag: string, body: untyped) =
+  ## Logs the performance of the body block.
+  if perfEnabled:
+    perf(tag, defaultBuffer, body)
+
+proc `$`*(buffer: seq[PerfEntry]): string =
+  if len(buffer) == 0:
+    return
+
+  var
+    lines = newSeqOfCap[string](0)
+    indent = ""
+    prevTime = buffer[0].time
+
+  for i, entry in buffer:
+    let delta = entry.time - prevTime
+    case entry.`type`:
+      of Begin:
+        lines.add(fmt"[{delta:>8.6f}] {indent}{entry.tag} [")
+        indent.add("  ")
+      of End:
+        indent = indent[0 .. ^3]
+        lines.add(fmt"({delta:>8.6f}) {indent}] {entry.tag}")
+      of Mark:
+        lines.add(fmt"[{delta:>8.6f}]{indent} {entry.tag}")
+
+  result = lines.join("\n")
+
+proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer): string =
+  result = $defaultBuffer
+  defaultBuffer.setLen(0)
 
 type TimeSeries* = ref object
   ## Time series help you time stuff over multiple frames.

@@ -97,7 +97,7 @@ proc tick*(poll = true) =
   perfMark("SwapBuffers")
 
   perfMark("--- end frame")
-  prefDump = buttonDown[F10]
+  perfEnabled = buttonDown[F10]
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
