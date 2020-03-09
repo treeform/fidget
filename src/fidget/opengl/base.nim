@@ -1,7 +1,5 @@
-import chroma, input, opengl, os, perf, staticglfw, typography/textboxes,
-    unicode, vmath
-
-import ../uibase
+import ../uibase, chroma, input, opengl, os, perf, staticglfw,
+    typography/textboxes, unicode, vmath
 
 var
   window*: staticglfw.Window

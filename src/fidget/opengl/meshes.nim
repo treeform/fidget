@@ -1,9 +1,9 @@
-import ../uibase, math, opengl, shaders, strformat, textures, vmath
+import ../uibase, chroma, math, opengl, shaders, strformat, textures, vmath
+
 when defined(ios) or defined(android):
   import basemobile as base
 else:
   import base as base
-import chroma
 
 type
   VertBufferKind* = enum

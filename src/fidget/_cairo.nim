@@ -2,6 +2,7 @@
 
 import chroma, glfw3 as glfw, math, opengl, os, print, quickcairo, random,
     times, uibase, unicode, vmath
+
 when defined(Windows):
   import windows
   proc GetWin32Window*(window: glfw.Window): pointer {.cdecl,
