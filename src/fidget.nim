@@ -1,16 +1,14 @@
-import macros, tables, json, strutils, chroma, vmath
-import fidget/uibase
+import chroma, fidget/uibase, json, macros, strutils, tables, vmath
 when defined(js):
-  import fidget/backendhtml
-  export backendhtml
-elif defined(backendnull):
-  import fidget/backendnull
-  export backendnull
+  import fidget/html
+  export html
+elif defined(null):
+  import fidget/null
+  export null
 else:
-  import fidget/backendopengl
-  export backendopengl
+  import fidget/opengl
+  export opengl
 export uibase, chroma
-
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
   ## Base template for group, frame, rectange ...
@@ -59,36 +57,29 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   else:
     parent = nil
 
-
 template group*(name: string, inner: untyped): untyped =
   ## Starts a new group.
   node("group", name, inner)
-
 
 template frame*(name: string, inner: untyped): untyped =
   ## Starts a new frame.
   node("frame", name, inner)
 
-
 template rectangle*(name: string, inner: untyped): untyped =
   ## Starts a new rectangle.
   node("rectangle", name, inner)
-
 
 template text*(name: string, inner: untyped): untyped =
   ## Starts a new text element.
   node("text", name, inner)
 
-
 template component*(name: string, inner: untyped): untyped =
   ## Starts a new component.
   node("component", name, inner)
 
-
 template instance*(name: string, inner: untyped): untyped =
   ## Starts a new instance of a component.
   node("component", name, inner)
-
 
 template rectangle*(color: string) =
   ## Shorthand for rectange with fill.
@@ -96,10 +87,8 @@ template rectangle*(color: string) =
     box 0, 0, parent.box.w, parent.box.h
     fill color
 
-
 proc mouseOverlapLogic(): bool =
   (not popupActive or inPopup) and mouse.pos.inside(current.screenBox)
-
 
 template onClick*(inner: untyped) =
   ## OnClick event handler.
@@ -116,54 +105,45 @@ template onRightClick*(inner: untyped) =
   if mouse.rightClick and mouseOverlapLogic():
     inner
 
-
 template onKey*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Press:
     inner
-
 
 template onKeyUp*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Up:
     inner
 
-
 template onKeyDown*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Down:
     inner
 
-
 proc hasKeyboardFocus*(group: Group): bool =
   ## Does a group have keyboard input focus.
   return keyboard.inputFocusIdPath == group.idPath
-
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus.
   if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
-
 template onHover*(inner: untyped) =
   ## Code in the block will run when this box is hovered.
   if mouseOverlapLogic():
     inner
-
 
 template onDown*(inner: untyped) =
   ## Code in the block will run when this mouse is dragging.
   if mouse.down and mouseOverlapLogic():
     inner
 
-
 template onFocus*(inner: untyped) =
   ## On focusing an input element.
   if keyboard.inputFocusIdPath == current.idPath and
       keyboard.prevInputFocusIdPath != current.idPath:
     inner
-
 
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an imput element.
@@ -175,8 +155,8 @@ proc id*(id: string) =
   ## Sets ID.
   current.id = id
 
-
-proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float, textAlignHorizontal, textAlignVertical: int) =
+proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float,
+    textAlignHorizontal, textAlignVertical: int) =
   ## Sets the font.
   current.textStyle.fontFamily = fontFamily
   current.textStyle.fontSize = fontSize
@@ -217,16 +197,13 @@ proc characters*(text: string) =
   else:
     current.text &= text
 
-
 proc placeholder*(text: string) =
   ## Adds placeholder text to the group.
   current.placeholder = text
 
-
 proc image*(imageName: string) =
   ## Adds text to the group.
   current.imageName = imageName
-
 
 proc box*(x, y, w, h: float) =
   ## Sets the box dimensions.
@@ -238,11 +215,9 @@ proc box*(x, y, w, h: float) =
   if parent != nil:
     current.screenBox = current.box + parent.screenBox
 
-
 proc box*(x, y, w, h: int|float32|float) =
   ## Sets the box dimensions with integers
   box(float x, float y, float w, float h)
-
 
 proc box*(rect: Rect) =
   ## Sets the box dimensions with integers
@@ -260,87 +235,71 @@ proc rotation*(rotationInDeg: float) =
   ## Sets rotation in degrees.
   current.rotation = rotationInDeg
 
-
 proc fill*(color: Color) =
   ## Sets background color.
   current.fill = color
-
 
 proc fill*(color: Color, alpha: float32) =
   ## Sets background color.
   current.fill = color
   current.fill.a = alpha
 
-
 proc fill*(color: string, alpha: float32 = 1.0) =
   ## Sets background color.
   current.fill = parseHtmlColor(color)
   current.fill.a = alpha
 
-
 proc transparency*(transparency: float32) =
   ## Sets transparency.
   current.transparency = transparency
-
 
 proc stroke*(color: Color) =
   ## Sets stroke/border color.
   current.stroke = color
 
-
-proc stroke*(color: string, alpha=1.0) =
+proc stroke*(color: string, alpha = 1.0) =
   ## Sets stroke/border color.
   current.stroke = parseHtmlColor(color)
   current.stroke.a = alpha
-
 
 proc strokeWeight*(weight: float) =
   ## Sets stroke/border weight.
   current.strokeWeight = weight
 
-
 proc zLevel*(zLevel: int) =
   ## Sets zLevel.
   current.zLevel = zLevel
-
 
 proc cornerRadius*(a, b, c, d: float) =
   ## Sets all radius of all 4 corners.
   current.cornerRadius = (a, b, c, d)
 
-
 proc cornerRadius*(radius: float) =
   ## Sets all radius of all 4 corners.
   cornerRadius(radius, radius, radius, radius)
-
 
 proc editableText*(editableText: bool) =
   ## Sets the code for this group.
   current.editableText = editableText
 
-
 proc multiline*(multiline: bool) =
   ## Sets if editable text is multiline (textarea) or single line.
   current.multiline = multiline
-
 
 proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.
   current.cursorColor = color
 
-
-proc cursorColor*(color: string, alpha=1.0) =
+proc cursorColor*(color: string, alpha = 1.0) =
   ## Sets the color of the text cursor.
   current.cursorColor = parseHtmlColor(color)
   current.cursorColor.a = alpha
-
 
 proc highlightColor*(color: Color) =
   ## Sets the color of text selection.
   current.highlightColor = color
 
-
-proc highlightColor*(color: string, alpha=1.0) =
+proc highlightColor*(color: string, alpha = 1.0) =
   ## Sets the color of text selection.
   current.highlightColor = parseHtmlColor(color)
   current.highlightColor.a = alpha
@@ -360,7 +319,6 @@ proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
 proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas.
   current.drawable = drawable
-
 
 proc constraints*(vCon: Contraints, hCon: Contraints) =
   ## Sets vertical or horizontal constraint.
@@ -408,11 +366,9 @@ template override*(name: string, inner: untyped) =
   template `name`(): untyped =
     inner
 
-
 # Navigation and URL functions
 # proc goto*(url: string)
 # proc openBrowser*(url: string)
-
 
 proc parseParams*(): TableRef[string, string] =
   ## Parses the params of the main URL.

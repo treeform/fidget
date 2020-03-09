@@ -1,17 +1,14 @@
-import ../../src/fidget
-import math
+import fidget, math
 
 var
   textValue: string
   beEdit = false
 
-when not defined(js):
-  import ../../src/fidget/backendopengl, typography, tables
-  fonts["Ubuntu"] = readFontSVG("Ubuntu.svg")
+loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 
 window.title = "Inputs Example"
 
-drawMain = proc() =
+proc drawMain() =
 
   frame "main":
     box 100, 100, 500, 30
@@ -20,7 +17,7 @@ drawMain = proc() =
     text "input":
       box 0, 0, 500, 30
       fill "#000000"
-      font "Ubuntu", 16.0, 400.0, 15, -1, -1
+      font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, -1
       if beEdit:
         placeholder "[Enabled, type here]"
         binding textValue
@@ -33,7 +30,7 @@ drawMain = proc() =
     text "text":
       box 10, 0, parent.box.w, parent.box.h
       fill "#FFFFFF"
-      font "Ubuntu", 16.0, 400.0, 15, -1, 0
+      font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, 0
       characters "Switch to input:" & $beEdit
 
     onHover:
@@ -44,4 +41,4 @@ drawMain = proc() =
 
       echo "textValue is ", repr(textValue), " s ", keyboard.state
 
-startFidget()
+startFidget(drawMain)

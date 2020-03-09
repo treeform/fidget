@@ -1,13 +1,9 @@
-import ../../src/fidget
+import fidget, math
 
-import print
-import random
-import math
-
-when not defined(js):
-  import ../../src/fidget/backendopengl, typography, tables
-  fonts["Ubuntu"] = readFontSVG("data/Ubuntu.svg")
-
+when defined(js):
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+else:
+  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 
 var
   titleValue = "Lorem ipsum dolor"
@@ -23,13 +19,13 @@ Vivamus mattis congue faucibus. Nullam venenatis ipsum sed lacus pharetra pharet
 Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris mi magna, blandit non pharetra id, convallis in ex. Curabitur ut odio arcu. Praesent nec maximus lectus, eu varius massa. Quisque nec libero a turpis laoreet placerat a a felis. Vivamus dignissim augue vitae accumsan facilisis. Nunc at imperdiet risus. Aliquam elementum, purus id rhoncus eleifend, mauris nisl scelerisque nisl, vitae aliquam nulla enim ac metus.
 """
 
-drawMain = proc() =
+proc drawMain() =
 
   window.title = titleValue
 
   group "title":
     box 100, 10, 200, 50
-    font "Ubuntu", 40.0, 400.0, 50, -1, 0
+    font "IBM Plex Sans Regular", 40.0, 400.0, 50, -1, 0
     rectangle "#F7F7F9"
 
     text "title":
@@ -43,7 +39,7 @@ drawMain = proc() =
 
   group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200
-    font "Ubuntu", 20.0, 400.0, 25, -1, -1
+    font "IBM Plex Sans Regular", 20.0, 400.0, 25, -1, -1
     rectangle "#F7F7F9"
 
     text "input":
@@ -52,4 +48,4 @@ drawMain = proc() =
       multiline true
       binding textValue
 
-startFidget()
+startFidget(drawMain)

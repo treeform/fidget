@@ -1,16 +1,14 @@
-import ../../src/fidget
-import random
-import math
+import fidget, math, random, vmath
 
-# Great for GUI applications, that don't have mulitmida or animations.
-repainEveryFrame = false
+# Great for GUI applications, that don't have multimedia or animations.
+repaintEveryFrame = false
 
 # Create an array of 30 bars.
 var bars = newSeq[float](30)
 for i, bar in bars:
   bars[i] = rand(1.0)
 
-drawMain = proc() =
+proc drawMain() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
@@ -62,4 +60,4 @@ drawMain = proc() =
                 box 0, 0, (barW - 80*2) * float(bar), 40
                 fill "#46D15F"
 
-startFidget()
+startFidget(drawMain)

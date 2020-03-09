@@ -1,13 +1,12 @@
 import chroma, vmath
-# typography
 
 when not defined(js):
   import typography/textboxes
 
 const
-  clearColor* = color(0,0,0,0)
-  whiteColor* = color(1,1,1,1)
-  blackColor* = color(0,0,0,1)
+  clearColor* = color(0, 0, 0, 0)
+  whiteColor* = color(1, 1, 1, 1)
+  blackColor* = color(0, 0, 0, 1)
 
 type
   Contraints* = enum
@@ -88,9 +87,9 @@ type
   Mouse* = ref object
     state: KeyState
     pos*: Vec2
-    click*: bool # mouse button just got held down
-    rightClick*: bool # mouse right click
-    down*: bool # mouse button is held down
+    click*: bool                   # mouse button just got held down
+    rightClick*: bool              # mouse right click
+    down*: bool                    # mouse button is held down
     cursorStyle*: MouseCursorStyle # sets the mouse cursor icon
 
   Keyboard* = ref object
@@ -105,9 +104,8 @@ type
     inputFocusIdPath*: string
     prevInputFocusIdPath*: string
     input*: string
-    textCursor*: int # at which character in the input string are we
+    textCursor*: int      # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
-
 
   Perf* = object
     drawMain*: float
@@ -129,13 +127,12 @@ var
   scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
 
   ## Set to true so that it repains every frame, used for:
-  ##   games and multimidia with animations apps.
+  ##   games and multimedia apps rendering in realtime.
   ## Set to false so that it repains only following user action, used for:
-  ##   animationless UI apps.
-  repainEveryFrame*: bool = true
+  ##   mainstream app UIs.
+  repaintEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
-  drawMain*: proc()
   perf*: Perf
   requestedFrame*: bool
   numGroups*: int
@@ -144,6 +141,7 @@ var
   inPopup*: bool
   #fonts* = newTable[string, Font]()
 
+  fullscreen* = false
   windowSize*: Vec2
   windowFrame*: Vec2
   dpi*: float
@@ -154,7 +152,6 @@ when not defined(js):
 
 mouse = Mouse()
 mouse.pos = Vec2()
-
 
 proc setupRoot*() =
   prevRoot = root
@@ -176,37 +173,5 @@ proc use*(keyboard: Keyboard) =
   keyboard.shiftKey = false
   keyboard.superKey = false
 
-
 proc use*(mouse: Mouse) =
   mouse.click = false
-
-
-proc clamp*(value, min, max: int): int =
-  ## Makes sure the value is between min and max inclusive
-  max(min, min(value, max))
-
-
-proc between*(value, min, max: float32|float|int): bool =
-  ## Returns true if value is between min and max or equals to them.
-  (value >= min) and (value <= max)
-
-
-proc inside*(p: Vec2, b: Rect): bool =
-  ## Return true if position is inside the box.
-  return p.x > b.x and p.x < b.x + b.w and p.y > b.y and p.y < b.y + b.h
-
-
-proc overlap*(a, b: Rect): bool =
-  ## Returns true if box a overlaps box b.
-  let
-    xOverlap = between(a.x, b.x, b.x + b.w) or between(b.x, a.x, a.x + a.w)
-    yOverlap = between(a.y, b.y, b.y + b.h) or between(b.y, a.y, a.y + a.h)
-  return xOverlap and yOverlap
-
-
-proc `+`*(a, b: Rect): Rect =
-  ## Add two boxes together.
-  result.x = a.x + b.x
-  result.y = a.y + b.y
-  result.w = a.w
-  result.h = a.h

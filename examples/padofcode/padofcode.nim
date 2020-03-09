@@ -1,13 +1,6 @@
-import ../../src/fidget
+import fidget, math, print, random, tables
 
-import print
-import random, tables, math
-
-
-when not defined(js):
-  import ../../src/fidget/backendopengl, typography
-  fonts["Inconsolata"] = readFontSVG("Inconsolata.svg")
-
+loadFont("Inconsolata", "../data/Inconsolata.svg")
 
 var
   textValue = """
@@ -17,7 +10,7 @@ FROM bar
 WHERE a = 234 and b = "nothing"
 """
 
-drawMain = proc() =
+proc drawMain() =
 
   window.title = "Pad of Code"
 
@@ -32,4 +25,4 @@ drawMain = proc() =
       multiline true
       binding textValue
 
-startFidget()
+startFidget(drawMain)

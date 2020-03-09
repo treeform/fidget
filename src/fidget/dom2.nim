@@ -171,7 +171,7 @@ type
     previousSibling*: Node
     innerHTML*: cstring
     innerText*: cstring
-    textContent *: cstring
+    textContent*: cstring
     style*: Style
 
   Document* = ref DocumentObj
@@ -1072,12 +1072,12 @@ when defined(nodejs):
       inc i
     #doAssert false, "before not in node list"
 
-  proc createElement*(d: Document, identifier: cstring): Element =
+  proc createElement*(d: Document; identifier: cstring): Element =
     new(result)
     result.nodeName = identifier
     result.nodeType = NodeType.ElementNode
 
-  proc createTextNode*(d: Document, identifier: cstring): Node =
+  proc createTextNode*(d: Document; identifier: cstring): Node =
     new(result)
     result.nodeName = "#text"
     result.nodeValue = identifier
@@ -1086,105 +1086,107 @@ when defined(nodejs):
 else:
   proc len*(x: Node): int {.importcpp: "#.childNodes.length".}
   proc `[]`*(x: Node; idx: int): Element {.importcpp: "#.childNodes[#]".}
-  proc getElementById*(id: cstring): Element {.importc: "document.getElementById", nodecl.}
+  proc getElementById*(id: cstring): Element {.
+      importc: "document.getElementById", nodecl.}
   proc appendChild*(n, child: Node) {.importcpp.}
   proc removeChild*(n, child: Node) {.importcpp.}
   proc replaceChild*(n, newNode, oldNode: Node) {.importcpp.}
   proc insertBefore*(n, newNode, before: Node) {.importcpp.}
-  proc getElementById*(d: Document, id: cstring): Element {.importcpp.}
-  proc createElement*(d: Document, identifier: cstring): Element {.importcpp.}
-  proc createTextNode*(d: Document, identifier: cstring): Node {.importcpp.}
+  proc getElementById*(d: Document; id: cstring): Element {.importcpp.}
+  proc createElement*(d: Document; identifier: cstring): Element {.importcpp.}
+  proc createTextNode*(d: Document; identifier: cstring): Node {.importcpp.}
 
 proc setTimeout*(action: proc(); ms: int): Timeout {.importc, nodecl.}
 proc clearTimeout*(t: Timeout) {.importc, nodecl.}
 
-
 {.push importcpp.}
 
 # EventTarget "methods"
-proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), useCapture: bool = false)
-proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), options: AddEventListenerOptions)
-proc dispatchEvent*(et: EventTarget, ev: Event)
+proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event);
+    useCapture: bool = false)
+proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event);
+    options: AddEventListenerOptions)
+proc dispatchEvent*(et: EventTarget; ev: Event)
 proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event))
 
 # Window "methods"
-proc alert*(w: Window, msg: cstring)
+proc alert*(w: Window; msg: cstring)
 proc back*(w: Window)
 proc blur*(w: Window)
-proc captureEvents*(w: Window, eventMask: int) {.deprecated.}
-proc clearInterval*(w: Window, interval: ref Interval)
-proc clearTimeout*(w: Window, timeout: ref TimeOut)
+proc captureEvents*(w: Window; eventMask: int) {.deprecated.}
+proc clearInterval*(w: Window; interval: ref Interval)
+proc clearTimeout*(w: Window; timeout: ref TimeOut)
 proc close*(w: Window)
-proc confirm*(w: Window, msg: cstring): bool
+proc confirm*(w: Window; msg: cstring): bool
 proc disableExternalCapture*(w: Window)
 proc enableExternalCapture*(w: Window)
-proc find*(w: Window, text: cstring, caseSensitive = false,
+proc find*(w: Window; text: cstring; caseSensitive = false;
            backwards = false)
 proc focus*(w: Window)
 proc forward*(w: Window)
-proc getComputedStyle*(w: Window, e: Node, pe:Node = nil): Style
-proc handleEvent*(w: Window, e: Event)
+proc getComputedStyle*(w: Window; e: Node; pe: Node = nil): Style
+proc handleEvent*(w: Window; e: Event)
 proc home*(w: Window)
-proc moveBy*(w: Window, x, y: int)
-proc moveTo*(w: Window, x, y: int)
-proc open*(w: Window, uri, windowname: cstring,
+proc moveBy*(w: Window; x, y: int)
+proc moveTo*(w: Window; x, y: int)
+proc open*(w: Window; uri, windowname: cstring;
            properties: cstring = nil): Window
 proc print*(w: Window)
-proc prompt*(w: Window, text, default: cstring): cstring
-proc releaseEvents*(w: Window, eventMask: int) {.deprecated.}
-proc resizeBy*(w: Window, x, y: int)
-proc resizeTo*(w: Window, x, y: int)
-proc routeEvent*(w: Window, event: Event)
-proc scrollBy*(w: Window, x, y: int)
-proc scrollTo*(w: Window, x, y: int)
-proc setInterval*(w: Window, code: cstring, pause: int): ref Interval
-proc setInterval*(w: Window, function: proc (), pause: int): ref Interval
-proc setTimeout*(w: Window, code: cstring, pause: int): ref TimeOut
-proc setTimeout*(w: Window, function: proc (), pause: int): ref Interval
+proc prompt*(w: Window; text, default: cstring): cstring
+proc releaseEvents*(w: Window; eventMask: int) {.deprecated.}
+proc resizeBy*(w: Window; x, y: int)
+proc resizeTo*(w: Window; x, y: int)
+proc routeEvent*(w: Window; event: Event)
+proc scrollBy*(w: Window; x, y: int)
+proc scrollTo*(w: Window; x, y: int)
+proc setInterval*(w: Window; code: cstring; pause: int): ref Interval
+proc setInterval*(w: Window; function: proc (); pause: int): ref Interval
+proc setTimeout*(w: Window; code: cstring; pause: int): ref TimeOut
+proc setTimeout*(w: Window; function: proc (); pause: int): ref Interval
 proc stop*(w: Window)
-proc requestAnimationFrame*(w: Window, function: proc (time: float)): int
-proc cancelAnimationFrame*(w: Window, id: int)
+proc requestAnimationFrame*(w: Window; function: proc (time: float)): int
+proc cancelAnimationFrame*(w: Window; id: int)
 
 # Node "methods"
-proc appendData*(n: Node, data: cstring)
-proc cloneNode*(n: Node, copyContent: bool): Node
-proc deleteData*(n: Node, start, len: int)
+proc appendData*(n: Node; data: cstring)
+proc cloneNode*(n: Node; copyContent: bool): Node
+proc deleteData*(n: Node; start, len: int)
 proc focus*(e: Node)
-proc getAttribute*(n: Node, attr: cstring): cstring
-proc getAttributeNode*(n: Node, attr: cstring): Node
+proc getAttribute*(n: Node; attr: cstring): cstring
+proc getAttributeNode*(n: Node; attr: cstring): Node
 proc hasChildNodes*(n: Node): bool
-proc insertData*(n: Node, position: int, data: cstring)
-proc removeAttribute*(n: Node, attr: cstring)
+proc insertData*(n: Node; position: int; data: cstring)
+proc removeAttribute*(n: Node; attr: cstring)
 proc removeAttributeNode*(n, attr: Node)
-proc replaceData*(n: Node, start, len: int, text: cstring)
+proc replaceData*(n: Node; start, len: int; text: cstring)
 proc scrollIntoView*(n: Node)
-proc setAttribute*(n: Node, name, value: cstring)
-proc setAttributeNode*(n: Node, attr: Node)
+proc setAttribute*(n: Node; name, value: cstring)
+proc setAttributeNode*(n: Node; attr: Node)
 
 # Document "methods"
-proc captureEvents*(d: Document, eventMask: int) {.deprecated.}
-proc createAttribute*(d: Document, identifier: cstring): Node
-proc getElementsByName*(d: Document, name: cstring): seq[Element]
-proc getElementsByTagName*(d: Document, name: cstring): seq[Element]
-proc getElementsByClassName*(d: Document, name: cstring): seq[Element]
+proc captureEvents*(d: Document; eventMask: int) {.deprecated.}
+proc createAttribute*(d: Document; identifier: cstring): Node
+proc getElementsByName*(d: Document; name: cstring): seq[Element]
+proc getElementsByTagName*(d: Document; name: cstring): seq[Element]
+proc getElementsByClassName*(d: Document; name: cstring): seq[Element]
 proc getSelection*(d: Document): Selection
-proc handleEvent*(d: Document, event: Event)
+proc handleEvent*(d: Document; event: Event)
 proc open*(d: Document)
-proc releaseEvents*(d: Document, eventMask: int) {.deprecated.}
-proc routeEvent*(d: Document, event: Event)
-proc write*(d: Document, text: cstring)
-proc writeln*(d: Document, text: cstring)
-proc querySelector*(d: Document, selectors: cstring): Element
-proc querySelectorAll*(d: Document, selectors: cstring): seq[Element]
+proc releaseEvents*(d: Document; eventMask: int) {.deprecated.}
+proc routeEvent*(d: Document; event: Event)
+proc write*(d: Document; text: cstring)
+proc writeln*(d: Document; text: cstring)
+proc querySelector*(d: Document; selectors: cstring): Element
+proc querySelectorAll*(d: Document; selectors: cstring): seq[Element]
 
 # Element "methods"
 proc blur*(e: Element)
 proc click*(e: Element)
 proc focus*(e: Element)
-proc handleEvent*(e: Element, event: Event)
+proc handleEvent*(e: Element; event: Event)
 proc select*(e: Element)
-proc getElementsByTagName*(e: Element, name: cstring): seq[Element]
-proc getElementsByClassName*(e: Element, name: cstring): seq[Element]
+proc getElementsByTagName*(e: Element; name: cstring): seq[Element]
+proc getElementsByClassName*(e: Element; name: cstring): seq[Element]
 
 # FormElement "methods"
 proc reset*(f: FormElement)
@@ -1198,28 +1200,28 @@ proc stop*(e: EmbedElement)
 
 # Location "methods"
 proc reload*(loc: Location)
-proc replace*(loc: Location, s: cstring)
+proc replace*(loc: Location; s: cstring)
 
 # History "methods"
 proc back*(h: History)
 proc forward*(h: History)
-proc go*(h: History, pagesToJump: int)
-proc pushState*[T](h: History, stateObject: T, title, url: cstring)
+proc go*(h: History; pagesToJump: int)
+proc pushState*[T](h: History; stateObject: T; title, url: cstring)
 
 # Navigator "methods"
 proc javaEnabled*(h: Navigator): bool
 
 # ClassList "methods"
-proc add*(c: ClassList, class: cstring)
-proc remove*(c: ClassList, class: cstring)
-proc contains*(c: ClassList, class: cstring): bool
-proc toggle*(c: ClassList, class: cstring)
+proc add*(c: ClassList; class: cstring)
+proc remove*(c: ClassList; class: cstring)
+proc contains*(c: ClassList; class: cstring): bool
+proc toggle*(c: ClassList; class: cstring)
 
 # Style "methods"
-proc getPropertyValue*(s: Style, property: cstring): cstring
-proc removeProperty*(s: Style, property: cstring)
-proc setProperty*(s: Style, property, value: cstring, priority = "")
-proc getPropertyPriority*(s: Style, property: cstring): cstring
+proc getPropertyValue*(s: Style; property: cstring): cstring
+proc removeProperty*(s: Style; property: cstring)
+proc setProperty*(s: Style; property, value: cstring; priority = "")
+proc getPropertyPriority*(s: Style; property: cstring): cstring
 
 # Event "methods"
 proc preventDefault*(ev: Event)
@@ -1227,32 +1229,36 @@ proc stopImmediatePropagation*(ev: Event)
 proc stopPropagation*(ev: Event)
 
 # KeyboardEvent "methods"
-proc getModifierState*(ev: KeyboardEvent, keyArg: cstring): bool
+proc getModifierState*(ev: KeyboardEvent; keyArg: cstring): bool
 
 # MouseEvent "methods"
-proc getModifierState*(ev: MouseEvent, keyArg: cstring): bool
+proc getModifierState*(ev: MouseEvent; keyArg: cstring): bool
 
 # TouchEvent "methods"
 proc identifiedTouch*(list: TouchList): Touch
-proc item*(list: TouchList, i: int): Touch
+proc item*(list: TouchList; i: int): Touch
 
 # DataTransfer "methods"
-proc clearData*(dt: DataTransfer, format: cstring)
-proc getData*(dt: DataTransfer, format: cstring): cstring
-proc setData*(dt: DataTransfer, format: cstring, data: cstring)
-proc setDragImage*(dt: DataTransfer, img: Element, xOffset: int64, yOffset: int64)
+proc clearData*(dt: DataTransfer; format: cstring)
+proc getData*(dt: DataTransfer; format: cstring): cstring
+proc setData*(dt: DataTransfer; format: cstring; data: cstring)
+proc setDragImage*(dt: DataTransfer; img: Element; xOffset: int64;
+    yOffset: int64)
 
 # DataTransferItem "methods"
 proc getAsFile*(dti: DataTransferItem): File
 
 # InputElement "methods"
-proc setSelectionRange*(e: InputElement, selectionStart: int, selectionEnd: int, selectionDirection: cstring = "none")
-proc setRangeText*(e: InputElement, replacement: cstring, startindex: int = 0, endindex: int = 0, selectionMode: cstring = "preserve")
-proc setCustomValidity*(e: InputElement, error: cstring)
+proc setSelectionRange*(e: InputElement; selectionStart: int; selectionEnd: int;
+    selectionDirection: cstring = "none")
+proc setRangeText*(e: InputElement; replacement: cstring; startindex: int = 0;
+    endindex: int = 0; selectionMode: cstring = "preserve")
+proc setCustomValidity*(e: InputElement; error: cstring)
 proc checkValidity*(e: InputElement): bool
 
 # Blob "methods"
-proc slice*(e: Blob, startindex: int = 0, endindex: int = e.size, contentType: cstring = "")
+proc slice*(e: Blob; startindex: int = 0; endindex: int = e.size;
+    contentType: cstring = "")
 
 # Performance "methods"
 proc now*(p: Performance): float
@@ -1263,11 +1269,11 @@ proc toString*(s: Selection): cstring
 proc `$`*(s: Selection): string = $(s.toString())
 
 # LocalStorage "methods"
-proc getItem*(ls: LocalStorage, key: cstring): cstring
-proc setItem*(ls: LocalStorage, key, value: cstring)
-proc hasItem*(ls: LocalStorage, key: cstring): bool
+proc getItem*(ls: LocalStorage; key: cstring): cstring
+proc setItem*(ls: LocalStorage; key, value: cstring)
+proc hasItem*(ls: LocalStorage; key: cstring): bool
 proc clear*(ls: LocalStorage)
-proc removeItem*(ls: LocalStorage, key: cstring)
+proc removeItem*(ls: LocalStorage; key: cstring)
 
 {.pop.}
 
@@ -1296,7 +1302,6 @@ proc newEvent*(name: cstring): Event {.importcpp: "new Event(@)", constructor.}
 
 proc getElementsByClass*(n: Node; name: cstring): seq[Node] {.
   importcpp: "#.getElementsByClassName(#)", nodecl.}
-
 
 type
   BoundingRect* {.importc.} = object
