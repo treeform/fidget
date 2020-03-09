@@ -1,5 +1,4 @@
 import chroma, vmath
-# typography
 
 when not defined(js):
   import typography/textboxes
@@ -128,9 +127,9 @@ var
   scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
 
   ## Set to true so that it repains every frame, used for:
-  ##   games and multimidia with animations apps.
+  ##   games and multimedia apps rendering in realtime.
   ## Set to false so that it repains only following user action, used for:
-  ##   animationless UI apps.
+  ##   mainstream app UIs.
   repaintEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
@@ -142,6 +141,7 @@ var
   inPopup*: bool
   #fonts* = newTable[string, Font]()
 
+  fullscreen* = false
   windowSize*: Vec2
   windowFrame*: Vec2
   dpi*: float

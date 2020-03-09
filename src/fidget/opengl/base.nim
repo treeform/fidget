@@ -22,8 +22,6 @@ var
 
   multisampling*: int
 
-windowFrame = vec2(2000, 1000)
-
 proc onResize() =
   eventHappend = true
   var cwidth, cheight: cint
@@ -149,15 +147,19 @@ proc start*() =
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
-  # Open a window
-
-  # var monitor = GetPrimaryMonitor()
-  # var mode = GetVideoMode(monitor)
-  # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
-
   perf "open window":
-    window = createWindow(cint windowFrame.x, cint windowFrame.y,
-        uibase.window.innerTitle, nil, nil)
+    if fullscreen:
+      var monitor = getPrimaryMonitor()
+      var mode = getVideoMode(monitor)
+      window = createWindow(mode.width, mode.height, uibase.window.innerTitle,
+          monitor, nil)
+
+      var cwidth, cheight: cint
+      window.getWindowSize(addr cwidth, addr cheight)
+      windowFrame = vec2(cwidth.float32, cheight.float32)
+    else:
+      window = createWindow(cint windowFrame.x, cint windowFrame.y,
+          uibase.window.innerTitle, nil, nil)
 
   if window.isNil:
     quit("Failed to open GLFW window.")
@@ -344,7 +346,6 @@ proc start*() =
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
 
   perfMark("end start base")
-
 
 proc captureMouse*() =
   setInputMode(window, CURSOR, CURSOR_DISABLED)
