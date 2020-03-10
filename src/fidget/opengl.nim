@@ -1,11 +1,11 @@
-import chroma, strutils, tables, times, typography, typography/textboxes, vmath
+import chroma, internal, opengl/context, opengl/input, strutils, tables, times,
+    typography, typography/textboxes, uibase, vmath
+
 when defined(ios) or defined(android):
   import opengl/basemobile as base
 else:
   import opengl/base as base
-import internal, opengl/context, opengl/input, uibase
 
-export windowFrame
 export input
 
 var
@@ -212,7 +212,7 @@ proc goto*(url: string) =
   rootUrl = url
   redraw()
 
-proc setupFidget*() {.exportc.} =
+proc setupFidget() =
   base.start()
 
   when defined(ios):
@@ -247,16 +247,30 @@ proc setupFidget*() {.exportc.} =
 
   useDepthBuffer(false)
 
-proc startFidget*(draw: proc()) =
-  ## Starts Fidget UI library
+proc runFidget(draw: proc()) =
   drawMain = draw
-  when defined(ios) or defined(android):
-    discard
-  else:
-    setupFidget()
-    while base.running:
-      base.tick()
-    base.exit()
+  setupFidget()
+  while base.running:
+    base.tick()
+  base.exit()
+
+when defined(ios) or defined(android):
+  proc startFidget*(draw: proc()) =
+    ## Starts Fidget UI library
+    runFidget(draw)
+else:
+  proc startFidget*(
+      draw: proc(),
+      fullscreen = false,
+      w: Positive = 1280,
+      h: Positive = 800
+  ) =
+    ## Starts Fidget UI library
+    uibase.fullscreen = fullscreen
+    if not fullscreen:
+      windowFrame = vec2(w.float32, h.float32)
+
+    runFidget(draw)
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window url

@@ -1,9 +1,5 @@
-import chroma, input, opengl, os, perf, staticglfw, typography/textboxes,
-    unicode, vmath
-
-import ../uibase
-# if defined(ios) or defined(android):
-#   {.fatal: "This module can only be used on desktop windows, macos or linux.".}
+import ../uibase, chroma, input, opengl, os, perf, staticglfw,
+    typography/textboxes, unicode, vmath
 
 var
   window*: staticglfw.Window
@@ -18,14 +14,12 @@ var
   fpsTimeSeries = newTimeSeries()
   avgFrameTime*: float64
   fps*: float64 = 60
-  eventHappend*: bool
+  eventHappened*: bool
 
   multisampling*: int
 
-windowFrame = vec2(2000, 1000)
-
 proc onResize() =
-  eventHappend = true
+  eventHappened = true
   var cwidth, cheight: cint
   window.getWindowSize(addr cwidth, addr cheight)
   windowSize.x = float(cwidth)
@@ -55,6 +49,7 @@ proc tick*(poll = true) =
 
   if window.windowShouldClose() != 0:
     running = false
+    return
 
   if windowSize == vec2(0, 0):
     # window is minimized, don't do any drawing
@@ -62,13 +57,13 @@ proc tick*(poll = true) =
     return
 
   if not repaintEveryFrame:
-    if not eventHappend:
+    if not eventHappened:
       # repaintEveryFrame is false
       # so only repain on evnets, event did not happen!
       os.sleep(16)
       return
     else:
-      eventHappend = false
+      eventHappened = false
 
   block:
     var x, y: float64
@@ -102,7 +97,7 @@ proc tick*(poll = true) =
   perfMark("SwapBuffers")
 
   perfMark("--- end frame")
-  prefDump = buttonDown[F10]
+  perfEnabled = buttonDown[F10]
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
@@ -121,7 +116,6 @@ proc useDepthBuffer*(on: bool) =
 
 proc exit*() =
   # cleanup GLFW
-  window.destroyWindow()
   terminate()
 
 proc glGetInteger(what: GLenum): int =
@@ -149,15 +143,19 @@ proc start*() =
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
-  # Open a window
-
-  # var monitor = GetPrimaryMonitor()
-  # var mode = GetVideoMode(monitor)
-  # window = CreateWindow(mode.width, mode.height, uibase.window.innerTitle, monitor, nil)
-
   perf "open window":
-    window = createWindow(cint windowFrame.x, cint windowFrame.y,
-        uibase.window.innerTitle, nil, nil)
+    if fullscreen:
+      var monitor = getPrimaryMonitor()
+      var mode = getVideoMode(monitor)
+      window = createWindow(mode.width, mode.height, uibase.window.innerTitle,
+          monitor, nil)
+
+      var cwidth, cheight: cint
+      window.getWindowSize(addr cwidth, addr cheight)
+      windowFrame = vec2(cwidth.float32, cheight.float32)
+    else:
+      window = createWindow(cint windowFrame.x, cint windowFrame.y,
+          uibase.window.innerTitle, nil, nil)
 
   if window.isNil:
     quit("Failed to open GLFW window.")
@@ -215,7 +213,7 @@ proc start*() =
 
   proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint;
       action: cint; modifiers: cint) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     var setKey = action != RELEASE
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
     keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (
@@ -283,7 +281,7 @@ proc start*() =
 
   proc onScroll(window: staticglfw.Window, xoffset: float64,
       yoffset: float64) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     if keyboard.inputFocusIdPath != "":
       textBox.scrollBy(-yoffset * 50)
     else:
@@ -292,7 +290,7 @@ proc start*() =
 
   proc onMouseButton(window: staticglfw.Window; button: cint; action: cint;
       modifiers: cint) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     var setKey = action != 0
     let button = button + 1
     mouse.down = setKey
@@ -309,11 +307,11 @@ proc start*() =
   discard window.setMouseButtonCallback(onMouseButton)
 
   proc onMouseMove(window: staticglfw.Window; x, y: cdouble) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
   discard window.setCursorPosCallback(onMouseMove)
 
   proc onSetCharCallback(window: staticglfw.Window; character: cuint) {.cdecl.} =
-    eventHappend = true
+    eventHappened = true
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
       textBox.typeCharacter(Rune(character))
@@ -344,7 +342,6 @@ proc start*() =
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
 
   perfMark("end start base")
-
 
 proc captureMouse*() =
   setInputMode(window, CURSOR, CURSOR_DISABLED)

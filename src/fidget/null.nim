@@ -2,6 +2,7 @@
 ## Not a real backend will not draw anything
 
 import internal, times, uibase
+
 proc draw*(group: Group) =
   ## Draws the group
 

@@ -1,6 +1,11 @@
 import chroma, dom2 as dom, html5_canvas, internal, math, strformat, strutils,
     tables, uibase, vmath
 
+type
+  PerfCounter* = object
+    drawMain*: float
+    numLowLevelCalls*: int
+
 var
   groupCache*: seq[Group]
   domCache*: seq[Element]
@@ -10,6 +15,8 @@ var
   ctx*: CanvasRenderingContext2D
 
   forceTextRelayout*: bool
+
+  perf*: PerfCounter
 
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
@@ -47,9 +54,6 @@ proc computeTextBox*(text: string, width: float, fontName: string,
   result[1] = float tempDiv.clientHeight
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
-  # echo "---"
-  # echo key
-  # echo result
 
 proc computeTextHeight*(text: string, width: float, fontName: string,
     fontSize: float): float =
@@ -228,9 +232,6 @@ proc drawDiff(current: Group) =
       if old.text != current.text:
         if document.activeElement != dom:
           cast[TextAreaElement](dom).value = current.text
-        if current.tag == "input":
-          dom.style.paddingBottom = $(current.box.h -
-              current.textStyle.lineHeight) & "px"
     else:
       if forceTextRelayout or (old.text != current.text):
         inc perf.numLowLevelCalls
@@ -272,6 +273,16 @@ proc drawDiff(current: Group) =
 
           current.textOffset.x = 0
           current.textOffset.y = 0
+
+  if current.tag == "input":
+    dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
+    case current.textStyle.textAlignVertical:
+      of -1:
+        dom.style.textAlign = "left"
+      of 1:
+        dom.style.textAlign = "right"
+      else:
+        dom.style.textAlign = "center"
 
   # check position on screen
   if old.screenBox != current.screenBox or old.textOffset != current.textOffset:
