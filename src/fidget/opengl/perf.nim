@@ -1,23 +1,23 @@
 import math, strformat, strutils, tables, times
 
 type
-  EntryType = enum
+  EntryKind = enum
     Begin, End, Mark
 
   PerfEntry* = ref object
     tag: string
     time: float
-    `type`: EntryType
+    kind: EntryKind
 
 var
   perfEnabled* = true
   defaultBuffer: seq[PerfEntry]
 
-proc addEntry(tag: string, `type`: EntryType, buffer: var seq[PerfEntry]) =
+proc addEntry(tag: string, kind: EntryKind, buffer: var seq[PerfEntry]) =
   var entry = PerfEntry()
   entry.tag = tag
   entry.time = epochTime()
-  entry.`type` = `type`
+  entry.kind = kind
 
   buffer.add(entry)
 
@@ -42,13 +42,13 @@ proc `$`*(buffer: seq[PerfEntry]): string =
     return
 
   var
-    lines = newSeqOfCap[string](0)
+    lines: seq[string]
     indent = ""
     prevTime = buffer[0].time
 
   for i, entry in buffer:
     let delta = entry.time - prevTime
-    case entry.`type`:
+    case entry.kind:
       of Begin:
         lines.add(fmt"[{delta:>8.6f}] {indent}{entry.tag} [")
         indent.add("  ")
