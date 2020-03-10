@@ -1,9 +1,5 @@
-import chroma, input, opengl, os, perf, staticglfw, typography/textboxes,
-    unicode, vmath
-
-import ../uibase
-# if defined(ios) or defined(android):
-#   {.fatal: "This module can only be used on desktop windows, macos or linux.".}
+import ../uibase, chroma, input, opengl, os, perf, staticglfw,
+    typography/textboxes, unicode, vmath
 
 var
   window*: staticglfw.Window
@@ -53,6 +49,7 @@ proc tick*(poll = true) =
 
   if window.windowShouldClose() != 0:
     running = false
+    return
 
   if windowSize == vec2(0, 0):
     # window is minimized, don't do any drawing
@@ -100,7 +97,7 @@ proc tick*(poll = true) =
   perfMark("SwapBuffers")
 
   perfMark("--- end frame")
-  prefDump = buttonDown[F10]
+  perfEnabled = buttonDown[F10]
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
@@ -119,7 +116,6 @@ proc useDepthBuffer*(on: bool) =
 
 proc exit*() =
   # cleanup GLFW
-  window.destroyWindow()
   terminate()
 
 proc glGetInteger(what: GLenum): int =
