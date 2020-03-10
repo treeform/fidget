@@ -1,35 +1,40 @@
-import ../uibase, math, opengl, shaders, strformat, textures, vmath
+import ../uibase, chroma, math, opengl, shaders, strformat, textures, vmath
 when defined(ios) or defined(android):
   import basemobile as base
 else:
   import base as base
-import chroma
 
 type
   VertBufferKind* = enum
+    ## Type of a buffer - what data does it hold.
     Position, Color, Uv, Normal, BiNormal
 
   VertBuffer* = ref object
+    ## Buffer and data holder.
     kind*: VertBufferKind
     stride*: int
     data*: seq[float32]
     vbo*: GLuint
 
   UniformKind* = enum
+    ## Type of a uniform.
     UniformVec3
 
   Uniform* = ref object
+    ## Uniform that holds data.
     name*: string
     kind*: UniformKind
     loc*: int
     vec3*: Vec3
 
   TexUniform* = object
+    ## Texture uniform
     name*: string
     loc*: int
     texture*: Texture
 
   Mesh* = ref object
+    ## Main mesh object that has everything it needs to render.
     name*: string
     buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
@@ -42,8 +47,11 @@ type
     drawMode*: GLenum
     vao*: GLuint
 
-proc newVertBuffer*(kind: VertBufferKind, stride: int = 0,
+proc newVertBuffer*(
+    kind: VertBufferKind,
+    stride: int = 0,
     size: int = 0): VertBuffer =
+  ## Create a new vertex buffer.
   result = VertBuffer()
   result.kind = kind
   if stride == 0:
@@ -63,29 +71,34 @@ proc newVertBuffer*(kind: VertBufferKind, stride: int = 0,
   result.data = newSeq[float32](result.stride * size)
   glGenBuffers(1, addr result.vbo)
 
-proc uploadBuf*(buf: VertBuffer) =
-  if buf.data.len > 0:
-    glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
-    glBufferData(GL_ARRAY_BUFFER, buf.data.len * 4, addr buf.data[0], GL_STATIC_DRAW)
+proc len*(buf: VertBuffer): int =
+  ## Get the length of the buffer.
+  buf.data.len div buf.stride
 
 proc uploadBuf*(buf: VertBuffer, max: int) =
+  ## Upload only a part of the buffer up to the max.
+  ## Create for dynamic buffers that are sized bigger then the data hey hold.
+  var len = buf.stride * max * 4
   glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
-  glBufferData(GL_ARRAY_BUFFER, buf.stride * max * 4, addr buf.data[0], GL_STATIC_DRAW)
+  glBufferData(GL_ARRAY_BUFFER, len, addr buf.data[0], GL_STATIC_DRAW)
+
+proc uploadBuf*(buf: VertBuffer) =
+  ## Upload a buffer to the GPU.
+  ## Needed if you have updated the buffer and want to send new changes.
+  if buf.len > 0:
+    buf.uploadBuf(buf.len)
 
 proc bindBuf*(buf: VertBuffer, mesh: Mesh, index: int) =
+  ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
-  #echo "bind ", buf.kind, " to ", index
-
-  let loc = glGetAttribLocation(mesh.shader, uniformName)
-
-  #echo "glGetAttribLocation ", loc
-
+  let loc = glGetAttribLocation(mesh.shader, uniformName).GLuint
   glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
-  glVertexAttribPointer(GLuint loc, GLint buf.stride, cGL_FLOAT, GL_FALSE, 0, nil)
+  glVertexAttribPointer(loc, buf.stride.GLint, cGL_FLOAT, GL_FALSE, 0, nil)
   glEnableVertexAttribArray(GLuint index)
 
 proc newMesh*(): Mesh =
-  #echo "new mesh"
+  ## Creates a empty new mesh.
+  ## New vert buffers need to be added.
   result = Mesh()
   result.mat = identity()
   result.buffers = newSeq[VertBuffer]()
@@ -98,29 +111,35 @@ proc newMesh*(): Mesh =
     glGenVertexArrays(1, addr result.vao)
 
 proc newBasicMesh*(): Mesh =
+  ## Create a basic mesh, with only the position buffers.
   result = newMesh()
   result.buffers.add newVertBuffer(Position)
 
 proc newColorMesh*(): Mesh =
+  ## Create a basic mesh, with position and color buffers.
   result = newMesh()
   result.buffers.add newVertBuffer(Position)
   result.buffers.add newVertBuffer(Color)
 
 proc newUvMesh*(): Mesh =
+  ## Create a basic mesh, with position and uv buffers.
   result = newMesh()
   result.buffers.add newVertBuffer(Position)
   result.buffers.add newVertBuffer(Uv)
 
 proc newUvColorMesh*(size: int = 0): Mesh =
+  ## Create a basic mesh, with position, color and uv buffers.
   result = newMesh()
   result.buffers.add newVertBuffer(Position, size = size)
   result.buffers.add newVertBuffer(Uv, size = size)
   result.buffers.add newVertBuffer(Color, size = size)
 
 proc loadShader*(mesh: Mesh, vertFileName: string, fragFileName: string) =
+  ## Load the shader
   mesh.shader = compileShaderFiles(vertFileName, fragFileName)
 
 proc loadTexture*(mesh: Mesh, name: string, texture: Texture) =
+  ## Load the texture ad attach it to a uniform.
   var uniform = TexUniform()
   uniform.name = name
   uniform.texture = texture
@@ -131,16 +150,17 @@ proc loadTexture*(mesh: Mesh, name: string, texture: Texture) =
   mesh.textures.add(uniform)
 
 proc upload*(mesh: Mesh) =
-  ## When bufers change, uploads them to GPU
+  ## When buffers change, uploads them to GPU.
   for buf in mesh.buffers.mitems:
     buf.uploadBuf()
 
 proc upload*(mesh: Mesh, max: int) =
-  ## When bufers change, uploads them to GPU
+  ## When buffers change, uploads them to GPU.
   for buf in mesh.buffers.mitems:
     buf.uploadBuf(max)
 
 proc finalize*(mesh: Mesh) =
+  ## Calls this to upload all the data nad uniforms.
   mesh.upload()
   when defined(android):
     glBindVertexArrayOES(mesh.vao)
@@ -150,17 +170,20 @@ proc finalize*(mesh: Mesh) =
     buf.bindBuf(mesh, i)
 
 proc addVert*(buf: VertBuffer, v: Vec2) =
+  ## Add a vertex to the buffer.
   assert buf.stride == 2
   buf.data.add(v.x)
   buf.data.add(v.y)
 
 proc addVert*(buf: VertBuffer, v: Vec3) =
+  ## Add a vertex to the buffer.
   assert buf.stride == 3
   buf.data.add(v.x)
   buf.data.add(v.y)
   buf.data.add(v.z)
 
 proc addVert*(buf: VertBuffer, v: Vec4) =
+  ## Add a vertex to the buffer.
   assert buf.stride == 4
   buf.data.add(v.x)
   buf.data.add(v.y)
@@ -168,38 +191,41 @@ proc addVert*(buf: VertBuffer, v: Vec4) =
   buf.data.add(v.w)
 
 proc addVert*(buf: VertBuffer, v: Color) =
+  ## Add a vertex to the buffer.
   assert buf.stride == 4
   buf.data.add(v.r)
   buf.data.add(v.g)
   buf.data.add(v.b)
   buf.data.add(v.a)
 
-proc len*(buf: VertBuffer): int =
-  buf.data.len div buf.stride
-
 proc getVert2*(buf: VertBuffer, i: int): Vec2 =
+  ## Get a vertex from the buffer.
   assert buf.stride == 2
   result.x = buf.data[i * 2 + 0]
   result.y = buf.data[i * 2 + 1]
 
 proc setVert2*(buf: VertBuffer, i: int, v: Vec2) =
+  ## Set a vertex in the buffer.
   assert buf.stride == 2
   buf.data[i * 2 + 0] = v.x
   buf.data[i * 2 + 1] = v.y
 
 proc getVert3*(buf: VertBuffer, i: int): Vec3 =
+  ## Get a vertex from the buffer.
   assert buf.stride == 3
   result.x = buf.data[i * 3 + 0]
   result.y = buf.data[i * 3 + 1]
   result.z = buf.data[i * 3 + 2]
 
 proc setVert3*(buf: VertBuffer, i: int, v: Vec3) =
+  ## Set a vertex in the buffer.
   assert buf.stride == 3
   buf.data[i * 3 + 0] = v.x
   buf.data[i * 3 + 1] = v.y
   buf.data[i * 3 + 2] = v.z
 
 proc getVertColor*(buf: VertBuffer, i: int): Color =
+  ## Get a color from the buffer.
   assert buf.stride == 4
   result.r = buf.data[i * 4 + 0]
   result.g = buf.data[i * 4 + 1]
@@ -207,6 +233,7 @@ proc getVertColor*(buf: VertBuffer, i: int): Color =
   result.a = buf.data[i * 4 + 3]
 
 proc setVertColor*(buf: VertBuffer, i: int, color: Color) =
+  ## Set a color in the buffer.
   assert buf.stride == 4
   buf.data[i * 4 + 0] = color.r
   buf.data[i * 4 + 1] = color.g
@@ -214,50 +241,50 @@ proc setVertColor*(buf: VertBuffer, i: int, color: Color) =
   buf.data[i * 4 + 3] = color.a
 
 proc numVerts*(mesh: Mesh): int =
+  ## Return number of vertexes in the mesh.
   if mesh.buffers.len > 0:
-    return mesh.buffers[0].data.len div mesh.buffers[0].stride
+    return mesh.buffers[0].len
   return 0
 
 proc getBuf*(mesh: Mesh, kind: VertBufferKind): VertBuffer =
-  # echo "getBuf"
-  # echo kind
-  # echo mesh == nil
-  # echo cast[int](unsafeAddr(mesh))
-  # echo "mesh.buffers", cast[int](unsafeAddr(mesh.buffers))
-  # echo mesh.buffers.len
+  ## Gets a buffer of a given type.
   for buf in mesh.buffers:
     if buf.kind == kind:
       return buf
 
 proc addVert*(mesh: Mesh, v: Vec3) =
-  echo "addVert vec3"
+  ## Add vertex to the mesh.
   var buf = mesh.getBuf(Position)
-  echo "got buffer"
   buf.addVert(v)
 
 proc addVert*(mesh: Mesh, pos: Vec3, color: Vec4) =
+  ## Add vertex to the mesh.
   var posBuf = mesh.getBuf(Position)
   posBuf.addVert(pos)
   var colorBuf = mesh.getBuf(Color)
   colorBuf.addVert(color)
 
 proc addVert*(mesh: Mesh, pos: Vec3, uv: Vec2) =
+  ## Add vertex to the mesh.
   var posBuf = mesh.getBuf(Position)
   posBuf.addVert(pos)
   var uvBuf = mesh.getBuf(Uv)
   uvBuf.addVert(uv)
 
 proc addVert*(mesh: Mesh, pos: Vec3, uv: Vec2, color: Color) =
+  ## Add vertex to the mesh.
   mesh.getBuf(Position).addVert(pos)
   mesh.getBuf(Uv).addVert(uv)
   mesh.getBuf(Color).addVert(color)
 
 proc addVert*(mesh: Mesh, pos: Vec3, color: Vec4, normal: Vec3) =
+  ## Add vertex to the mesh.
   mesh.getBuf(Position).addVert(pos)
   mesh.getBuf(Color).addVert(color)
   mesh.getBuf(Normal).addVert(normal)
 
 proc addQuad*(mesh: Mesh, a, b, c, d: Vec3) =
+  ## Add quad to the mesh.
   mesh.addVert(a)
   mesh.addVert(c)
   mesh.addVert(b)
@@ -265,8 +292,13 @@ proc addQuad*(mesh: Mesh, a, b, c, d: Vec3) =
   mesh.addVert(a)
   mesh.addVert(d)
 
-proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec4, b: Vec3, bc: Vec4, c: Vec3,
-    cc: Vec4, d: Vec3, dc: Vec4) =
+proc addQuad*(mesh: Mesh,
+    a: Vec3, ac: Vec4,
+    b: Vec3, bc: Vec4,
+    c: Vec3, cc: Vec4,
+    d: Vec3, dc: Vec4
+  ) =
+  ## Add quad to the mesh.
   mesh.addVert(a, ac)
   mesh.addVert(c, cc)
   mesh.addVert(b, bc)
@@ -274,8 +306,13 @@ proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec4, b: Vec3, bc: Vec4, c: Vec3,
   mesh.addVert(a, ac)
   mesh.addVert(d, dc)
 
-proc addQuad*(mesh: Mesh, a: Vec3, ac: Vec2, b: Vec3, bc: Vec2, c: Vec3,
-    cc: Vec2, d: Vec3, dc: Vec2) =
+proc addQuad*(mesh: Mesh,
+    a: Vec3, ac: Vec2,
+    b: Vec3, bc: Vec2,
+    c: Vec3, cc: Vec2,
+    d: Vec3, dc: Vec2
+  ) =
+  ## Add quad to the mesh.
   mesh.addVert(a, ac)
   mesh.addVert(c, cc)
   mesh.addVert(b, bc)
@@ -289,6 +326,7 @@ proc addQuad*(mesh: Mesh,
     c: Vec3, cc: Vec4, cn: Vec3,
     d: Vec3, dc: Vec4, dn: Vec3
   ) =
+  ## Add quad to the mesh.
   mesh.addVert(a, ac, an)
   mesh.addVert(c, cc, cn)
   mesh.addVert(b, bc, bn)
@@ -302,6 +340,7 @@ proc addQuad*(mesh: Mesh,
     c: Vec3, cuv: Vec2, cc: Color,
     d: Vec3, duv: Vec2, dc: Color
   ) =
+  ## Add quad to the mesh.
   mesh.addVert(a, auv, ac)
   mesh.addVert(c, cuv, cc)
   mesh.addVert(b, buv, bc)
@@ -310,6 +349,7 @@ proc addQuad*(mesh: Mesh,
   mesh.addVert(d, duv, dc)
 
 proc genNormals*(mesh: Mesh) =
+  ## Generate normals based on the position buffer.
   var normBuf = newVertBuffer(Normal)
   mesh.buffers.add(normBuf)
 
@@ -327,16 +367,18 @@ proc genNormals*(mesh: Mesh) =
     i += 3
 
 proc addUniform*(mesh: Mesh, name: string, v: Vec3) =
+  ## Add a new uniform to the mesh.
   var uniform = Uniform()
   uniform.name = name
   uniform.vec3 = v
   uniform.loc = glGetUniformLocation(mesh.shader, name)
   if uniform.loc == -1:
-    echo "could not find uniform", name
+    echo "could not find uniform: ", name
     quit()
   mesh.uniforms.add(uniform)
 
 proc updateUniform*(mesh: Mesh, name: string, v: Vec3) =
+  ## Update the uniform.
   for uniform in mesh.uniforms.mitems:
     if uniform.name == name:
       uniform.vec3 = v
@@ -344,9 +386,11 @@ proc updateUniform*(mesh: Mesh, name: string, v: Vec3) =
     kid.updateUniform(name, v)
 
 proc uniformBind*(mesh: Mesh, uniform: Uniform) =
+  ## Bind the uniform.
   glUniform3f(GLint uniform.loc, uniform.vec3.x, uniform.vec3.y, uniform.vec3.z)
 
 proc find*(mesh: Mesh, name: string): Mesh =
+  ## Find a node the the mesh kids.
   if mesh.name == name:
     return mesh
   for kid in mesh.kids.mitems:
@@ -355,8 +399,10 @@ proc find*(mesh: Mesh, name: string): Mesh =
       return found
 
 proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
+  ## Draw the basic mesh.
   glUseProgram(mesh.shader)
 
+  ## Bind the regular uniforms:
   var uniTextureSize = glGetUniformLocation(mesh.shader, "windowFrame")
   if uniTextureSize > -1:
     var arr: array[2, float32]
@@ -400,8 +446,6 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
     glUniform1i(GLint uniform.loc, GLint i)
 
   glDrawArrays(mesh.drawMode, 0, GLsizei max)
-  #if mesh.drawMode == Lines:
-  #  glDrawArrays(GL_LINES, 0, GLsizei mesh.numVerts)
 
   # Unbind
   when defined(android):
@@ -411,6 +455,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   glUseProgram(0)
 
 proc draw*(mesh: Mesh, parentMat: Mat4) =
+  ## Draw the mesh with a parent mat.
   var thisMat = parentMat * mesh.mat
   if mesh.numVerts > 0:
     mesh.drawBasic(thisMat, mesh.numVerts)
@@ -419,6 +464,7 @@ proc draw*(mesh: Mesh, parentMat: Mat4) =
     kid.draw(thisMat)
 
 proc draw*(mesh: Mesh) =
+  ## Draw the mesh.
   if mesh.numVerts > 0:
     mesh.drawBasic(mesh.mat, mesh.numVerts)
 
@@ -426,6 +472,7 @@ proc draw*(mesh: Mesh) =
     kid.draw(mesh.mat)
 
 proc printMeshTree*(mesh: Mesh, indent = 0) =
+  ## Print the mesh and its subtree.
   var space = ""
   for i in 0..<indent:
     space &= "  "
