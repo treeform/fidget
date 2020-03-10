@@ -18,7 +18,6 @@ var
 
   perf*: PerfCounter
 
-
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)

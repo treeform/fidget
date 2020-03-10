@@ -1,7 +1,6 @@
-# Great for GUI applications, that don't have multimedia or animations.
-
 import fidget, math, random, vmath
 
+# Great for GUI applications, that don't have multimedia or animations.
 repaintEveryFrame = false
 
 # Create an array of 30 bars.
