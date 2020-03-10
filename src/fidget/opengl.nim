@@ -1,9 +1,10 @@
-import chroma, strutils, tables, times, typography, typography/textboxes, vmath
+import chroma, internal, opengl/context, opengl/input, strutils, tables, times,
+    typography, typography/textboxes, uibase, vmath
+
 when defined(ios) or defined(android):
   import opengl/basemobile as base
 else:
   import opengl/base as base
-import internal, opengl/context, opengl/input, uibase
 
 export input
 
