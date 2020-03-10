@@ -1,48 +1,80 @@
-import algorithm, math, sequtils, strformat, strutils, tables, times
+import math, strformat, strutils, times
 
-var prevTime: float64 = epochTime()
-var prefDump*: bool = true
-var indent = ""
-var timeStack = newSeq[float64]()
-var perfBuffer = newSeq[string]()
+when defined(nimTypeNames):
+  import tables
 
-proc perfMark*(what: string) =
-  ## Prints out [time-since-last-action] what.
-  if prefDump:
-    let time = epochTime()
-    let delta = time - prevTime
-    perfBuffer.add fmt"[{delta:>8.6f}] {indent}{what}"
+type
+  EntryKind = enum
+    Begin, End, Mark
 
-proc perfBegin*(what: string) =
-  ## Prints out [time-since-last-action] what.
-  if prefDump:
-    let time = epochTime()
-    let delta = time - prevTime
-    perfBuffer.add fmt"[{delta:>8.6f}] {indent}{what} ["
-    indent.add(" ")
-    prevTime = epochTime()
-    timeStack.add(prevTime)
+  PerfEntry* = ref object
+    tag: string
+    time: float
+    kind: EntryKind
 
-proc perfEnd*(what: string = "") =
-  ## Prints out [time-since-last-action] what.
-  if prefDump:
-    let time = epochTime()
-    let delta = time - timeStack.pop()
-    indent = indent[0 .. ^2]
-    perfBuffer.add fmt"({delta:>8.6f}) {indent}] {what}"
-    prevTime = epochTime()
+var
+  perfEnabled* = true
+  defaultBuffer: seq[PerfEntry]
 
-template perf*(what: string, body: untyped) =
-  ## Measures perf with a body block.
-  perfBegin what
-  body
-  perfEnd what
+proc addEntry(tag: string, kind: EntryKind, buffer: var seq[PerfEntry]) =
+  var entry = PerfEntry()
+  entry.tag = tag
+  entry.time = epochTime()
+  entry.kind = kind
 
-proc perfDump*() =
-  for line in perfBuffer:
-    echo line
-  perfBuffer.setLen(0)
-  indent.setLen(0)
+  buffer.add(entry)
+
+template perfMark*(tag: string, buffer: var seq[PerfEntry] = defaultBuffer) =
+  if perfEnabled:
+    addEntry(tag, Mark, buffer)
+
+template perf*(tag: string, buffer: var seq[PerfEntry], body: untyped) =
+  ## Logs the performance of the body block.
+  if perfEnabled:
+    addEntry(tag, Begin, buffer)
+    body
+    addEntry(tag, End, buffer)
+
+template perf*(tag: string, body: untyped) =
+  ## Logs the performance of the body block.
+  if perfEnabled:
+    perf(tag, defaultBuffer, body)
+
+template timeIt*(tag: string, body: untyped) =
+  ## Quick template to time an operation.
+  var buffer: seq[PerfEntry]
+  perf tag, buffer, body
+
+  let start = buffer[0].time
+  let finish = buffer[^1].time
+  echo tag, ": ", finish - start, "s"
+
+proc `$`*(buffer: seq[PerfEntry]): string =
+  if len(buffer) == 0:
+    return
+
+  var
+    lines: seq[string]
+    indent = ""
+    prevTime = buffer[0].time
+
+  for i, entry in buffer:
+    let delta = entry.time - prevTime
+    case entry.kind:
+      of Begin:
+        lines.add(fmt"[{delta:>8.6f}] {indent}{entry.tag} [")
+        indent.add("  ")
+      of End:
+        indent = indent[0 .. ^3]
+        lines.add(fmt"({delta:>8.6f}) {indent}] {entry.tag}")
+      of Mark:
+        lines.add(fmt"[{delta:>8.6f}]{indent} {entry.tag}")
+
+  result = lines.join("\n")
+
+proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer): string =
+  result = $defaultBuffer
+  defaultBuffer.setLen(0)
 
 type TimeSeries* = ref object
   ## Time series help you time stuff over multiple frames.
@@ -77,12 +109,6 @@ proc avg*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): float64 =
   ## Example: 1/fps or avarage frame time.
   return inLastSeconds / float64(timeSeries.num(inLastSeconds))
 
-template timeIt*(name: string, inner: untyped) =
-  ## Quick template to time an operation.
-  let start = epochTime()
-  inner
-  echo name, ": ", epochTime() - start, "s"
-
 proc byteFmt*(bytes: int): string =
   ## Formats computer sizes in B, KB, MB, GB etc...
   if bytes < 0:
@@ -106,31 +132,31 @@ assert byteFmt(1200_000_000) == "1.12GB"
 assert byteFmt(-12) == "-12B"
 assert byteFmt(-1000) == "-1000B"
 
-type CountSize = object
-  name: string
-  count: int
-  sizes: int
-  diffCount: int
-  diffSizes: int
-  dead: bool
-var prevDump = newTable[string, CountSize]()
-proc dumpHeapDiff*(top = 10): string =
-  ## Takes a diff of the heap and prints out top 10 memory growers.
-  # Example output:
-  # HEAP total:276.95MB occupied:115.34MB free:148.76MB
-  # [Heap] #    171765(      -964)    68.97MB( -137.28KB) string
-  # [Heap] #         1(         0)    40.00MB(        0B) seq[SelectorKey[asyncdispatch.AsyncData]]
-  # [Heap] #      2889(      -107)     1.58MB(   -5.90KB) seq[string]
-  # [Heap] #      2872(         0)   493.62KB(        0B) LyticTable
-  # [Heap] #      2616(         0)   306.56KB(        0B) Field
-  # [Heap] #         1(         0)   285.25KB(        0B) seq[DstChange]
-  # [Heap] #         1(         0)   256.03KB(        0B) OrderedKeyValuePairSeq[system.string, lytic.LyticTable]
-  # [Heap] #         1(         0)   128.03KB(        0B) OrderedKeyValuePairSeq[system.string, lytic.Field]
-  # [Heap] #         2(       -12)     8.00KB(  -48.00KB) AsyncSocket
-  # [Heap] #        33(      -270)     2.32KB(  -18.98KB) Future[system.void]
-  # [Heap] #         6(       -22)     5.25KB(  -14.00KB) KeyValuePairSeq[system.string, seq[string]]
+when defined(nimTypeNames):
+  type CountSize = object
+    name: string
+    count: int
+    sizes: int
+    diffCount: int
+    diffSizes: int
+    dead: bool
+  var prevDump = newTable[string, CountSize]()
+  proc dumpHeapDiff*(top = 10): string =
+    ## Takes a diff of the heap and prints out top 10 memory growers.
+    # Example output:
+    # HEAP total:276.95MB occupied:115.34MB free:148.76MB
+    # [Heap] #    171765(      -964)    68.97MB( -137.28KB) string
+    # [Heap] #         1(         0)    40.00MB(        0B) seq[SelectorKey[asyncdispatch.AsyncData]]
+    # [Heap] #      2889(      -107)     1.58MB(   -5.90KB) seq[string]
+    # [Heap] #      2872(         0)   493.62KB(        0B) LyticTable
+    # [Heap] #      2616(         0)   306.56KB(        0B) Field
+    # [Heap] #         1(         0)   285.25KB(        0B) seq[DstChange]
+    # [Heap] #         1(         0)   256.03KB(        0B) OrderedKeyValuePairSeq[system.string, lytic.LyticTable]
+    # [Heap] #         1(         0)   128.03KB(        0B) OrderedKeyValuePairSeq[system.string, lytic.Field]
+    # [Heap] #         2(       -12)     8.00KB(  -48.00KB) AsyncSocket
+    # [Heap] #        33(      -270)     2.32KB(  -18.98KB) Future[system.void]
+    # [Heap] #         6(       -22)     5.25KB(  -14.00KB) KeyValuePairSeq[system.string, seq[string]]
 
-  when defined(nimTypeNames):
     result.add &"HEAP total:{byteFmt(getTotalMem())}"
     result.add &" occupied:{byteFmt(getOccupiedMem())}"
     result.add &" free:{byteFmt(getFreeMem())}\n"
@@ -168,5 +194,6 @@ proc dumpHeapDiff*(top = 10): string =
       result.add &"[Heap] #{it.count:>10}({it.diffCount:>10})"
       result.add &" {byteFmt(it.sizes):>10}({byteFmt(it.diffSizes):>10})"
       result.add &" {it.name}\n"
-  else:
+else:
+  proc dumpHeapDiff*(top = 10): string =
     return "dumpHeapDiff disabled"
