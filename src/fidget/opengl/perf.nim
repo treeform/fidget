@@ -12,6 +12,12 @@ type
     time: float
     kind: EntryKind
 
+  TimeSeries* = ref object
+    ## Helps you time stuff over multiple frames.
+    max: Natural
+    at: Natural
+    data: seq[float]
+
 var
   perfEnabled* = true
   defaultBuffer: seq[PerfEntry]
@@ -76,17 +82,9 @@ proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer): string =
   result = $defaultBuffer
   defaultBuffer.setLen(0)
 
-type TimeSeries* = ref object
-  ## Time series help you time stuff over multiple frames.
-  max: int
-  at: int
-  data: seq[float]
-
-proc newTimeSeries*(max = 1000): TimeSeries =
-  ## Time series help you time stuff over multiple frames.
+proc newTimeSeries*(max: Natural = 1000): TimeSeries =
   new(result)
   result.max = max
-  result.at = 0
   result.data = newSeq[float](result.max)
 
 proc addTime*(timeSeries: var TimeSeries) =
@@ -105,8 +103,8 @@ proc num*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): int =
       inc result
 
 proc avg*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): float64 =
-  ## Average out last N seconds.
-  ## Example: 1/fps or avarage frame time.
+  ## Average over last N seconds.
+  ## Example: 1/fps or average frame time.
   return inLastSeconds / float64(timeSeries.num(inLastSeconds))
 
 proc byteFmt*(bytes: int): string =
