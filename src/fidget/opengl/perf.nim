@@ -73,15 +73,17 @@ proc `$`*(buffer: seq[PerfEntry]): string =
 
   for i, entry in buffer:
     let delta = entry.time - prevTime
+    prevTime = entry.time
+
     case entry.kind:
       of Begin:
-        lines.add(fmt"[{delta:>8.6f}] {indent}{entry.tag} [")
+        lines.add(fmt"{delta:>8.6f} {indent}{entry.tag} [")
         indent.add("  ")
       of End:
         indent = indent[0 .. ^3]
-        lines.add(fmt"({delta:>8.6f}) {indent}] {entry.tag}")
+        lines.add(fmt"{delta:>8.6f} {indent}]")
       of Mark:
-        lines.add(fmt"[{delta:>8.6f}]{indent} {entry.tag}")
+        lines.add(fmt"{delta:>8.6f}{indent} {entry.tag}")
 
   result = lines.join("\n")
 
