@@ -16,13 +16,23 @@ type
     cStretch
     cCenter
 
+  HAlign* = enum
+    hLeft
+    hCenter
+    hRight
+
+  VAlign* = enum
+    vTop
+    vCenter
+    vBottom
+
   TextStyle* = object
     fontFamily*: string
     fontSize*: float
     fontWeight*: float
     lineHeight*: float
-    textAlignHorizontal*: int
-    textAlignVertical*: int
+    textAlignHorizontal*: HAlign
+    textAlignVertical*: VAlign
 
   BorderStyle* = object
     color*: Color

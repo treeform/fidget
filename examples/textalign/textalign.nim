@@ -1,4 +1,4 @@
-import fidget, math, print, random
+import fidget, math, random
 
 var bars = newSeq[int](1000)
 for i, bar in bars:
@@ -13,7 +13,7 @@ proc drawMain() =
 
   window.title = "Fidget Fonts Example"
 
-  font "IBM Plex Sans Regular", 12, 200, 16, -1, -1
+  font "IBM Plex Sans Regular", 12, 200, 16, hLeft, vTop
 
   let h = bars.len * 60 + 20
   frame "main":
@@ -33,56 +33,56 @@ proc drawMain() =
       text "tl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign -1, -1
+        textAlign hLeft, vTop
         characters "top left"
 
       text "tr":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 1, -1
+        textAlign hRight, vTop
         characters "top right"
 
-      text "tm":
+      text "tc":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 0, -1
-        characters "top middle"
+        textAlign hCenter, vTop
+        characters "top center"
 
       text "cl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign -1, 0
+        textAlign hLeft, vCenter
         characters "center left"
 
       text "cr":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 1, 0
+        textAlign hRight, vCenter
         characters "center right"
 
       text "cm":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 0, 0
-        characters "center middle"
+        textAlign hCenter, vCenter
+        characters "center"
 
       text "bl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign -1, 1
+        textAlign hLeft, vBottom
         characters "bottom left"
 
       text "br":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 1, 1
+        textAlign hRight, vBottom
         characters "bottom right"
 
-      text "bm":
+      text "bc":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 0, 1
-        characters "bottom middle"
+        textAlign hCenter, vBottom
+        characters "bottom center"
 
     group "box2":
       box 500, 100, 300, 300
@@ -92,55 +92,55 @@ proc drawMain() =
       text "tl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign -1, -1
+        textAlign hLeft, vTop
         characters "TL"
 
       text "tr":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 1, -1
+        textAlign hRight, vTop
         characters "TR"
 
-      text "tm":
+      text "tc":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 0, -1
-        characters "TM"
+        textAlign hCenter, vTop
+        characters "TC"
 
       text "cl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign -1, 0
+        textAlign hLeft, vCenter
         characters "CL"
 
       text "cr":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 1, 0
+        textAlign hRight, vCenter
         characters "CR"
 
-      text "cm":
+      text "c":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 0, 0
-        characters "CM"
+        textAlign hCenter, vCenter
+        characters "C"
 
       text "bl":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign -1, 1
+        textAlign hLeft, vBottom
         characters "BL"
 
       text "br":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 1, 1
+        textAlign hRight, vBottom
         characters "BR"
 
-      text "bm":
+      text "bc":
         box 0, 0, 300, 300
         fill "#FFFFFF"
-        textAlign 0, 1
-        characters "BM"
+        textAlign hCenter, vBottom
+        characters "BC"
 
 startFidget(drawMain)

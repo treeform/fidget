@@ -1,4 +1,4 @@
-import fidget, math, print
+import fidget, print
 
 type
   Area = ref object

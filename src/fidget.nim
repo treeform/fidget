@@ -157,8 +157,12 @@ proc id*(id: string) =
   ## Sets ID.
   current.id = id
 
-proc font*(fontFamily: string, fontSize, fontWeight, lineHeight: float,
-    textAlignHorizontal, textAlignVertical: int) =
+proc font*(
+  fontFamily: string,
+  fontSize, fontWeight, lineHeight: float,
+  textAlignHorizontal: HAlign,
+  textAlignVertical: VAlign
+) =
   ## Sets the font.
   current.textStyle.fontFamily = fontFamily
   current.textStyle.fontSize = fontSize
@@ -183,7 +187,7 @@ proc lineHeight*(lineHeight: float) =
   ## Sets the font size.
   current.textStyle.lineHeight = lineHeight
 
-proc textAlign*(textAlignHorizontal, textAlignVertical: int) =
+proc textAlign*(textAlignHorizontal: HAlign, textAlignVertical: VAlign) =
   ## Sets the horizontal and vertical alignment.
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
@@ -316,7 +320,13 @@ proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
   ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
-  current.shadows.add Shadow(kind: InnerShadow, blur: blur, x: x, y: y, color: c)
+  current.shadows.add(Shadow(
+    kind: InnerShadow,
+    blur: blur,
+    x: x,
+    y: y,
+    color: c
+  ))
 
 proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas.
