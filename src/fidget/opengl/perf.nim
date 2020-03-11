@@ -85,12 +85,10 @@ proc `$`*(buffer: seq[PerfEntry]): string =
 
   result = lines.join("\n")
 
-proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer): string =
+proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer) =
   if perfEnabled:
-    result = $defaultBuffer
+    echo $defaultBuffer
     defaultBuffer.setLen(0)
-  else:
-    result = "perf disabled"
 
 proc newTimeSeries*(max: Natural = 1000): TimeSeries =
   new(result)
