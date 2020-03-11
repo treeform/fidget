@@ -1,8 +1,7 @@
 ## Flippy backend uses Flippy and glfw3 libarires to provide graphics and input
 
-  times, math, vmath, opengl, os, unicode, tables,
-  glfw3 as glfw, chroma, print, flippy, typography,
-  uibase
+import chroma, flippy, glfw3 as glfw, math, opengl, os, print, tables, times,
+    typography, uibase, unicode, vmath
 
 const GlfwLib = "libglfw.so.3"
 
@@ -49,8 +48,8 @@ proc drawText(group: Group) =
 
   let layout = font.typeset(
     group.text,
-    pos=group.screenBox.xy,
-    size=group.screenBox.wh,
+    pos = group.screenBox.xy,
+    size = group.screenBox.wh,
     hAlignNum(group.textStyle.textAlignHorizontal),
     vAlignNum(group.textStyle.textAlignVertical)
   )
@@ -71,7 +70,11 @@ proc drawText(group: Group) =
     if pos.character in font.glyphs:
       var glyph = font.glyphs[pos.character]
       var glyphOffset: Vec2
-      let img = font.getGlyphImage(glyph, glyphOffset, subPixelShift=pos.subPixelShift)
+      let img = font.getGlyphImage(
+        glyph,
+        glyphOffset,
+        subPixelShift = pos.subPixelShift
+      )
       let r = rect(
           pos.rect.xy + glyphOffset,
           vec2(float img.width, float img.height)
@@ -130,7 +133,7 @@ proc drawText(group: Group) =
     if group.editableText:
 
       if group.text.len == 0 and group.placeholder.len > 0:
-          text = group.placeholder
+        text = group.placeholder
 
       if mouse.click and mouse.pos.inside(current.screenBox):
         echo "gain focus"
@@ -170,7 +173,10 @@ proc draw*(group: Group) =
       imageCache[group.imageName] = loadImage("data/" & group.imageName & ".png")
     let image = imageCache[group.imageName]
     #ctx.blitWithAlpha(image, translate(vec3(group.screenBox.x, group.screenBox.y, 0)))
-    ctx.blitWithAlpha(image, translate(vec3(group.screenBox.x, group.screenBox.y, 0)))
+    ctx.blitWithAlpha(
+      image,
+      translate(vec3(group.screenBox.x, group.screenBox.y, 0))
+    )
 
 proc redraw*() =
   ## Request the screen to be redrawn next
@@ -200,7 +206,7 @@ proc display() =
   scrollBox.w = root.box.w
   scrollBox.h = root.box.h
 
-  ctx.fill(color(1,1,1,1).rgba)
+  ctx.fill(color(1, 1, 1, 1).rgba)
 
   drawMain()
 
@@ -211,7 +217,8 @@ proc display() =
     h = ctx.height
 
   # openGL way
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei w, GLsizei h, GL_RGBA,
+      GL_UNSIGNED_BYTE, dataPtr)
   # draw a quad over the whole screen
   glClear(GL_COLOR_BUFFER_BIT)
   glBegin(GL_QUADS)
@@ -261,7 +268,8 @@ proc resize() =
 
     # allocate a texture and bind it
     var dataPtr = addr ctx.data[0]
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr)
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA,
+        GL_UNSIGNED_BYTE, dataPtr)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
@@ -272,7 +280,10 @@ proc onResize(handle: glfw.Window, w, h: int32) {.cdecl.} =
   resize()
   display()
 
-proc onMouseButton(window: glfw.Window, button: cint, action: cint, modifiers: cint) {.cdecl.} =
+proc onMouseButton(
+  window: glfw.Window,
+  button, action, modifiers: cint
+) {.cdecl.} =
   if action == 0:
     mouse.down = false
     mouse.click = false
@@ -304,7 +315,13 @@ proc startFidget*(draw: proc()) =
   drawMain = draw
   if glfw.Init() == 0:
     quit("Failed to Initialize GLFW")
-  window = glfw.CreateWindow(1000, 800, "Fidget glfw/cairo backend window.", nil, nil)
+  window = glfw.CreateWindow(
+    1000,
+    800,
+    "Fidget glfw/cairo backend window.",
+    nil,
+    nil
+  )
   glfw.MakeContextCurrent(window)
 
   loadExtensions()
