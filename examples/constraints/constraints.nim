@@ -1,4 +1,4 @@
-import fidget, vmath
+import fidget
 
 proc drawMain() =
   frame "ConstraintsFrame":
@@ -74,8 +74,5 @@ proc drawMain() =
       fill "#ffffff", 0.25
       cornerRadius 0
       strokeWeight 1
-
-when not defined(js):
-  windowFrame = vec2(530, 185)
 
 startFidget(drawMain)

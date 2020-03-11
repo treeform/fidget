@@ -1,4 +1,4 @@
-import fidget, print, vmath
+import fidget
 
 loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
 loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.svg")
@@ -27,14 +27,14 @@ proc basicText() =
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 0
-      font "IBM Plex Sans Regular", 32, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 32, 200, 0, hLeft, vTop
       characters "∑"
     text "∞":
       box 25, 118, 19, 16
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 0
-      font "IBM Plex Sans Regular", 12, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vTop
       characters "∞"
     group "label":
       box 20, 15, 100, 30
@@ -43,7 +43,7 @@ proc basicText() =
         constraints cMin, cMin
         fill "#46607e"
         strokeWeight 1
-        font "IBM Plex Sans Bold", 12, 200, 0, -1, 0
+        font "IBM Plex Sans Bold", 12, 200, 0, hLeft, vCenter
         characters "Bold Title"
     group "label":
       box 20, 45, 362, 74
@@ -52,7 +52,7 @@ proc basicText() =
         constraints cMin, cMin
         fill "#46607e"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, -1, -1
+        font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vTop
         lineHeight 16
         characters "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean vestibulum nunc quis velit euismod, a laoreet dolor efficitur. Proin et tincidunt ipsum. Fusce dapibus justo a ante commodo pellentesque. "
     group "label":
@@ -62,49 +62,49 @@ proc basicText() =
         constraints cMax, cMax
         fill "#46607e"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, 1, -1
+        font "IBM Plex Sans Regular", 12, 200, 0, hRight, vTop
         characters "- Velit Euismod"
     text "n=0":
       box 21, 160, 25, 13
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 10, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 10, 200, 0, hLeft, vTop
       characters "n=0"
     text "x":
       box 40, 130, 12, 29
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 22, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 22, 200, 0, hLeft, vTop
       characters "x"
     text "n":
       box 50, 125, 8, 18
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 14, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 14, 200, 0, hLeft, vTop
       characters "n"
     text "=":
       box 65, 135, 10, 21
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 16, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 16, 200, 0, hLeft, vTop
       characters "="
     text "1":
       box 98, 128, 9, 18
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 14, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 14, 200, 0, hLeft, vTop
       characters "1"
     text "1 - x":
       box 88, 148, 39, 18
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 14, 200, 0, -1, -1
+      font "IBM Plex Sans Regular", 14, 200, 0, hLeft, vTop
       characters "1 - x"
     rectangle "Rectangle 9":
       box 86, 146, 34, 2
@@ -146,7 +146,7 @@ proc basicControls() =
       constraints cMin, cMin
       fill "#ffffff"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+      font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
       characters "Dropdown"
 
   group "checkbox":
@@ -168,7 +168,7 @@ proc basicControls() =
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+      font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
       characters "Checkbox"
 
   group "radiobox":
@@ -190,7 +190,7 @@ proc basicControls() =
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+      font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
       characters "Radiobox"
 
   group "slider":
@@ -228,7 +228,7 @@ proc basicControls() =
         constraints cMin, cMin
         fill "#ffffff"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+        font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
         characters "button"
     rectangle "seperator":
       box 189, 0, 1, 20
@@ -243,7 +243,7 @@ proc basicControls() =
         constraints cMin, cMin
         fill "#ffffff"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+        font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
         characters "segmented"
     rectangle "seperator":
       box 109, 0, 1, 20
@@ -258,7 +258,7 @@ proc basicControls() =
         constraints cMin, cMin
         fill "#ffffff"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+        font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
         characters "a"
     rectangle "seperator":
       box 79, 0, 1, 20
@@ -273,7 +273,7 @@ proc basicControls() =
         constraints cMin, cMin
         fill "#ffffff"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+        font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
         characters "is"
     rectangle "seperator":
       box 49, 0, 1, 20
@@ -293,7 +293,7 @@ proc basicControls() =
         constraints cMin, cMin
         fill "#46607e"
         strokeWeight 1
-        font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+        font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
         characters "This"
   group "button":
     box 150, 55, 90, 20
@@ -312,7 +312,7 @@ proc basicControls() =
       constraints cMin, cMin
       fill "#ffffff"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 12, 200, 0, 0, 0
+      font "IBM Plex Sans Regular", 12, 200, 0, hCenter, vCenter
       characters "Button"
   group "input":
     box 260, 15, 250, 30
@@ -332,7 +332,7 @@ proc basicControls() =
       else:
         fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+      font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
       placeholder "Start typing here"
       binding textInputVar
   group "label":
@@ -342,7 +342,7 @@ proc basicControls() =
       constraints cMin, cMin
       fill "#46607e"
       strokeWeight 1
-      font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+      font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
       characters "Text field:"
 
 proc drawMain() =
@@ -374,7 +374,7 @@ proc drawMain() =
           constraints cMin, cMin
           fill "#46607e"
           strokeWeight 1
-          font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+          font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
           characters "Constraints"
       group "tab":
         box 0, 75, 130, 30
@@ -383,7 +383,7 @@ proc drawMain() =
           constraints cMin, cMin
           fill "#46607e"
           strokeWeight 1
-          font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+          font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
           characters "Image"
       group "tab":
         box 0, 45, 130, 30
@@ -394,7 +394,7 @@ proc drawMain() =
           constraints cMin, cMin
           fill "#46607e"
           strokeWeight 1
-          font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+          font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
           characters "Text"
       group "tab":
         box 0, 15, 130, 30
@@ -411,7 +411,7 @@ proc drawMain() =
           constraints cMin, cMin
           fill "#ffffff"
           strokeWeight 1
-          font "IBM Plex Sans Regular", 12, 200, 0, -1, 0
+          font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
           characters "Contorls"
 
     case selectedTab:
@@ -441,8 +441,5 @@ proc drawMain() =
         fill "#000000", 0.029999999329447746
         cornerRadius 0
         strokeWeight 1
-
-when not defined(js):
-  windowFrame = vec2(530, 185)
 
 startFidget(drawMain)

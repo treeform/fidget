@@ -40,20 +40,27 @@ template perf*(tag: string, buffer: var seq[PerfEntry], body: untyped) =
     addEntry(tag, Begin, buffer)
     body
     addEntry(tag, End, buffer)
+  else:
+    body
 
 template perf*(tag: string, body: untyped) =
   ## Logs the performance of the body block.
   if perfEnabled:
     perf(tag, defaultBuffer, body)
+  else:
+    body
 
 template timeIt*(tag: string, body: untyped) =
   ## Quick template to time an operation.
   var buffer: seq[PerfEntry]
   perf tag, buffer, body
 
-  let start = buffer[0].time
-  let finish = buffer[^1].time
-  echo tag, ": ", finish - start, "s"
+  if len(buffer) > 0:
+    let start = buffer[0].time
+    let finish = buffer[^1].time
+    echo tag, ": ", finish - start, "s"
+  else:
+    echo tag, " not timed, perf disabled"
 
 proc `$`*(buffer: seq[PerfEntry]): string =
   if len(buffer) == 0:
@@ -78,9 +85,10 @@ proc `$`*(buffer: seq[PerfEntry]): string =
 
   result = lines.join("\n")
 
-proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer): string =
-  result = $defaultBuffer
-  defaultBuffer.setLen(0)
+proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer) =
+  if perfEnabled:
+    echo $defaultBuffer
+    defaultBuffer.setLen(0)
 
 proc newTimeSeries*(max: Natural = 1000): TimeSeries =
   new(result)

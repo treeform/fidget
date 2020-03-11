@@ -1,4 +1,4 @@
-import fidget, vmath
+import fidget
 
 proc drawMain() =
   frame "main":
@@ -8,5 +8,7 @@ proc drawMain() =
         box 20+i*120, 20, 100, 100
         fill "#2B9FEA"
 
-windowFrame = vec2(620, 140)
-startFidget(drawMain)
+when defined(js) or defined(ios) or defined(android):
+  startFidget(drawMain)
+else:
+  startFidget(drawMain, w = 620, h = 140)

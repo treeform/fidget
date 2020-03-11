@@ -239,8 +239,8 @@ proc drawDiff(current: Group) =
 
         dom.innerText = current.text
 
-        if current.textStyle.textAlignHorizontal != -1 or
-            current.textStyle.textAlignVertical != -1:
+        if current.textStyle.textAlignHorizontal != hLeft or
+            current.textStyle.textAlignVertical != vTop:
           var box = computeTextBox(
             current.text,
             current.screenBox.w,
@@ -250,20 +250,20 @@ proc drawDiff(current: Group) =
 
           var left = 0.0
           case current.textStyle.textAlignHorizontal:
-            of -1:
+            of hLeft:
               left = 0
-            of 1:
+            of hRight:
               left = current.screenBox.w - box[0]
-            else:
+            of hCenter:
               left = current.screenBox.w / 2 - box[0] / 2
 
           var top = 0.0
           case current.textStyle.textAlignVertical:
-            of -1:
+            of vTop:
               top = 0
-            of 1:
+            of vBottom:
               top = current.screenBox.h - box[1]
-            else:
+            of vCenter:
               top = current.screenBox.h / 2 - box[1] / 2
 
           current.textOffset.x = left
@@ -276,12 +276,12 @@ proc drawDiff(current: Group) =
 
   if current.tag == "input":
     dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
-    case current.textStyle.textAlignVertical:
-      of -1:
+    case current.textStyle.textAlignHorizontal:
+      of hLeft:
         dom.style.textAlign = "left"
-      of 1:
+      of hRight:
         dom.style.textAlign = "right"
-      else:
+      of hCenter:
         dom.style.textAlign = "center"
 
   # check position on screen
