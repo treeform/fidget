@@ -57,7 +57,7 @@ proc tick*(poll = true) =
   if not repaintEveryFrame:
     if not eventHappened:
       # repaintEveryFrame is false
-      # so only repain on evnets, event did not happen!
+      # so only repaint on events, event did not happen!
       os.sleep(16)
       return
     else:
