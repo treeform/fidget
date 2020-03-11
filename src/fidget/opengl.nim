@@ -1,12 +1,12 @@
 import chroma, internal, opengl/context, opengl/input, strutils, tables, times,
     typography, typography/textboxes, uibase, vmath
 
+export input
+
 when defined(ios) or defined(android):
   import opengl/basemobile as base
 else:
   import opengl/base as base
-
-export input
 
 var
   ctx*: Context
@@ -16,19 +16,17 @@ var
   multiClick: int
   lastClickTime: float
 
-proc hAlignNum(num: int): HAlignMode =
-  case num:
-    of -1: HAlignMode.Left
-    of 0: Center
-    of 1: HAlignMode.Right
-    else: HAlignMode.Left
+proc hAlignMode(align: HAlign): HAlignMode =
+  case align:
+    of hLeft: HAlignMode.Left
+    of hCenter: Center
+    of hRight: HAlignMode.Right
 
-proc vAlignNum(num: int): VAlignMode =
-  case num:
-    of -1: Top
-    of 0: Middle
-    of 1: Bottom
-    else: Top
+proc vAlignMode(align: VAlign): VAlignMode =
+  case align:
+    of vTop: Top
+    of vCenter: Middle
+    of vBottom: Bottom
 
 var glyphOffsets = newTable[string, Vec2]()
 
@@ -110,8 +108,8 @@ proc drawText(group: Group) =
       text,
       pos = vec2(0, -1), #group.screenBox.xy,
       size = group.screenBox.wh,
-      hAlignNum(group.textStyle.textAlignHorizontal),
-      vAlignNum(group.textStyle.textAlignVertical)
+      hAlignMode(group.textStyle.textAlignHorizontal),
+      vAlignMode(group.textStyle.textAlignVertical)
     )
 
   # draw characters
