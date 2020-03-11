@@ -36,7 +36,6 @@ proc setWindowTitle*(title: string) =
     window.setWindowTitle(title)
 
 proc tick*(poll = true) =
-  perfMark("--- start frame")
 
   inc frameCount
   fpsTimeSeries.addTime()
@@ -45,7 +44,6 @@ proc tick*(poll = true) =
 
   if poll:
     pollEvents()
-  perfMark("PollEvents")
 
   if window.windowShouldClose() != 0:
     running = false
@@ -73,12 +71,8 @@ proc tick*(poll = true) =
     mouseDelta = mousePos - mousePosPrev
     mousePosPrev = mousePos
 
-  perfMark("pre user draw")
-
   assert drawFrame != nil
   drawFrame()
-
-  perfMark("user draw")
 
   mouseWheelDelta = 0
   mouse.click = false
@@ -92,12 +86,7 @@ proc tick*(poll = true) =
     buttonPress[i] = false
     buttonRelease[i] = false
 
-  perfMark("pre SwapBuffers")
   window.swapBuffers()
-  perfMark("SwapBuffers")
-
-  perfMark("--- end frame")
-  perfEnabled = buttonDown[F10]
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
@@ -125,13 +114,9 @@ proc glGetInteger(what: GLenum): int =
 
 proc start*() =
 
-  perfMark("start base")
-
   # init libraries
   if init() == 0:
     quit("Failed to intialize GLFW.")
-
-  perfMark("init glfw")
 
   running = true
 
@@ -143,26 +128,24 @@ proc start*() =
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
-  perf "open window":
-    if fullscreen:
-      var monitor = getPrimaryMonitor()
-      var mode = getVideoMode(monitor)
-      window = createWindow(mode.width, mode.height, uibase.window.innerTitle,
-          monitor, nil)
+  if fullscreen:
+    var monitor = getPrimaryMonitor()
+    var mode = getVideoMode(monitor)
+    window = createWindow(mode.width, mode.height, uibase.window.innerTitle,
+        monitor, nil)
 
-      var cwidth, cheight: cint
-      window.getWindowSize(addr cwidth, addr cheight)
-      windowFrame = vec2(cwidth.float32, cheight.float32)
-    else:
-      window = createWindow(cint windowFrame.x, cint windowFrame.y,
-          uibase.window.innerTitle, nil, nil)
+    var cwidth, cheight: cint
+    window.getWindowSize(addr cwidth, addr cheight)
+    windowFrame = vec2(cwidth.float32, cheight.float32)
+  else:
+    window = createWindow(cint windowFrame.x, cint windowFrame.y,
+        uibase.window.innerTitle, nil, nil)
 
   if window.isNil:
     quit("Failed to open GLFW window.")
 
-  perf "makeContextCurrent":
-    window.makeContextCurrent()
-    #window.focusWindow()
+  window.makeContextCurrent()
+  #window.focusWindow()
 
   # Load opengl
   when defined(ios) or defined(android):
@@ -170,8 +153,7 @@ proc start*() =
     #loadExtensions()
     discard
   else:
-    perf "loadExtensions":
-      loadExtensions()
+    loadExtensions()
 
   # var flags: GLint
   # glGetIntegerv(GL_CONTEXT_FLAGS, addr flags)
@@ -340,8 +322,6 @@ proc start*() =
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
-
-  perfMark("end start base")
 
 proc captureMouse*() =
   setInputMode(window, CURSOR, CURSOR_DISABLED)
