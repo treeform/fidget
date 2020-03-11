@@ -243,7 +243,7 @@ proc onMouseButton(window: glfw.Window, button: cint, action: cint,
   #   buttonDown[button] = setKey
   redraw()
 
-proc onMouseMove(window: glfw.Window; x: cdouble; y: cdouble) {.cdecl.} =
+proc onMouseMove(window: glfw.Window, x: cdouble, y: cdouble) {.cdecl.} =
   # this does not fire when mouse is not in the window
   mouse.pos = vec2(x, y) * dpi
   redraw()
@@ -276,7 +276,7 @@ proc startFidget*(draw: proc()) =
   discard SetCursorPosCallback(window, onMouseMove)
   discard SetMouseButtonCallback(window, onMouseButton)
   discard SetFramebufferSizeCallback(window, onResize)
-  proc onCharCallback(window: glfw.Window; character: cuint) {.cdecl.} =
+  proc onCharCallback(window: glfw.Window, character: cuint) {.cdecl.} =
     keyboard.state = uibase.Press
     keyboard.keyString = $Rune(character)
     echo "keyboard.keyString", repr(keyboard.keyString)
@@ -285,8 +285,13 @@ proc startFidget*(draw: proc()) =
     redraw()
   discard SetCharCallback(window, onCharCallback)
 
-  proc onKeyCallback(window: glfw.Window; key: cint; scancode: cint;
-      action: cint; modifiers: cint) {.cdecl.} =
+  proc onKeyCallback(
+    window: glfw.Window,
+    key: cint,
+    scancode: cint,
+    action: cint,
+    modifiers: cint
+  ) {.cdecl.} =
     echo "keyboard.key ", key, " action ", action
     #keyboard.input.add keyboard.keyString
     #echo keyboard.input

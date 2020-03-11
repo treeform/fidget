@@ -51,10 +51,10 @@ proc compileShaderFiles*(vertShaderSrc: string, fragShaderSrc: string): GLuint =
 
   # Attach shaders to a GL program
   var program = glCreateProgram()
-  glAttachShader(program, vertShader);
-  glAttachShader(program, fragShader);
+  glAttachShader(program, vertShader)
+  glAttachShader(program, fragShader)
 
-  glLinkProgram(program);
+  glLinkProgram(program)
 
   var isLinked: GLint
   glGetProgramiv(program, GL_LINK_STATUS, isLinked.addr)

@@ -1,5 +1,7 @@
 import chroma, fidget/uibase, json, macros, strutils, tables, vmath
 
+export chroma, uibase
+
 when defined(js):
   import fidget/html
   export html
@@ -9,7 +11,6 @@ elif defined(null):
 else:
   import fidget/opengl
   export opengl
-export uibase, chroma
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
   ## Base template for group, frame, rectange ...

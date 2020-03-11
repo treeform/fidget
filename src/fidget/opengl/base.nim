@@ -211,8 +211,13 @@ proc start*() =
   #   onResize()
   # discard SetWindowRefreshCallback(window, onRefresh)
 
-  proc onSetKey(window: staticglfw.Window; key: cint; scancode: cint;
-      action: cint; modifiers: cint) {.cdecl.} =
+  proc onSetKey(
+    window: staticglfw.Window,
+    key: cint,
+    scancode: cint,
+    action: cint,
+    modifiers: cint
+  ) {.cdecl.} =
     eventHappened = true
     var setKey = action != RELEASE
     keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
@@ -288,8 +293,12 @@ proc start*() =
       mouseWheelDelta += yoffset
   discard window.setScrollCallback(onScroll)
 
-  proc onMouseButton(window: staticglfw.Window; button: cint; action: cint;
-      modifiers: cint) {.cdecl.} =
+  proc onMouseButton(
+    window: staticglfw.Window,
+    button: cint,
+    action: cint,
+    modifiers: cint
+  ) {.cdecl.} =
     eventHappened = true
     var setKey = action != 0
     let button = button + 1
@@ -306,11 +315,11 @@ proc start*() =
       buttonRelease[button] = true
   discard window.setMouseButtonCallback(onMouseButton)
 
-  proc onMouseMove(window: staticglfw.Window; x, y: cdouble) {.cdecl.} =
+  proc onMouseMove(window: staticglfw.Window, x, y: cdouble) {.cdecl.} =
     eventHappened = true
   discard window.setCursorPosCallback(onMouseMove)
 
-  proc onSetCharCallback(window: staticglfw.Window; character: cuint) {.cdecl.} =
+  proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     eventHappened = true
     if keyboard.inputFocusIdPath != "":
       keyboard.state = KeyState.Press
@@ -325,7 +334,7 @@ proc start*() =
   discard window.setCharCallback(onSetCharCallback)
 
   # this does not fire when mouse is not in the window
-  # proc onMouseMove(window: glfw3.Window; x: cdouble; y: cdouble) {.cdecl.} =
+  # proc onMouseMove(window: glfw3.Window, x: cdouble, y: cdouble) {.cdecl.} =
   #   mousePos.x = x
   #   mousePos.y = y
   # discard SetCursorPosCallback(window, onMouseMove)
