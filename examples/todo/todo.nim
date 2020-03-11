@@ -35,7 +35,7 @@ proc drawMain() =
         box 94, 114, 211, 42
         constraints cMin, cMin
         fill "#000000"
-        font "IBM Plex Sans Regular", 32, 200, 0, -1, 0
+        font "IBM Plex Sans Regular", 32, 200, 0, hLeft, vCenter
         characters "FIDGET TO DO"
 
       var y = 193
@@ -54,7 +54,7 @@ proc drawMain() =
               box 0, 0, 28, 31
               constraints cScale, cScale
               fill "#ffffff"
-              font "IBM Plex Sans Regular", 22, 200, 0, 0, 0
+              font "IBM Plex Sans Regular", 22, 200, 0, hCenter, vCenter
               characters "-"
             onClick:
               deleteIndex = i
@@ -70,7 +70,7 @@ proc drawMain() =
             box 0, 0, 261, 44
             constraints cScale, cScale
             fill "#000000"
-            font "IBM Plex Sans Regular", 16, 200, 0, 0, 0
+            font "IBM Plex Sans Regular", 16, 200, 0, hCenter, vCenter
             characters todoItem
           y += 75
 
@@ -90,7 +90,7 @@ proc drawMain() =
             box 0, 0, 28, 31
             constraints cMin, cMin
             fill "#ffffff"
-            font "IBM Plex Sans Regular", 22, 200, 0, 0, 0
+            font "IBM Plex Sans Regular", 22, 200, 0, hCenter, vCenter
             characters "+"
 
           onClick:
@@ -108,7 +108,7 @@ proc drawMain() =
           box 0, 0, 261, 44
           constraints cScale, cScale
           fill "#000000", 0.20000000298023224
-          font "IBM Plex Sans Regular", 16, 200, 0, 0, 0
+          font "IBM Plex Sans Regular", 16, 200, 0, hCenter, vCenter
           placeholder "add new item..."
           binding newItem
 
