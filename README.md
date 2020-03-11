@@ -56,7 +56,7 @@ Fidget has several backends that are planned:
 
 # Philosophy - Minimalism
 
-* Mimic how Figma](https://www.figma.com/) (Amazing UI/UX app) does it.
+* Mimic how [Figma](https://www.figma.com/) (Amazing UI/UX app) does it.
 * Everything is a Node.
 * There are Group, Rectangle, Image and Text Nodes.
 * Nodes are positions relative to the parent
