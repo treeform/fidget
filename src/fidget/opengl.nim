@@ -1,12 +1,12 @@
 import chroma, internal, opengl/context, opengl/input, strutils, tables, times,
     typography, typography/textboxes, uibase, vmath
 
+export input
+
 when defined(ios) or defined(android):
   import opengl/basemobile as base
 else:
   import opengl/base as base
-
-export input
 
 var
   ctx*: Context

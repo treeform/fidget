@@ -423,7 +423,7 @@ proc endMask*(ctx: Context) =
   # image.save()
   # if true: quit()
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0)
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
   ctx.mesh.shader = ctx.shader
