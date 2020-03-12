@@ -9,8 +9,8 @@ else:
   import opengl/base as base
 
 var
-  ctx*: Context
-  fonts* = newTable[string, Font]()
+  ctx: Context
+  fonts = newTable[string, Font]()
 
   # used for double-clicking:
   multiClick: int
