@@ -588,7 +588,6 @@ proc setItem*(key, value: string) =
   dom.window.localStorage.setItem(key, value)
 
 proc getItem*(key: string): string =
-
   ## Gets a value into local storage or file.
   $dom.window.localStorage.getItem(key)
 
