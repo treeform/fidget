@@ -18,33 +18,27 @@ proc initTexture*(image: Image): Texture =
   glGenTextures(1, texture.id.addr)
   glBindTexture(GL_TEXTURE_2D, texture.id)
 
-  var
-    target = GL_TEXTURE_2D
-    level = 0.GLint
-    internalFormat = GLint(GL_RGBA)
-    width = image.width.GLsizei
-    height = image.height.GLsizei
-    border = 0.GLint
-    format = GL_RGBA.GLenum
-    `type` = GL_UNSIGNED_BYTE.GLenum
-
+  var format: GLenum
   if image.channels == 4:
     format = GL_RGBA
   elif image.channels == 3:
     format = GL_RGB
   else:
-    quit("image " & $image & " not supported")
+    raise newException(
+      ValueError,
+      "Texture init error for " & $image & ", invalid channels value"
+    )
 
   glTexImage2D(
-    target,
-    level,
-    internalFormat,
-    width,
-    height,
-    border,
-    format,
-    `type`,
-    cast[pointer](image.data[0].addr)
+    target = GL_TEXTURE_2D,
+    level = 0,
+    internalFormat = GLint(GL_RGBA),
+    width = image.width.GLsizei,
+    height = image.width.GLsizei,
+    border = 0,
+    format = format,
+    `type` = GL_UNSIGNED_BYTE,
+    pixels = cast[pointer](image.data[0].addr)
   )
 
   glGenerateMipmap(GL_TEXTURE_2D)
