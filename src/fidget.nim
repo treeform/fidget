@@ -337,7 +337,7 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
   case vCon
     of cMin: discard
     of cMax:
-      let righSpace = parent.orgbox.w - current.box.x
+      let righSpace = parent.orgBox.w - current.box.x
       current.box.x = parent.box.w - righSpace
     of cScale:
       let xScale = parent.box.w / parent.orgBox.w
@@ -352,7 +352,7 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
   case hCon
     of cMin: discard
     of cMax:
-      let bottomSpace = parent.orgbox.h - current.box.y
+      let bottomSpace = parent.orgBox.h - current.box.y
       current.box.y = parent.box.h - bottomSpace
     of cScale:
       let yScale = parent.box.h / parent.orgBox.h
