@@ -539,8 +539,8 @@ proc startFidget*(draw: proc()) =
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
-  type dummy = object
-  dom.window.history.pushState(dummy(), "", url)
+  type Dummy = object
+  dom.window.history.pushState(Dummy(), "", url)
   echo "goto ", url
   uibase.window.innerUrl = url
   redraw()
