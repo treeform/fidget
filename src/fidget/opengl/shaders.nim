@@ -1,10 +1,10 @@
 import opengl
 
 proc getErrorLog(
-    id: GLuint,
-    lenProc: typeof(glGetShaderiv),
-    strProc: typeof(glGetShaderInfoLog)
-  ): string =
+  id: GLuint,
+  lenProc: typeof(glGetShaderiv),
+  strProc: typeof(glGetShaderInfoLog)
+): string =
   ## Gets the error log from compiling or linking shaders.
   var length: GLint = 0
   lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
