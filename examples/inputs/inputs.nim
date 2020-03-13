@@ -9,7 +9,6 @@ loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 window.title = "Inputs Example"
 
 proc drawMain() =
-
   frame "main":
     box 100, 100, 500, 30
     rectangle "#F7F7F9"
