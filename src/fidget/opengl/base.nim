@@ -60,8 +60,8 @@ proc tick*(poll = true) =
       # so only repaint on events, event did not happen!
       os.sleep(16)
       return
-    else:
-      eventHappened = false
+
+    eventHappened = false
 
   block:
     var x, y: float64
@@ -74,12 +74,13 @@ proc tick*(poll = true) =
   assert drawFrame != nil
   drawFrame()
 
+  var error: GLenum
+  while (error = glGetError(); error != GL_NO_ERROR):
+    echo "gl error: " & $error.uint32
+
   mouseWheelDelta = 0
   mouse.click = false
   mouse.rightClick = false
-
-  if glGetError() != GL_NO_ERROR:
-    echo "gl error: "
 
   # reset key and mouse press to default state
   for i in 0..<buttonPress.len:
@@ -234,7 +235,7 @@ proc start*() =
         of Button.PAGE_UP:
           textBox.pageUp(shift)
         of Button.PAGE_DOWN:
-          textBox.pageDOwn(shift)
+          textBox.pageDown(shift)
         of ENTER:
           #TODO: keyboard.multiline:
           textBox.typeCharacter(Rune(10))
