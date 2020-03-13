@@ -7,19 +7,17 @@ var
   proj*: Mat4
   frameCount* = 0
   clearColor*: Vec4
-
   drawFrame*: proc()
   running*: bool
-
   fpsTimeSeries = newTimeSeries()
   avgFrameTime*: float64
   fps*: float64 = 60
   eventHappened*: bool
-
   multisampling*: int
 
 proc onResize() =
   eventHappened = true
+
   var cwidth, cheight: cint
   window.getWindowSize(addr cwidth, addr cheight)
   windowSize.x = float(cwidth)
@@ -28,7 +26,9 @@ proc onResize() =
   window.getFramebufferSize(addr cwidth, addr cheight)
   windowFrame.x = float(cwidth)
   windowFrame.y = float(cheight)
+
   dpi = windowFrame.x / windowSize.x
+
   glViewport(0, 0, cwidth, cheight)
 
 proc setWindowTitle*(title: string) =
@@ -36,7 +36,6 @@ proc setWindowTitle*(title: string) =
     window.setWindowTitle(title)
 
 proc tick*(poll = true) =
-
   inc frameCount
   fpsTimeSeries.addTime()
   fps = float(fpsTimeSeries.num())
@@ -105,17 +104,15 @@ proc useDepthBuffer*(on: bool) =
     glDisable(GL_DEPTH_TEST)
 
 proc exit*() =
-  # cleanup GLFW
+  ## Cleanup GLFW.
   terminate()
 
 proc glGetInteger(what: GLenum): int =
   var val: cint
   glGetIntegerv(what, addr val)
-  return int val
+  return val.int
 
 proc start*() =
-
-  # init libraries
   if init() == 0:
     quit("Failed to intialize GLFW.")
 
@@ -132,15 +129,25 @@ proc start*() =
   if fullscreen:
     var monitor = getPrimaryMonitor()
     var mode = getVideoMode(monitor)
-    window = createWindow(mode.width, mode.height, uibase.window.innerTitle,
-        monitor, nil)
+    window = createWindow(
+      mode.width,
+      mode.height,
+      uibase.window.innerTitle,
+      monitor,
+      nil
+    )
 
     var cwidth, cheight: cint
     window.getWindowSize(addr cwidth, addr cheight)
     windowFrame = vec2(cwidth.float32, cheight.float32)
   else:
-    window = createWindow(cint windowFrame.x, cint windowFrame.y,
-        uibase.window.innerTitle, nil, nil)
+    window = createWindow(
+      cint windowFrame.x,
+      cint windowFrame.y,
+      uibase.window.innerTitle,
+      nil,
+      nil
+    )
 
   if window.isNil:
     quit("Failed to open GLFW window.")
