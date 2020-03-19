@@ -247,6 +247,10 @@ proc numVerts*(mesh: Mesh): int =
     return mesh.buffers[0].len
   return 0
 
+proc numTri*(mesh: Mesh): int =
+  ## Return number of triangles in the mesh.
+  return mesh.numVerts() div 3
+
 proc getBuf*(mesh: Mesh, kind: VertBufferKind): VertBuffer =
   ## Gets a buffer of a given type.
   for buf in mesh.buffers:
