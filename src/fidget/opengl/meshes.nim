@@ -417,25 +417,39 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
 
   var uniModel = glGetUniformLocation(mesh.shader, "model")
   if uniModel > -1:
-    var arr = mat.toFloat32()
-    glUniformMatrix4fv(uniModel, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+    glUniformMatrix4fv(
+      uniModel,
+      1,
+      false,
+      cast[ptr float32](mat[0].unsafeAddr))
 
   var uniView = glGetUniformLocation(mesh.shader, "view")
   if uniView > -1:
-    var arr = view.toFloat32()
-    glUniformMatrix4fv(uniView, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+    glUniformMatrix4fv(
+      uniView,
+      1,
+      false,
+      cast[ptr float32](view[0].unsafeAddr)
+    )
 
   var uniProj = glGetUniformLocation(mesh.shader, "proj")
   if uniProj > -1:
-    var arr = proj.toFloat32()
-    glUniformMatrix4fv(uniProj, GLsizei 1, GL_FALSE, cast[ptr GLfloat](arr[0].addr))
+    glUniformMatrix4fv(
+      uniProj,
+      1,
+      false,
+      cast[ptr float32](proj[0].unsafeAddr)
+    )
 
   var uniSuperTrans = glGetUniformLocation(mesh.shader, "superTrans")
   if uniSuperTrans > -1:
     var superTrans = proj * view * mat
-    var arr = superTrans.toFloat32()
-    glUniformMatrix4fv(uniSuperTrans, GLsizei 1, GL_FALSE, cast[ptr GLfloat](
-        arr[0].addr))
+    glUniformMatrix4fv(
+      uniSuperTrans,
+      1,
+      false,
+      cast[ptr float32](superTrans[0].unsafeAddr)
+    )
 
   # Do the drawing
   when defined(android):
