@@ -147,8 +147,8 @@ var
   #fonts* = newTable[string, Font]()
 
   fullscreen* = false
-  windowSize*: Vec2
-  windowFrame*: Vec2
+  windowSize*: Vec2 # Screen coordinates
+  windowFrame*: Vec2 # Pixel coordinates
   dpi*: float
 
 when not defined(js):
