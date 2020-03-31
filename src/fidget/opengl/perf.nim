@@ -77,13 +77,13 @@ proc `$`*(buffer: seq[PerfEntry]): string =
 
     case entry.kind:
       of Begin:
-        lines.add(fmt"{delta:>8.6f} {indent}{entry.tag} [")
+        lines.add(&"{delta:>8.6f} {indent}{entry.tag} [")
         indent.add("  ")
       of End:
         indent = indent[0 .. ^3]
-        lines.add(fmt"{delta:>8.6f} {indent}]")
+        lines.add(&"{delta:>8.6f} {indent}]")
       of Mark:
-        lines.add(fmt"{delta:>8.6f}{indent} {entry.tag}")
+        lines.add(&"{delta:>8.6f}{indent} {entry.tag}")
 
   result = lines.join("\n")
 
