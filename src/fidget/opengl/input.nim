@@ -142,9 +142,7 @@ var
   buttonToggle* = newSeq[bool](348)
   buttonPress* = newSeq[bool](348)
 
-  mousePos*: Vec2
-  mousePosPrev*: Vec2
-  mouseDelta*: Vec2
+  mousePos*, mousePosPrev*, mouseDelta*: Vec2 # In pixels
   mouseWheelDelta*: float
 
 proc `[]`*(buttons: seq[bool], button: Button): bool =

@@ -229,7 +229,10 @@ proc setupFidget() =
     ctx = newContext(1024*1)
 
   base.drawFrame = proc() =
-    proj = ortho(0, windowFrame.x/dpi, windowFrame.y/dpi, 0, -100, 100)
+    let
+      right =  windowFrame.x / pixelRatio
+      bottom = windowFrame.y / pixelRatio
+    proj = ortho(0, right, bottom, 0, -100, 100)
     setupRoot()
 
     root.box.x = float 0
@@ -245,7 +248,7 @@ proc setupFidget() =
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
     ctx.startFrame(windowFrame)
     ctx.saveTransform()
-    mouse.pos = mousePos / dpi
+    mouse.pos = mousePos / pixelRatio
 
     drawMain()
 
