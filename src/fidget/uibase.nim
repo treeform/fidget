@@ -149,7 +149,7 @@ var
   fullscreen* = false
   windowSize*: Vec2 # Screen coordinates
   windowFrame*: Vec2 # Pixel coordinates
-  dpi*: float
+  pixelRatio*: float # Multiplier to convert from screen coords to pixels
 
 when not defined(js):
   var
