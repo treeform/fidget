@@ -27,7 +27,7 @@ proc onResize() =
   windowFrame.x = float(cwidth)
   windowFrame.y = float(cheight)
 
-  dpi = windowFrame.x / windowSize.x
+  pixelRatio = windowFrame.x / windowSize.x
 
   glViewport(0, 0, cwidth, cheight)
 
@@ -189,7 +189,7 @@ proc tick*(poll = true) =
     var x, y: float64
     window.getCursorPos(addr x, addr y)
     mousePos = vec2(x, y)
-    mousePos *= dpi
+    mousePos *= pixelRatio
     mouseDelta = mousePos - mousePosPrev
     mousePosPrev = mousePos
 
