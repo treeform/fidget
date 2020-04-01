@@ -149,7 +149,7 @@ var
   fullscreen* = false
   windowSize*: Vec2 # Screen coordinates
   windowFrame*: Vec2 # Pixel coordinates
-  dpi*: float
+  pixelRatio*: float # Multiplier to convert from screen coords to pixels
 
 when not defined(js):
   var
@@ -168,7 +168,8 @@ proc setupRoot*() =
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color
 
-proc use*(keyboard: Keyboard) =
+proc consume*(keyboard: Keyboard) =
+  ## Reset the keyboard state consuming any event information.
   keyboard.state = Empty
   keyboard.keyCode = 0
   keyboard.scanCode = 0
@@ -178,5 +179,6 @@ proc use*(keyboard: Keyboard) =
   keyboard.shiftKey = false
   keyboard.superKey = false
 
-proc use*(mouse: Mouse) =
+proc consume*(mouse: Mouse) =
+  ## Reset the mouse state consuming any event information.
   mouse.click = false
