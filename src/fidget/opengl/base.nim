@@ -259,14 +259,10 @@ proc start*() =
       monitor,
       nil
     )
-
-    var cwidth, cheight: cint
-    window.getWindowSize(addr cwidth, addr cheight)
-    windowFrame = vec2(cwidth.float32, cheight.float32)
   else:
     window = createWindow(
-      cint windowFrame.x,
-      cint windowFrame.y,
+      cint windowSize.x,
+      cint windowSize.y,
       uibase.window.innerTitle,
       nil,
       nil

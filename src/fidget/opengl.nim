@@ -275,8 +275,7 @@ else:
     ## Starts Fidget UI library
     uibase.fullscreen = fullscreen
     if not fullscreen:
-      windowFrame = vec2(w.float32, h.float32)
-
+      windowSize = vec2(w.float32, h.float32)
     runFidget(draw)
 
 proc `title=`*(win: uibase.Window, title: string) =
