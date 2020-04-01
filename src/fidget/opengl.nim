@@ -229,10 +229,7 @@ proc setupFidget() =
     ctx = newContext(1024*1)
 
   base.drawFrame = proc() =
-    let
-      right =  windowFrame.x / pixelRatio
-      bottom = windowFrame.y / pixelRatio
-    proj = ortho(0, right, bottom, 0, -100, 100)
+    proj = ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100)
     setupRoot()
 
     root.box.x = float 0
