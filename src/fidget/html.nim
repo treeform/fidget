@@ -308,13 +308,19 @@ proc drawStart() =
   numGroups = 0
   perf.numLowLevelCalls = 0
 
+  pixelRatio = dom.window.devicePixelRatio
+  windowSize.x = float dom.window.innerWidth
+  windowSize.y = float document.body.clientHeight
+  windowFrame.x = float screen.width
+  windowFrame.y = float screen.height
+
   uibase.window.innerUrl = $dom.window.location.search
 
   # set up root HTML
   root.box.x = 0
   root.box.y = 0
-  root.box.w = float dom.window.innerWidth #document.body.clientWidth #
-  root.box.h = float document.body.clientHeight
+  root.box.w = windowSize.x #document.body.clientWidth #
+  root.box.h = windowSize.y
   root.transparency = 1.0
 
   scrollBox.x = float dom.window.scrollX
@@ -337,14 +343,13 @@ proc drawStart() =
 
   var canvas = cast[Canvas](canvasNode)
   ctx = canvas.getContext2D()
-  var devicePixelRatio = 2.0
   var
     width = float(dom.window.innerWidth)
     height = float(dom.window.innerHeight)
   canvas.clientWidth = int(width)
   canvas.clientHeight = int(height)
-  canvas.width = int(width * devicePixelRatio)
-  canvas.height = int(height * devicePixelRatio)
+  canvas.width = int(width * pixelRatio)
+  canvas.height = int(height * pixelRatio)
 
   canvas.style.display = "block"
   canvas.style.position = "absolute"
@@ -354,7 +359,7 @@ proc drawStart() =
   canvas.style.width = cstring($width & "px")
   canvas.style.height = cstring($height & "px")
 
-  ctx.scale(devicePixelRatio, devicePixelRatio)
+  ctx.scale(pixelRatio, pixelRatio)
 
   mouse.cursorStyle = Default
 
