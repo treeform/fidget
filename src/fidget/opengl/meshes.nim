@@ -392,7 +392,12 @@ proc updateUniform*(mesh: Mesh, name: string, v: Vec3) =
 proc uniformBind*(mesh: Mesh, uniform: Uniform) =
   ## Bind the uniform.
   if uniform.loc != -1:
-    glUniform3f(GLint uniform.loc, uniform.vec3.x, uniform.vec3.y, uniform.vec3.z)
+    glUniform3f(
+      GLint uniform.loc,
+      uniform.vec3.x,
+      uniform.vec3.y,
+      uniform.vec3.z
+    )
 
 proc find*(mesh: Mesh, name: string): Mesh =
   ## Find a node the the mesh kids.
