@@ -501,9 +501,12 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "input", proc(event: Event) =
     ## When INPUT element has keyboard input this is called
     if document.activeElement.isTextTag:
-      keyboard.input = $(cast[TextAreaElement](document.activeElement).value)
+      let activeTextElement = cast[TextAreaElement](document.activeElement)
+      keyboard.input = $(activeTextElement.value)
       keyboard.inputFocusIdPath = $document.activeElement.id
       keyboard.state = Press
+      keyboard.textCursor = activeTextElement.selectionStart
+      keyboard.selectionCursor = activeTextElement.selectionEnd
       redraw()
 
   dom.window.addEventListener "focusin", proc(event: Event) =
@@ -511,8 +514,11 @@ proc startFidget*(draw: proc()) =
     ## the keyboard.inputFocusId
     ## Note: "focus" does not bubble, so its not used here.
     if document.activeElement.isTextTag:
-      keyboard.input = $(cast[TextAreaElement](document.activeElement).value)
+      let activeTextElement = cast[TextAreaElement](document.activeElement)
+      keyboard.input = $(activeTextElement.value)
       keyboard.inputFocusIdPath = $document.activeElement.id
+      keyboard.textCursor = activeTextElement.selectionStart
+      keyboard.selectionCursor = activeTextElement.selectionEnd
       redraw()
 
   dom.window.addEventListener "focusout", proc(event: Event) =
