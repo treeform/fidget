@@ -470,7 +470,7 @@ proc startFidget*(draw: proc()) =
     keyboard.set(Down, event)
     hardRedraw()
     if keyboard.state != Empty:
-      keyboard.use()
+      keyboard.consume()
     else:
       event.preventDefault()
 
@@ -481,7 +481,7 @@ proc startFidget*(draw: proc()) =
     keyboard.set(Up, event)
     hardRedraw()
     if keyboard.state != Empty:
-      keyboard.use()
+      keyboard.consume()
     else:
       event.preventDefault()
 

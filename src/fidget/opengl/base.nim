@@ -3,6 +3,10 @@ import ../uibase, chroma, input, opengl, os, perf, staticglfw,
 
 var
   window*: staticglfw.Window
+  fullscreen* = false
+  windowSize*: Vec2  # Screen coordinates
+  windowFrame*: Vec2 # Pixel coordinates
+  pixelRatio*: float # Multiplier to convert from screen coords to pixels
   view*: Mat4
   proj*: Mat4
   frameCount* = 0

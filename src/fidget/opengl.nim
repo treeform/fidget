@@ -1,5 +1,5 @@
-import chroma, internal, opengl/context, opengl/input, strformat, strutils,
-    tables, times, typography, typography/textboxes, uibase, vmath
+import chroma, internal, opengl/base, opengl/context, opengl/input, strformat,
+    strutils, tables, times, typography, typography/textboxes, uibase, vmath
 
 export input
 
@@ -273,7 +273,7 @@ else:
       h: Positive = 800
   ) =
     ## Starts Fidget UI library
-    uibase.fullscreen = fullscreen
+    base.fullscreen = fullscreen
     if not fullscreen:
       windowSize = vec2(w.float32, h.float32)
     runFidget(draw)
