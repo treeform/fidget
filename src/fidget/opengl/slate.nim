@@ -3,14 +3,14 @@ import flippy, snappy, streams, strformat
 type SlateImage* = object
   mipmaps*: seq[Image]
 
-proc width*(slate: SlateImage): int =
+func width*(slate: SlateImage): int =
   slate.mipmaps[0].width
 
-proc height*(slate: SlateImage): int =
+func height*(slate: SlateImage): int =
   slate.mipmaps[0].height
 
 proc save*(slate: SlateImage, filePath: string) =
-  ## Slate is a special file format that is fast to load and save with mip maps
+  ## Slate is a special file format that is fast to load and save with mip maps.
   var f = newFileStream(filePath, fmWrite)
   f.write("slate!!\0")
   for mip in slate.mipmaps:
@@ -36,7 +36,7 @@ proc pngToSlate*(pngPath, slatePath: string) =
   slate.save(slatePath)
 
 proc loadSlate*(filePath: string): SlateImage =
-  ## Slate is a special file format that is fast to load and save with mip maps
+  ## Slate is a special file format that is fast to load and save with mip maps.
   var slate = SlateImage()
   var f = newFileStream(filePath, fmRead)
   if f.readStr(8) != "slate!!\0":
@@ -45,14 +45,14 @@ proc loadSlate*(filePath: string): SlateImage =
     if f.readStr(4) != "mip!":
       raise newException(Exception, &"Invalid slate sub header {filePath}.")
     var mip = Image()
-    mip.width = int f.readUInt32()
-    mip.height = int f.readUInt32()
+    mip.width = int f.readUint32()
+    mip.height = int f.readUint32()
     mip.channels = 4
     # mip.data = newSeq[uint8](mip.width * mip.height * 4)
     # let read = f.readData(unsafeAddr mip.data[0], mip.data.len)
     # if read != mip.data.len:
     #   raise newException(Exception, "Slate read error.")
-    let zippedLen = int f.readUInt32()
+    let zippedLen = int f.readUint32()
     let zipped = newSeq[uint8](zippedLen)
     let read = f.readData(unsafeAddr zipped[0], zippedLen)
     if read != zippedLen:

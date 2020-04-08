@@ -1,4 +1,4 @@
-import fidget, math, print
+import fidget, print
 
 type
   Area = ref object
@@ -74,7 +74,7 @@ proc drawMain() =
               print "click"
               area.expanded = not area.expanded
               print area.expanded
-              mouse.use()
+              mouse.consume()
 
           rectangle "reRun":
             box width + 10, 0, 16, 16
@@ -84,7 +84,7 @@ proc drawMain() =
 
             onClick:
               print "rerun"
-              mouse.use()
+              mouse.consume()
 
           var innerAtY = 0
           if area.expanded:
@@ -106,7 +106,7 @@ proc drawMain() =
               onClick:
                 print "edit", area.queryCode
                 editingArea = area
-                mouse.use()
+                mouse.consume()
 
               onClickOutside:
                 if editingArea == area:
@@ -119,7 +119,7 @@ proc drawMain() =
                   else:
                     area.queryCode.add keyboard.keyString
                   print area.queryCode
-                  keyboard.use()
+                  keyboard.consume()
 
           group "resultsOutput":
             box 0, innerAtY, width, area.heightOuput

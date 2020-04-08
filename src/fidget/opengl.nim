@@ -1,39 +1,38 @@
-import chroma, strutils, tables, times, typography, typography/textboxes, vmath
+import chroma, internal, opengl/context, opengl/input, strformat, strutils,
+    tables, times, typography, typography/textboxes, uibase, vmath
+
+export input
+
 when defined(ios) or defined(android):
   import opengl/basemobile as base
 else:
   import opengl/base as base
-import internal, opengl/context, opengl/input, uibase
-
-export input
 
 var
-  ctx*: Context
-  fonts* = newTable[string, Font]()
+  ctx: Context
+  fonts = newTable[string, Font]()
 
   # used for double-clicking:
   multiClick: int
   lastClickTime: float
 
-proc hAlignNum(num: int): HAlignMode =
-  case num:
-    of -1: HAlignMode.Left
-    of 0: Center
-    of 1: HAlignMode.Right
-    else: HAlignMode.Left
+proc hAlignMode(align: HAlign): HAlignMode =
+  case align:
+    of hLeft: HAlignMode.Left
+    of hCenter: Center
+    of hRight: HAlignMode.Right
 
-proc vAlignNum(num: int): VAlignMode =
-  case num:
-    of -1: Top
-    of 0: Middle
-    of 1: Bottom
-    else: Top
+proc vAlignMode(align: VAlign): VAlignMode =
+  case align:
+    of vTop: Top
+    of vCenter: Middle
+    of vBottom: Bottom
 
 var glyphOffsets = newTable[string, Vec2]()
 
 proc drawText(group: Group) =
   if group.textStyle.fontFamily notin fonts:
-    quit "font not found: " & group.textStyle.fontFamily
+    quit &"font not found: {group.textStyle.fontFamily}"
 
   var font = fonts[group.textStyle.fontFamily]
   font.size = group.textStyle.fontSize
@@ -53,8 +52,9 @@ proc drawText(group: Group) =
   )
   ctx.endMask()
 
-  if current.editableText and mouse.down and mouse.pos.inside(
-      current.screenBox):
+  if current.editableText and
+      mouse.down and
+      mouse.pos.inside(current.screenBox):
     if mouse.click and keyboard.inputFocusIdPath != group.idPath:
       keyboard.inputFocusIdPath = group.idPath
       textBox = newTextBox(
@@ -83,7 +83,9 @@ proc drawText(group: Group) =
       else:
         textBox.mouseAction(mousePos, click = true, keyboard.shiftKey)
 
-  if textBox != nil and mouse.down and not mouse.click and
+  if textBox != nil and
+      mouse.down and
+      not mouse.click and
       keyboard.inputFocusIdPath == group.idPath:
     # draggin the mouse
     textBox.mouseAction(mousePos, click = false, keyboard.shiftKey)
@@ -109,37 +111,43 @@ proc drawText(group: Group) =
       text,
       pos = vec2(0, -1), #group.screenBox.xy,
       size = group.screenBox.wh,
-      hAlignNum(group.textStyle.textAlignHorizontal),
-      vAlignNum(group.textStyle.textAlignVertical)
+      hAlignMode(group.textStyle.textAlignHorizontal),
+      vAlignMode(group.textStyle.textAlignVertical)
     )
 
   # draw characters
   for glphyIdx, pos in layout:
-    var font = pos.font
+    if pos.character notin font.glyphs:
+      continue
 
-    if pos.character in font.glyphs:
-      let subPixelShift = floor(pos.subPixelShift*10)/10
+    let
+      font = pos.font
+      subPixelShift = floor(pos.subPixelShift * 10) / 10
+      fontFamily = group.textStyle.fontFamily
+      pattern = &"{fontFamily}.{pos.character}.{$font.size}.{$subPixelShift}"
+      charKey = &"tmp/{pattern}.png"
+    if charKey notin ctx.entries:
+      var
+        glyph = font.glyphs[pos.character]
+        glyphOffset: Vec2
+      let img = font.getGlyphImage(
+        glyph,
+        glyphOffset,
+        subPixelShift = subPixelShift
+      )
+      ctx.putImage(charKey, img)
+      glyphOffsets[charKey] = glyphOffset
 
-      let charKey = "tmp/" & group.textStyle.fontFamily & "." & pos.character &
-          "." & $font.size & "." & $subPixelShift & ".png"
-      if charKey notin ctx.entries:
-        var glyph = font.glyphs[pos.character]
-        var glyphOffset: Vec2
-        let img = font.getGlyphImage(glyph, glyphOffset,
-            subPixelShift = subPixelShift)
-        ctx.putImage(charKey, img)
-        glyphOffsets[charKey] = glyphOffset
-
-      let glyphOffset = glyphOffsets[charKey]
-      let charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
-
-      ctx.drawImage(charKey, charPos, group.fill)
+    let
+      glyphOffset = glyphOffsets[charKey]
+      charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
+    ctx.drawImage(charKey, charPos, group.fill)
 
   if editing:
     # draw cursor
     ctx.fillRect(textBox.cursorRect, group.cursorColor)
     # debug
-    #ctx.fillRect(textBox.selectorRect, rgba(0, 0, 0, 255).color)
+    # ctx.fillRect(textBox.selectorRect, rgba(0, 0, 0, 255).color)
     # ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
     ctx.restoreTransform()
 
@@ -188,7 +196,7 @@ proc draw*(group: Group) =
     ), group.stroke, group.strokeWeight, group.cornerRadius[0])
 
   if group.imageName != "":
-    let path = "data/" & group.imageName & ".png"
+    let path = &"data/{group.imageName}.png"
     ctx.drawImage(path, vec2(0, 0), vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
@@ -221,7 +229,7 @@ proc setupFidget() =
     ctx = newContext(1024*1)
 
   base.drawFrame = proc() =
-    proj = ortho(0, windowFrame.x/dpi, windowFrame.y/dpi, 0, -100, 100)
+    proj = ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100)
     setupRoot()
 
     root.box.x = float 0
@@ -237,7 +245,7 @@ proc setupFidget() =
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
     ctx.startFrame(windowFrame)
     ctx.saveTransform()
-    mouse.pos = mousePos / dpi
+    mouse.pos = mousePos / pixelRatio
 
     drawMain()
 
@@ -267,8 +275,7 @@ else:
     ## Starts Fidget UI library
     uibase.fullscreen = fullscreen
     if not fullscreen:
-      windowFrame = vec2(w.float32, h.float32)
-
+      windowSize = vec2(w.float32, h.float32)
     runFidget(draw)
 
 proc `title=`*(win: uibase.Window, title: string) =
@@ -291,14 +298,14 @@ proc `url`*(win: uibase.Window): string =
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
   if pathOrUrl.endsWith(".svg"):
-    fonts[name] = readFontSVG(pathOrUrl)
+    fonts[name] = readFontSvg(pathOrUrl)
   elif pathOrUrl.endsWith(".ttf"):
-    fonts[name] = readFontTTF(pathOrUrl)
+    fonts[name] = readFontTtf(pathOrUrl)
 
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.
-  writeFile(key & ".data", value)
+  writeFile(&"{key}.data", value)
 
 proc getItem*(key: string): string =
   ## Gets a value into local storage or file.
-  readFile(key & ".data")
+  readFile(&"{key}.data")

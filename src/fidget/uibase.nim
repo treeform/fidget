@@ -16,13 +16,23 @@ type
     cStretch
     cCenter
 
+  HAlign* = enum
+    hLeft
+    hCenter
+    hRight
+
+  VAlign* = enum
+    vTop
+    vCenter
+    vBottom
+
   TextStyle* = object
     fontFamily*: string
     fontSize*: float
     fontWeight*: float
     lineHeight*: float
-    textAlignHorizontal*: int
-    textAlignVertical*: int
+    textAlignHorizontal*: HAlign
+    textAlignVertical*: VAlign
 
   BorderStyle* = object
     color*: Color
@@ -137,9 +147,9 @@ var
   #fonts* = newTable[string, Font]()
 
   fullscreen* = false
-  windowSize*: Vec2
-  windowFrame*: Vec2
-  dpi*: float
+  windowSize*: Vec2 # Screen coordinates
+  windowFrame*: Vec2 # Pixel coordinates
+  pixelRatio*: float # Multiplier to convert from screen coords to pixels
 
 when not defined(js):
   var
@@ -158,7 +168,8 @@ proc setupRoot*() =
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color
 
-proc use*(keyboard: Keyboard) =
+proc consume*(keyboard: Keyboard) =
+  ## Reset the keyboard state consuming any event information.
   keyboard.state = Empty
   keyboard.keyCode = 0
   keyboard.scanCode = 0
@@ -168,5 +179,6 @@ proc use*(keyboard: Keyboard) =
   keyboard.shiftKey = false
   keyboard.superKey = false
 
-proc use*(mouse: Mouse) =
+proc consume*(mouse: Mouse) =
+  ## Reset the mouse state consuming any event information.
   mouse.click = false

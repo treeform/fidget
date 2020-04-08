@@ -113,7 +113,7 @@ proc frameTest6TextBasic_root*() =
     text "Test Text": # 8:5
       box 108, 64, 283, 86
       fill "#000000"
-      font "Helvetica Neue", 72.0, 400.0, 81, -1, -1
+      font "Helvetica Neue", 72.0, 400.0, 81, hLeft, vTop
       characters "Test Text"
 
     rectangle "Rectangle": # 8:9
@@ -131,7 +131,7 @@ proc frameTest6TextBasic_root*() =
     text "Test Text": # 8:12
       box 108, 173, 197, 60
       fill "#000000"
-      font "Helvetica Neue", 50.0, 400.0, 55, -1, -1
+      font "Helvetica Neue", 50.0, 400.0, 55, hLeft, vTop
       characters "Test Text"
 
     rectangle "Rectangle": # 8:25
@@ -149,7 +149,7 @@ proc frameTest6TextBasic_root*() =
     text "Test Text": # 8:28
       box 108, 256, 79, 24
       fill "#000000"
-      font "Helvetica Neue", 20.0, 400.0, 20, -1, -1
+      font "Helvetica Neue", 20.0, 400.0, 20, hLeft, vTop
       characters "Test Text"
 
 proc frameTest7TextAlign_root*() =
@@ -164,55 +164,55 @@ proc frameTest7TextAlign_root*() =
     text "right top": # 8:43
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, -1, -1
+      font "Helvetica Neue", 14.0, 400.0, 13, hLeft, vTop
       characters "right top"
 
     text "center top": # 8:45
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, 0, -1
+      font "Helvetica Neue", 14.0, 400.0, 13, hCenter, vTop
       characters "center top"
 
     text "left top": # 8:44
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, 1, -1
+      font "Helvetica Neue", 14.0, 400.0, 13, hRight, vTop
       characters "left top"
 
-    text "right middle": # 8:46
+    text "right center": # 8:46
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, -1, 0
-      characters "right middle"
+      font "Helvetica Neue", 14.0, 400.0, 13, hLeft, vCenter
+      characters "right center"
 
-    text "center middle": # 8:47
+    text "center": # 8:47
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, 0, 0
-      characters "center middle"
+      font "Helvetica Neue", 14.0, 400.0, 13, hCenter, vCenter
+      characters "center"
 
-    text "left middle": # 8:48
+    text "left center": # 8:48
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, 1, 0
-      characters "left middle"
+      font "Helvetica Neue", 14.0, 400.0, 13, hRight, vCenter
+      characters "left center"
 
     text "right bottom": # 8:49
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, -1, 1
+      font "Helvetica Neue", 14.0, 400.0, 13, hLeft, vBottom
       characters "right bottom"
 
     text "center bottom": # 8:50
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, 0, 1
+      font "Helvetica Neue", 14.0, 400.0, 13, hCenter, vBottom
       characters "center bottom"
 
     text "left bottom": # 8:51
       box 100, 100, 300, 300
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, 1, 1
+      font "Helvetica Neue", 14.0, 400.0, 13, hRight, vBottom
       characters "left bottom"
 
 proc frameTest8TextInput_root*() =
@@ -227,13 +227,13 @@ proc frameTest8TextInput_root*() =
     text "enter your name:": # 8:58
       box 100, 171, 114, 19
       fill "#000000"
-      font "Helvetica Neue", 14.0, 400.0, 13, -1, -1
+      font "Helvetica Neue", 14.0, 400.0, 13, hLeft, vTop
       characters "enter your name:"
 
     text "Name": # 8:63
       box 116, 190, 274, 60
       fill "#000000"
-      font "Helvetica Neue", 28.0, 400.0, 29, -1, 0
+      font "Helvetica Neue", 28.0, 400.0, 29, hLeft, vCenter
       characters "Name"
 
     rectangle "Rectangle 2": # 8:64
@@ -275,7 +275,7 @@ proc frameTest9Images_root*() =
       text "All that is gold does not glitter, Not all those who wander are lost; The old that is strong does not wither, Deep roots are not reached by the frost. From the ashes, a fire shall be woken, A light from the shadows shall spring; Renewed shall be blade that was broken, The crownless again shall be king.": # 9:1
         box parent.box.w/2 - 185, 224, 369, 262 # TOP CENTER
         fill "#000000", 0.700
-        font "Helvetica Neue", 20.0, 400.0, 20, 0, 0
+        font "Helvetica Neue", 20.0, 400.0, 20, hCenter, vCenter
         characters "All that is gold does not glitter,\nNot all those who wander are lost;\nThe old that is strong does not wither,\nDeep roots are not reached by the frost.\nFrom the ashes, a fire shall be woken,\nA light from the shadows shall spring;\nRenewed shall be blade that was broken,\nThe crownless again shall be king."
 
       group "testLogo": # 9:6
