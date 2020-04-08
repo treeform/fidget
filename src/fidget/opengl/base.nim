@@ -3,6 +3,7 @@ import ../uibase, chroma, input, opengl, os, perf, staticglfw,
 
 var
   window*: staticglfw.Window
+  dpi*: float32
   view*: Mat4
   proj*: Mat4
   frameCount* = 0
@@ -31,6 +32,12 @@ proc onResize() =
 
   glViewport(0, 0, cwidth, cheight)
 
+  let
+    monitor = getPrimaryMonitor()
+    mode = monitor.getVideoMode()
+  monitor.getMonitorPhysicalSize(addr cwidth, addr cheight)
+  dpi = mode.width.float32 / (cwidth.float32 / 25.4)
+
 proc onSetKey(
   window: staticglfw.Window,
   key: cint,
@@ -39,7 +46,7 @@ proc onSetKey(
   modifiers: cint
 ) {.cdecl.} =
   eventHappened = true
-  var setKey = action != RELEASE
+  let setKey = action != RELEASE
   keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
   keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (
       modifiers and MOD_SUPER) != 0)
@@ -120,8 +127,9 @@ proc onMouseButton(
   modifiers: cint
 ) {.cdecl.} =
   eventHappened = true
-  var setKey = action != 0
-  let button = button + 1
+  let
+    setKey = action != 0
+    button = button + 1
   mouse.down = setKey
   if button == 1 and setKey:
     mouse.click = true
@@ -250,8 +258,9 @@ proc start*() =
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
 
   if fullscreen:
-    var monitor = getPrimaryMonitor()
-    var mode = getVideoMode(monitor)
+    let
+      monitor = getPrimaryMonitor()
+      mode = getVideoMode(monitor)
     window = createWindow(
       mode.width,
       mode.height,
@@ -281,7 +290,7 @@ proc start*() =
   else:
     loadExtensions()
 
-  var flags = glGetInteger(GL_CONTEXT_FLAGS)
+  let flags = glGetInteger(GL_CONTEXT_FLAGS)
   if (flags and cast[GLint](GL_CONTEXT_FLAG_DEBUG_BIT)) != 0:
     when defined(glDebugMessageCallback):
       # set up error reporting
