@@ -121,3 +121,13 @@ nim js padoftext.nim
 nim js padofcode.nim
 nim js basic.nim
 ```
+
+## Figma Plug
+
+To compile the figma plug run TypeScript in the figma_plugin folder.
+
+```
+tsc
+```
+
+Then go to figma and add a development plugin from this folder.
