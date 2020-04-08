@@ -18,6 +18,8 @@ var
 
   perf*: PerfCounter
 
+  htmlTextAdjustment* = vec2(1, -3)
+
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -52,6 +54,10 @@ proc computeTextBox*(text: string, width: float, fontName: string,
   tempDiv.innerHTML = text
   result[0] = float tempDiv.clientWidth
   result[1] = float tempDiv.clientHeight
+  # For some reason HTML is always off by 1 or 2 pixels
+  # is this adjustment different per browser?
+  result[0] += htmlTextAdjustment.x
+  result[1] += htmlTextAdjustment.y
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
 
@@ -268,9 +274,7 @@ proc drawDiff(current: Group) =
 
           current.textOffset.x = left
           current.textOffset.y = top
-
         else:
-
           current.textOffset.x = 0
           current.textOffset.y = 0
 
