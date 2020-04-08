@@ -1,4 +1,4 @@
-import fidget, math
+import fidget
 
 when defined(js):
   loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
@@ -25,7 +25,7 @@ proc drawMain() =
 
   group "title":
     box 100, 10, 200, 50
-    font "IBM Plex Sans Regular", 40.0, 400.0, 50, -1, 0
+    font "IBM Plex Sans Regular", 40.0, 400.0, 50, hLeft, vCenter
     rectangle "#F7F7F9"
 
     text "title":
@@ -39,7 +39,7 @@ proc drawMain() =
 
   group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200
-    font "IBM Plex Sans Regular", 20.0, 400.0, 25, -1, -1
+    font "IBM Plex Sans Regular", 20.0, 400.0, 25, hLeft, vTop
     rectangle "#F7F7F9"
 
     text "input":

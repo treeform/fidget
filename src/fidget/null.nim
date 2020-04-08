@@ -1,7 +1,10 @@
 ## Backend null is a dummy backend used for testing / dec gen
 ## Not a real backend will not draw anything
 
-import internal, times, uibase
+import internal, tables, times, uibase
+
+var values = newTable[string, string]()
+
 proc draw*(group: Group) =
   ## Draws the group
 
@@ -51,3 +54,11 @@ proc `url`*(win: uibase.Window): string =
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
   discard
+
+proc setItem*(key, value: string) =
+  ## Saves value in memory only.
+  values[key] = value
+
+proc getItem*(key: string): string =
+  ## Gets a value in memory only.
+  values[key]

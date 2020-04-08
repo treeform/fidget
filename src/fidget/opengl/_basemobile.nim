@@ -1,8 +1,8 @@
-include system/timers
-import chroma, glfm, input, opengl, perf, print, sequtils, typography/textboxes,
-    unicode, vmath
+import ../uibase, chroma, glfm, input, opengl, perf, print, sequtils,
+    typography/textboxes, unicode, vmath
 
-import ../uibase
+include system/timers
+
 var
   view*: Mat4
   proj*: Mat4
@@ -94,7 +94,7 @@ type
 
 var app: ExampleApp
 
-proc compileShader*(`type`: GLenum; shaderString: string): GLuint =
+proc compileShader*(`type`: GLenum, shaderString: string): GLuint =
   var shader: GLuint = glCreateShader(`type`)
   var shaderTextArr = [cstring(shaderString)]
   echo "glShaderSource..."
@@ -121,7 +121,7 @@ proc compileShader*(`type`: GLenum; shaderString: string): GLuint =
   return shader
 
 var firstFrame = true
-proc onFrame*(display: ptr GLFMDisplay; frameTime: cdouble) {.exportc.} =
+proc onFrame*(display: ptr GLFMDisplay, frameTime: cdouble) {.exportc.} =
   # display screen going from black to white
 
   if firstFrame:

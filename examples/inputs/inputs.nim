@@ -1,4 +1,4 @@
-import fidget, math
+import fidget
 
 var
   textValue: string
@@ -9,7 +9,6 @@ loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 window.title = "Inputs Example"
 
 proc drawMain() =
-
   frame "main":
     box 100, 100, 500, 30
     rectangle "#F7F7F9"
@@ -17,7 +16,7 @@ proc drawMain() =
     text "input":
       box 0, 0, 500, 30
       fill "#000000"
-      font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, -1
+      font "IBM Plex Sans Regular", 16.0, 400.0, 15, hLeft, vTop
       if beEdit:
         placeholder "[Enabled, type here]"
         binding textValue
@@ -30,7 +29,7 @@ proc drawMain() =
     text "text":
       box 10, 0, parent.box.w, parent.box.h
       fill "#FFFFFF"
-      font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, 0
+      font "IBM Plex Sans Regular", 16.0, 400.0, 15, hLeft, vCenter
       characters "Switch to input:" & $beEdit
 
     onHover:

@@ -1,4 +1,4 @@
-import fidget, math, random
+import fidget
 
 when defined(js):
   loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
@@ -9,7 +9,7 @@ proc drawMain() =
   # Set the window title.
   window.title = "Fidget Bars Example"
 
-  font "IBM Plex Sans Regular", 16.0, 400.0, 15, -1, -1
+  font "IBM Plex Sans Regular", 16.0, 400.0, 15, hLeft, vTop
 
   var i = 0
   for y in 0 ..< 100:

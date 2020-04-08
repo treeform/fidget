@@ -1,4 +1,4 @@
-import fidget, math, print, random, tables
+import fidget
 
 loadFont("Inconsolata", "../data/Inconsolata.svg")
 
@@ -16,7 +16,7 @@ proc drawMain() =
 
   frame "main":
     box 0, 0, parent.box.w-20, 1000
-    font "Inconsolata", 16.0, 400.0, 20, -1, -1
+    font "Inconsolata", 16.0, 400.0, 20, hLeft, vTop
     rectangle "#F7F7F9"
 
     text "codebox":

@@ -18,6 +18,7 @@ var
 
   perf*: PerfCounter
 
+  htmlTextAdjustment* = vec2(1, -3)
 
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
@@ -53,6 +54,10 @@ proc computeTextBox*(text: string, width: float, fontName: string,
   tempDiv.innerHTML = text
   result[0] = float tempDiv.clientWidth
   result[1] = float tempDiv.clientHeight
+  # For some reason HTML is always off by 1 or 2 pixels
+  # is this adjustment different per browser?
+  result[0] += htmlTextAdjustment.x
+  result[1] += htmlTextAdjustment.y
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
 
@@ -240,8 +245,8 @@ proc drawDiff(current: Group) =
 
         dom.innerText = current.text
 
-        if current.textStyle.textAlignHorizontal != -1 or
-            current.textStyle.textAlignVertical != -1:
+        if current.textStyle.textAlignHorizontal != hLeft or
+            current.textStyle.textAlignVertical != vTop:
           var box = computeTextBox(
             current.text,
             current.screenBox.w,
@@ -251,38 +256,36 @@ proc drawDiff(current: Group) =
 
           var left = 0.0
           case current.textStyle.textAlignHorizontal:
-            of -1:
+            of hLeft:
               left = 0
-            of 1:
+            of hRight:
               left = current.screenBox.w - box[0]
-            else:
+            of hCenter:
               left = current.screenBox.w / 2 - box[0] / 2
 
           var top = 0.0
           case current.textStyle.textAlignVertical:
-            of -1:
+            of vTop:
               top = 0
-            of 1:
+            of vBottom:
               top = current.screenBox.h - box[1]
-            else:
+            of vCenter:
               top = current.screenBox.h / 2 - box[1] / 2
 
           current.textOffset.x = left
           current.textOffset.y = top
-
         else:
-
           current.textOffset.x = 0
           current.textOffset.y = 0
 
   if current.tag == "input":
     dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
-    case current.textStyle.textAlignVertical:
-      of -1:
+    case current.textStyle.textAlignHorizontal:
+      of hLeft:
         dom.style.textAlign = "left"
-      of 1:
+      of hRight:
         dom.style.textAlign = "right"
-      else:
+      of hCenter:
         dom.style.textAlign = "center"
 
   # check position on screen
@@ -309,13 +312,19 @@ proc drawStart() =
   numGroups = 0
   perf.numLowLevelCalls = 0
 
+  pixelRatio = dom.window.devicePixelRatio
+  windowSize.x = float dom.window.innerWidth
+  windowSize.y = float document.body.clientHeight
+  windowFrame.x = float screen.width
+  windowFrame.y = float screen.height
+
   uibase.window.innerUrl = $dom.window.location.search
 
   # set up root HTML
   root.box.x = 0
   root.box.y = 0
-  root.box.w = float dom.window.innerWidth #document.body.clientWidth #
-  root.box.h = float document.body.clientHeight
+  root.box.w = windowSize.x #document.body.clientWidth #
+  root.box.h = windowSize.y
   root.transparency = 1.0
 
   scrollBox.x = float dom.window.scrollX
@@ -338,14 +347,13 @@ proc drawStart() =
 
   var canvas = cast[Canvas](canvasNode)
   ctx = canvas.getContext2D()
-  var devicePixelRatio = 2.0
   var
     width = float(dom.window.innerWidth)
     height = float(dom.window.innerHeight)
   canvas.clientWidth = int(width)
   canvas.clientHeight = int(height)
-  canvas.width = int(width * devicePixelRatio)
-  canvas.height = int(height * devicePixelRatio)
+  canvas.width = int(width * pixelRatio)
+  canvas.height = int(height * pixelRatio)
 
   canvas.style.display = "block"
   canvas.style.position = "absolute"
@@ -355,7 +363,7 @@ proc drawStart() =
   canvas.style.width = cstring($width & "px")
   canvas.style.height = cstring($height & "px")
 
-  ctx.scale(devicePixelRatio, devicePixelRatio)
+  ctx.scale(pixelRatio, pixelRatio)
 
   mouse.cursorStyle = Default
 
@@ -471,7 +479,7 @@ proc startFidget*(draw: proc()) =
     keyboard.set(Down, event)
     hardRedraw()
     if keyboard.state != Empty:
-      keyboard.use()
+      keyboard.consume()
     else:
       event.preventDefault()
 
@@ -482,7 +490,7 @@ proc startFidget*(draw: proc()) =
     keyboard.set(Up, event)
     hardRedraw()
     if keyboard.state != Empty:
-      keyboard.use()
+      keyboard.consume()
     else:
       event.preventDefault()
 
@@ -502,9 +510,12 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "input", proc(event: Event) =
     ## When INPUT element has keyboard input this is called
     if document.activeElement.isTextTag:
-      keyboard.input = $(cast[TextAreaElement](document.activeElement).value)
+      let activeTextElement = cast[TextAreaElement](document.activeElement)
+      keyboard.input = $(activeTextElement.value)
       keyboard.inputFocusIdPath = $document.activeElement.id
       keyboard.state = Press
+      keyboard.textCursor = activeTextElement.selectionStart
+      keyboard.selectionCursor = activeTextElement.selectionEnd
       redraw()
 
   dom.window.addEventListener "focusin", proc(event: Event) =
@@ -512,8 +523,11 @@ proc startFidget*(draw: proc()) =
     ## the keyboard.inputFocusId
     ## Note: "focus" does not bubble, so its not used here.
     if document.activeElement.isTextTag:
-      keyboard.input = $(cast[TextAreaElement](document.activeElement).value)
+      let activeTextElement = cast[TextAreaElement](document.activeElement)
+      keyboard.input = $(activeTextElement.value)
       keyboard.inputFocusIdPath = $document.activeElement.id
+      keyboard.textCursor = activeTextElement.selectionStart
+      keyboard.selectionCursor = activeTextElement.selectionEnd
       redraw()
 
   dom.window.addEventListener "focusout", proc(event: Event) =
@@ -540,8 +554,8 @@ proc startFidget*(draw: proc()) =
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
-  type dummy = object
-  dom.window.history.pushState(dummy(), "", url)
+  type Dummy = object
+  dom.window.history.pushState(Dummy(), "", url)
   echo "goto ", url
   uibase.window.innerUrl = url
   redraw()
@@ -589,7 +603,6 @@ proc setItem*(key, value: string) =
   dom.window.localStorage.setItem(key, value)
 
 proc getItem*(key: string): string =
-
   ## Gets a value into local storage or file.
   $dom.window.localStorage.getItem(key)
 
