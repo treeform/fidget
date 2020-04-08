@@ -18,8 +18,6 @@ var
 
   perf*: PerfCounter
 
-  htmlTextAdjustment* = vec2(1, -3)
-
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -36,8 +34,13 @@ proc removeTextSelection*() {.exportc.} =
   dom.window.document.getSelection().removeAllRanges()
 
 var computeTextBoxCache = newTable[string, (float, float)]()
-proc computeTextBox*(text: string, width: float, fontName: string,
-    fontSize: float): (float, float) =
+proc computeTextBox*(
+  text: string,
+  width: float,
+  fontName: string,
+  fontSize: float,
+  fontWeight: float,
+): (float, float) =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
   let key = text & $width & fontName & $fontSize
@@ -47,6 +50,7 @@ proc computeTextBox*(text: string, width: float, fontName: string,
   document.body.appendChild(tempDiv)
   tempDiv.style.fontSize = $fontSize & "px"
   tempDiv.style.fontFamily = fontName
+  tempDiv.style.fontWeight = $fontWeight
   tempDiv.style.position = "absolute"
   tempDiv.style.left = "-1000"
   tempDiv.style.top = "-1000"
@@ -54,18 +58,19 @@ proc computeTextBox*(text: string, width: float, fontName: string,
   tempDiv.innerHTML = text
   result[0] = float tempDiv.clientWidth
   result[1] = float tempDiv.clientHeight
-  # For some reason HTML is always off by 1 or 2 pixels
-  # is this adjustment different per browser?
-  result[0] += htmlTextAdjustment.x
-  result[1] += htmlTextAdjustment.y
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
 
-proc computeTextHeight*(text: string, width: float, fontName: string,
-    fontSize: float): float =
+proc computeTextHeight*(
+  text: string,
+  width: float,
+  fontName: string,
+  fontSize: float,
+  fontWeight: float,
+): float =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
-  let (_, h) = computeTextBox(text, width, fontName, fontSize)
+  let (_, h) = computeTextBox(text, width, fontName, fontSize, fontWeight)
   return h
 
 proc tag(group: Group): string =
@@ -251,7 +256,8 @@ proc drawDiff(current: Group) =
             current.text,
             current.screenBox.w,
             current.textStyle.fontFamily,
-            current.textStyle.fontSize
+            current.textStyle.fontSize,
+            current.textStyle.fontWeight
           )
 
           var left = 0.0
