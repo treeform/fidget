@@ -10,7 +10,7 @@ var
   clearColor*: Vec4
   drawFrame*: proc()
   running*: bool
-  programStartTime*: float64 = epochTime()
+  programStartTime* = epochTime()
   fpsTimeSeries = newTimeSeries()
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
