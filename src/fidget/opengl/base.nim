@@ -151,11 +151,6 @@ proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     # keyboard.shiftKey = event.shiftKey
     keyboard.keyString = Rune(character).toUTF8()
 
-# this does not fire when mouse is not in the window
-# proc onMouseMove(window: glfw3.Window, x, y: cdouble) {.cdecl.} =
-#   mousePos.x = x
-#   mousePos.y = y
-
 proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
@@ -325,7 +320,6 @@ proc start*() =
   discard window.setMouseButtonCallback(onMouseButton)
   discard window.setCursorPosCallback(onMouseMove)
   discard window.setCharCallback(onSetCharCallback)
-  # discard SetCursorPosCallback(window, onMouseMove)
 
   # window.setInputMode(CURSOR, CURSOR_HIDDEN)
 
