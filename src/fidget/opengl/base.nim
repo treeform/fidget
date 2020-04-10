@@ -1,4 +1,4 @@
-import ../uibase, chroma, input, opengl, os, perf, staticglfw,
+import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
     typography/textboxes, unicode, vmath
 
 var
@@ -10,9 +10,11 @@ var
   clearColor*: Vec4
   drawFrame*: proc()
   running*: bool
+  programStartTime* = epochTime()
   fpsTimeSeries = newTimeSeries()
-  avgFrameTime*: float64
-  fps*: float64 = 60
+  prevFrameTime* = programStartTime
+  frameTime* = prevFrameTime
+  dt*, fps*, avgFrameTime*: float64
   eventHappened*: bool
   multisampling*: int
 
@@ -21,12 +23,12 @@ proc onResize() =
 
   var cwidth, cheight: cint
   window.getWindowSize(addr cwidth, addr cheight)
-  windowSize.x = float(cwidth)
-  windowSize.y = float(cheight)
+  windowSize.x = float32(cwidth)
+  windowSize.y = float32(cheight)
 
   window.getFramebufferSize(addr cwidth, addr cheight)
-  windowFrame.x = float(cwidth)
-  windowFrame.y = float(cheight)
+  windowFrame.x = float32(cwidth)
+  windowFrame.y = float32(cheight)
 
   pixelRatio = windowFrame.x / windowSize.x
 
@@ -169,8 +171,12 @@ proc setWindowTitle*(title: string) =
 proc tick*(poll = true) =
   inc frameCount
   fpsTimeSeries.addTime()
-  fps = float(fpsTimeSeries.num())
-  avgFrameTime = float(fpsTimeSeries.avg())
+  fps = float64(fpsTimeSeries.num())
+  avgFrameTime = fpsTimeSeries.avg()
+
+  frameTime = epochTime()
+  dt = frameTime - prevFrameTime
+  prevFrameTime = frameTime
 
   if poll:
     pollEvents()
