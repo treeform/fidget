@@ -14,9 +14,8 @@ type
 
   TimeSeries* = ref object
     ## Helps you time stuff over multiple frames.
-    max: Natural
     at: Natural
-    data: seq[float]
+    data: seq[float64]
 
 var
   perfEnabled* = true
@@ -93,18 +92,17 @@ proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer) =
     defaultBuffer.setLen(0)
 
 proc newTimeSeries*(max: Natural = 1000): TimeSeries =
-  new(result)
-  result.max = max
-  result.data = newSeq[float](result.max)
+  result = TimeSeries()
+  result.data = newSeq[float64](max)
 
 proc addTime*(timeSeries: var TimeSeries) =
   ## Add current time to time series.
-  if timeSeries.at >= timeSeries.max:
+  if timeSeries.at >= len(timeSeries.data):
     timeSeries.at = 0
   timeSeries.data[timeSeries.at] = epochTime()
   inc timeSeries.at
 
-proc num*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): int =
+proc num*(timeSeries: TimeSeries, inLastSeconds: float32 = 1.0): int =
   ## Get number of things in last N seconds.
   ## Example: get number of frames in the last second - fps.
   var startTime = epochTime()
@@ -112,10 +110,10 @@ proc num*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): int =
     if startTime - inLastSeconds < f:
       inc result
 
-proc avg*(timeSeries: TimeSeries, inLastSeconds: float64 = 1.0): float64 =
+proc avg*(timeSeries: TimeSeries, inLastSeconds: float32 = 1.0): float32 =
   ## Average over last N seconds.
   ## Example: 1/fps or average frame time.
-  return inLastSeconds / float64(timeSeries.num(inLastSeconds))
+  return inLastSeconds / float32(timeSeries.num(inLastSeconds))
 
 proc byteFmt*(bytes: int): string =
   ## Formats computer sizes in B, KB, MB, GB etc...
