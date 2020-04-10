@@ -14,7 +14,7 @@ var
   fpsTimeSeries = newTimeSeries()
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
-  dt*, fps*, avgFrameTime*: float32
+  dt*, fps*, avgFrameTime*: float64
   eventHappened*: bool
   multisampling*: int
 
@@ -171,7 +171,7 @@ proc setWindowTitle*(title: string) =
 proc tick*(poll = true) =
   inc frameCount
   fpsTimeSeries.addTime()
-  fps = float32(fpsTimeSeries.num())
+  fps = float64(fpsTimeSeries.num())
   avgFrameTime = fpsTimeSeries.avg()
 
   frameTime = epochTime()
