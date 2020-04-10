@@ -41,21 +41,20 @@ proc onResize() =
   dpi = mode.width.float32 / (cwidth.float32 / 25.4)
 
 proc onSetKey(
-  window: staticglfw.Window,
-  key: cint,
-  scancode: cint,
-  action: cint,
-  modifiers: cint
+  window: staticglfw.Window, key, scancode, action, modifiers: cint
 ) {.cdecl.} =
   eventHappened = true
   let setKey = action != RELEASE
   keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
-  keyboard.ctrlKey = setKey and ((modifiers and MOD_CONTROL) != 0 or (
-      modifiers and MOD_SUPER) != 0)
+  keyboard.ctrlKey = setKey and
+    ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
   keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
+
   if keyboard.inputFocusIdPath != "":
     keyboard.state = KeyState.Press
-    if not setKey: return
+    if not setKey:
+      return
+
     let
       ctrl = keyboard.ctrlKey
       shift = keyboard.shiftKey
@@ -111,11 +110,7 @@ proc onSetKey(
       buttonRelease[key] = true
     buttonDown[key] = setKey
 
-proc onScroll(
-  window: staticglfw.Window,
-  xoffset: float64,
-  yoffset: float64
-) {.cdecl.} =
+proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
   eventHappened = true
   if keyboard.inputFocusIdPath != "":
     textBox.scrollBy(-yoffset * 50)
@@ -123,10 +118,7 @@ proc onScroll(
     mouseWheelDelta += yoffset
 
 proc onMouseButton(
-  window: staticglfw.Window,
-  button: cint,
-  action: cint,
-  modifiers: cint
+  window: staticglfw.Window, button, action, modifiers: cint
 ) {.cdecl.} =
   eventHappened = true
   let
@@ -158,11 +150,6 @@ proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     # keyboard.ctrlKey = event.ctrlKey
     # keyboard.shiftKey = event.shiftKey
     keyboard.keyString = Rune(character).toUTF8()
-
-# this does not fire when mouse is not in the window
-# proc onMouseMove(window: glfw3.Window, x: cdouble, y: cdouble) {.cdecl.} =
-#   mousePos.x = x
-#   mousePos.y = y
 
 proc setWindowTitle*(title: string) =
   if window != nil:
@@ -333,7 +320,6 @@ proc start*() =
   discard window.setMouseButtonCallback(onMouseButton)
   discard window.setCursorPosCallback(onMouseMove)
   discard window.setCharCallback(onSetCharCallback)
-  # discard SetCursorPosCallback(window, onMouseMove)
 
   # window.setInputMode(CURSOR, CURSOR_HIDDEN)
 
