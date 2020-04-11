@@ -1,8 +1,5 @@
 import fidget, math, random, vmath
 
-# Great for GUI applications, that don't have multimedia or animations.
-repaintEveryFrame = false
-
 # Create an array of 30 bars.
 var bars = newSeq[float](30)
 for i, bar in bars:
