@@ -132,11 +132,6 @@ var
   scrollBoxMega*: Rect # scroll box is 500px biger in y direction
   scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
 
-  ## Set to true so that it repains every frame, used for:
-  ##   games and multimedia apps rendering in realtime.
-  ## Set to false so that it repains only following user action, used for:
-  ##   mainstream app UIs.
-  repaintEveryFrame*: bool = true
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
