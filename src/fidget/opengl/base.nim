@@ -9,7 +9,7 @@ var
   frameCount* = 0
   clearColor*: Vec4
   drawFrame*: proc()
-  running*, focused*: bool
+  running*, focused*, minimized*: bool
   programStartTime* = epochTime()
   fpsTimeSeries = newTimeSeries()
   prevFrameTime* = programStartTime
@@ -30,6 +30,7 @@ proc onResize() =
   windowFrame.x = float32(cwidth)
   windowFrame.y = float32(cheight)
 
+  minimized = windowSize == vec2(0, 0)
   pixelRatio = if windowSize.x > 0: windowFrame.x / windowSize.x else: 0
 
   glViewport(0, 0, cwidth, cheight)
@@ -173,11 +174,6 @@ proc tick*(poll = true) =
 
   if window.windowShouldClose() != 0:
     running = false
-    return
-
-  if windowSize == vec2(0, 0):
-    # window is minimized, don't do any drawing
-    os.sleep(16)
     return
 
   if not repaintEveryFrame:
