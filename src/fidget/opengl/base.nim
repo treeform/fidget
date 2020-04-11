@@ -252,7 +252,6 @@ proc start*() =
   windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
-  windowHint(cint FOCUS_ON_SHOW, 1)
 
   if fullscreen:
     let
