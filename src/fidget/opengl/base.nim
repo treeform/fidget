@@ -1,5 +1,5 @@
 import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath
+    typography/textboxes, unicode, vmath, flippy, strformat
 
 var
   window*: staticglfw.Window
@@ -205,12 +205,28 @@ proc tick*(poll = true) =
   mouse.click = false
   mouse.rightClick = false
 
+  window.swapBuffers()
+
+  if buttonPress[F1]:
+    let
+      w = windowFrame.x.int
+      h = windowFrame.y.int
+    var
+      screenShot = newImage(w, h, 3)
+    glReadPixels(
+      0, 0, w.GLsizei, h.GLsizei, GL_RGB, GL_UNSIGNED_BYTE, screenShot.data[0].addr)
+    screenShot = screenShot.flipVertical()
+    for i in 1 .. 10000:
+      let path = &"screenshots/screenshots_{i}.png"
+      if not existsFile(path):
+        screenShot.save(path)
+        echo "Taking screenshot ", path
+        break
+
   # reset key and mouse press to default state
   for i in 0..<buttonPress.len:
     buttonPress[i] = false
     buttonRelease[i] = false
-
-  window.swapBuffers()
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
