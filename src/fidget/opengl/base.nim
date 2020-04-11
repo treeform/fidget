@@ -18,6 +18,12 @@ var
   eventHappened*: bool
   multisampling*: int
 
+  ## Set to true so that it repains every frame, used for:
+  ##   games and multimedia apps rendering in realtime.
+  ## Set to false so that it repains only following user action, used for:
+  ##   mainstream app UIs.
+  repaintEveryFrame*: bool
+
 proc onResize() =
   eventHappened = true
 
