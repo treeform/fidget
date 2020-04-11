@@ -9,7 +9,7 @@ var
   frameCount* = 0
   clearColor*: Vec4
   drawFrame*: proc()
-  running*: bool
+  running*, focused*, minimized*: bool
   programStartTime* = epochTime()
   fpsTimeSeries = newTimeSeries()
   prevFrameTime* = programStartTime
@@ -17,6 +17,12 @@ var
   dt*, fps*, avgFrameTime*: float64
   eventHappened*: bool
   multisampling*: int
+
+  ## Set to true so that it repains every frame, used for:
+  ##   games and multimedia apps rendering in realtime.
+  ## Set to false so that it repains only following user action, used for:
+  ##   mainstream app UIs.
+  repaintEveryFrame*: bool
 
 proc onResize() =
   eventHappened = true
@@ -30,7 +36,8 @@ proc onResize() =
   windowFrame.x = float32(cwidth)
   windowFrame.y = float32(cheight)
 
-  pixelRatio = windowFrame.x / windowSize.x
+  minimized = windowSize == vec2(0, 0)
+  pixelRatio = if windowSize.x > 0: windowFrame.x / windowSize.x else: 0
 
   glViewport(0, 0, cwidth, cheight)
 
@@ -39,6 +46,9 @@ proc onResize() =
     mode = monitor.getVideoMode()
   monitor.getMonitorPhysicalSize(addr cwidth, addr cheight)
   dpi = mode.width.float32 / (cwidth.float32 / 25.4)
+
+proc onFocus(window: staticglfw.Window, state: cint) {.cdecl.} =
+  focused = state == FOCUSED
 
 proc onSetKey(
   window: staticglfw.Window, key, scancode, action, modifiers: cint
@@ -172,13 +182,8 @@ proc tick*(poll = true) =
     running = false
     return
 
-  if windowSize == vec2(0, 0):
-    # window is minimized, don't do any drawing
-    os.sleep(16)
-    return
-
   if not repaintEveryFrame:
-    if not eventHappened:
+    if not eventHappened or minimized:
       # repaintEveryFrame is false
       # so only repaint on events, event did not happen!
       os.sleep(16)
@@ -329,8 +334,7 @@ proc start*() =
     tick(poll = false)
 
   discard window.setFramebufferSizeCallback(onResize)
-  onResize()
-
+  discard window.setWindowFocusCallback(onFocus)
   discard window.setKeyCallback(onSetKey)
   discard window.setScrollCallback(onScroll)
   discard window.setMouseButtonCallback(onMouseButton)
@@ -347,6 +351,9 @@ proc start*() =
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
+
+  onFocus(window, FOCUSED)
+  onResize()
 
 proc captureMouse*() =
   setInputMode(window, CURSOR, CURSOR_DISABLED)
