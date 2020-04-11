@@ -9,7 +9,7 @@ var
   frameCount* = 0
   clearColor*: Vec4
   drawFrame*: proc()
-  running*: bool
+  running*, focused*: bool
   programStartTime* = epochTime()
   fpsTimeSeries = newTimeSeries()
   prevFrameTime* = programStartTime
@@ -30,7 +30,7 @@ proc onResize() =
   windowFrame.x = float32(cwidth)
   windowFrame.y = float32(cheight)
 
-  pixelRatio = windowFrame.x / windowSize.x
+  pixelRatio = if windowSize.x > 0: windowFrame.x / windowSize.x else: 0
 
   glViewport(0, 0, cwidth, cheight)
 
@@ -39,6 +39,9 @@ proc onResize() =
     mode = monitor.getVideoMode()
   monitor.getMonitorPhysicalSize(addr cwidth, addr cheight)
   dpi = mode.width.float32 / (cwidth.float32 / 25.4)
+
+proc onFocus(window: staticglfw.Window, state: cint) {.cdecl.} =
+  focused = state == FOCUSED
 
 proc onSetKey(
   window: staticglfw.Window, key, scancode, action, modifiers: cint
@@ -249,6 +252,7 @@ proc start*() =
   windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
   windowHint(cint CONTEXT_VERSION_MAJOR, 4)
   windowHint(cint CONTEXT_VERSION_MINOR, 1)
+  windowHint(cint FOCUS_ON_SHOW, 1)
 
   if fullscreen:
     let
@@ -313,8 +317,7 @@ proc start*() =
     tick(poll = false)
 
   discard window.setFramebufferSizeCallback(onResize)
-  onResize()
-
+  discard window.setWindowFocusCallback(onFocus)
   discard window.setKeyCallback(onSetKey)
   discard window.setScrollCallback(onScroll)
   discard window.setMouseButtonCallback(onMouseButton)
@@ -331,6 +334,9 @@ proc start*() =
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
+
+  onFocus(window, FOCUSED)
+  onResize()
 
 proc captureMouse*() =
   setInputMode(window, CURSOR, CURSOR_DISABLED)
