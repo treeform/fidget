@@ -371,7 +371,7 @@ template binding*(stringVariable: untyped) =
   editableText true
   onInput:
     stringVariable = keyboard.input
-    redraw()
+    refresh()
   characters stringVariable
 
 template override*(name: string, inner: untyped) =

@@ -201,8 +201,8 @@ proc draw*(group: Group) =
 
   ctx.restoreTransform()
 
-proc redraw*() =
-  ## Request the screen to be redrawn next
+proc refresh*() =
+  ## Request the screen to be refreshn next
   requestedFrame = true
 
 proc openBrowser*(url: string) =
@@ -216,7 +216,7 @@ proc openBrowserWithText*(text: string) =
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
   rootUrl = url
-  redraw()
+  refresh()
 
 proc setupFidget(openglVersion: (int, int)) =
   base.start(openglVersion)
