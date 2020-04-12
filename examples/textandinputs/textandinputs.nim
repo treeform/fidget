@@ -7,7 +7,7 @@ else:
 
 proc drawMain() =
   # Set the window title.
-  window.title = "Fidget Bars Example"
+  setTitle("Fidget Text And Inputs Example")
 
   font "IBM Plex Sans Regular", 16.0, 400.0, 15, hLeft, vTop
 

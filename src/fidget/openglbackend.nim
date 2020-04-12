@@ -11,6 +11,7 @@ else:
 var
   ctx: Context
   fonts = newTable[string, Font]()
+  windowTitle, windowUrl: string
 
   # used for double-clicking:
   multiClick: int
@@ -201,26 +202,21 @@ proc draw*(group: Group) =
 
   ctx.restoreTransform()
 
-proc redraw*() =
-  ## Request the screen to be redrawn next
-  if not requestedFrame:
-    requestedFrame = true
+proc refresh*() =
+  ## Request the screen be redrawn
+  requestedFrame = true
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
 
-proc openBrowserWithText*(text: string) =
-  ## Opens a new window with just this text on it
-  discard
-
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
-  rootUrl = url
-  redraw()
+  discard
 
 proc setupFidget(openglVersion: (int, int)) =
   base.start(openglVersion)
+  setWindowTitle(windowTitle)
 
   when defined(ios):
     ctx = newContext(1024*4)
@@ -281,22 +277,21 @@ else:
       windowSize = vec2(w.float32, h.float32)
     runFidget(draw, tick, openglVersion)
 
-proc `title=`*(win: uibase.Window, title: string) =
-  ## Sets window url
-  win.innerTitle = title
+proc getTitle*(): string =
+  ## Gets window title
+  windowTitle
+
+proc setTitle*(title: string) =
+  ## Sets window title
+  windowTitle = title
   setWindowTitle(title)
 
-proc `title`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerTitle
+proc getUrl*(): string =
+  windowUrl
 
-proc `url=`*(win: uibase.Window, url: string) =
-  ## Sets window url
-  win.innerUrl = url
-
-proc `url`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerUrl
+proc setUrl*(url: string) =
+  windowUrl = url
+  refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
