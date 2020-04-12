@@ -31,11 +31,11 @@ proc startFidget*(draw: proc()) =
   drawMain()
   echo "drawMain walk took: ", epochTime() - startTime, "ms"
 
-proc `title=`*(win: uibase.Window, title: string) =
+proc setTitle*(title: string) =
   ## Sets window title
   windowTitle = title
 
-proc `title`*(win: uibase.Window): string =
+proc getTitle*(): string =
   ## Gets window title
   windowTitle
 

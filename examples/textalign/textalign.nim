@@ -11,7 +11,7 @@ else:
 
 proc drawMain() =
 
-  window.title = "Fidget Fonts Example"
+  setTitle("Fidget Fonts Example")
 
   font "IBM Plex Sans Regular", 12, 200, 16, hLeft, vTop
 

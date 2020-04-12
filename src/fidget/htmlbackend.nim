@@ -576,13 +576,13 @@ proc openBrowserWithText*(text: string) =
   window.document.write("<code style=display:block;white-space:pre-wrap>" &
       text & "</code>")
 
-proc `title=`*(win: uibase.Window, title: string) =
+proc setTitle*(title: string) =
   ## Sets window title
   if dom.document.title != title:
     dom.document.title = title
     refresh()
 
-proc `title`*(win: uibase.Window): string =
+proc getTitle*(): string =
   ## Gets window title
   $dom.document.title
 
