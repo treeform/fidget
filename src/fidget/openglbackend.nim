@@ -277,22 +277,20 @@ else:
       windowSize = vec2(w.float32, h.float32)
     runFidget(draw, tick, openglVersion)
 
+proc getTitle*(): string =
+  ## Gets window title
+  windowTitle
+
 proc setTitle*(title: string) =
   ## Sets window title
   windowTitle = title
   setWindowTitle(title)
 
-proc getTitle*(): string =
-  ## Gets window title
-  windowTitle
+proc getUrl*(): string =
+  discard
 
-proc `url=`*(win: uibase.Window, url: string) =
-  ## Sets window url
-  win.innerUrl = url
-
-proc `url`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerUrl
+proc setUrl*(url: string) =
+  discard
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.

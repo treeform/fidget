@@ -378,13 +378,15 @@ template override*(name: string, inner: untyped) =
   template `name`(): untyped =
     inner
 
-proc parseParams*(): TableRef[string, string] =
+proc parseParams*(): Table[string, string] =
   ## Parses the params of the main URL.
-  result = newTable[string, string]()
-  if window.innerUrl.len > 0:
-    for pair in window.innerUrl[1..^1].split("&"):
-      let
-        arr = pair.split("=")
-        key = arr[0]
-        val = arr[1]
-      result[key] = val
+  let urlParts = getUrl().split('?')
+  if len(urlParts) == 1:
+    return
+
+  for pair in urlParts[1][1..^1].split("&"):
+    let
+      arr = pair.split("=")
+      key = arr[0]
+      val = arr[1]
+    result[key] = val
