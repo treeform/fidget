@@ -277,12 +277,12 @@ else:
       windowSize = vec2(w.float32, h.float32)
     runFidget(draw, tick, openglVersion)
 
-proc `title=`*(win: uibase.Window, title: string) =
+proc setTitle*(title: string) =
   ## Sets window title
   windowTitle = title
   setWindowTitle(title)
 
-proc `title`*(win: uibase.Window): string =
+proc getTitle*(): string =
   ## Gets window title
   windowTitle
 
