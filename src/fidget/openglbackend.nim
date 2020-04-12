@@ -11,7 +11,7 @@ else:
 var
   ctx: Context
   fonts = newTable[string, Font]()
-  windowTitle: string
+  windowTitle, windowUrl: string
 
   # used for double-clicking:
   multiClick: int
@@ -287,10 +287,11 @@ proc setTitle*(title: string) =
   setWindowTitle(title)
 
 proc getUrl*(): string =
-  discard
+  windowUrl
 
 proc setUrl*(url: string) =
-  discard
+  windowUrl = url
+  refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
