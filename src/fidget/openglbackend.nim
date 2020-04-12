@@ -11,6 +11,7 @@ else:
 var
   ctx: Context
   fonts = newTable[string, Font]()
+  windowTitle: string
 
   # used for double-clicking:
   multiClick: int
@@ -215,6 +216,7 @@ proc goto*(url: string) =
 
 proc setupFidget(openglVersion: (int, int)) =
   base.start(openglVersion)
+  setWindowTitle(windowTitle)
 
   when defined(ios):
     ctx = newContext(1024*4)
@@ -276,13 +278,13 @@ else:
     runFidget(draw, tick, openglVersion)
 
 proc `title=`*(win: uibase.Window, title: string) =
-  ## Sets window url
-  win.innerTitle = title
+  ## Sets window title
+  windowTitle = title
   setWindowTitle(title)
 
 proc `title`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerTitle
+  ## Gets window title
+  windowTitle
 
 proc `url=`*(win: uibase.Window, url: string) =
   ## Sets window url

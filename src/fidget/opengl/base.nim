@@ -301,7 +301,7 @@ proc start*(openglVersion: (int, int)) =
     window = createWindow(
       mode.width,
       mode.height,
-      uibase.window.innerTitle,
+      "",
       monitor,
       nil
     )
@@ -309,7 +309,7 @@ proc start*(openglVersion: (int, int)) =
     window = createWindow(
       cint windowSize.x,
       cint windowSize.y,
-      uibase.window.innerTitle,
+      "",
       nil,
       nil
     )
