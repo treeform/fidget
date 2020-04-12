@@ -3,7 +3,7 @@ import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
     print, ../internal
 
 var
-  window*: staticglfw.Window
+  window: staticglfw.Window
   dpi*: float32
   view*: Mat4
   proj*: Mat4
