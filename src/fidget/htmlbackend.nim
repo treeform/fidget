@@ -576,7 +576,9 @@ proc setTitle*(title: string) =
 
 proc getUrl*(): string =
   ## Gets the current URL
-  return $dom.window.location.pathname & $dom.window.location.search
+  return $dom.window.location.pathname &
+    $dom.window.location.search &
+    $dom.window.location.hash
 
 proc setUrl*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
