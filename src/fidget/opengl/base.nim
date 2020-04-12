@@ -281,7 +281,7 @@ proc glGetInteger(what: GLenum): int =
   glGetIntegerv(what, addr val)
   return val.int
 
-proc start*() =
+proc start*(openglMajorVersion, openglMinorVersion: int) =
   if init() == 0:
     quit("Failed to intialize GLFW.")
 
@@ -292,8 +292,8 @@ proc start*() =
 
   windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
   windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
-  windowHint(cint CONTEXT_VERSION_MAJOR, 4)
-  windowHint(cint CONTEXT_VERSION_MINOR, 1)
+  windowHint(cint CONTEXT_VERSION_MAJOR, cint openglMajorVersion)
+  windowHint(cint CONTEXT_VERSION_MINOR, cint openglMinorVersion)
 
   if fullscreen:
     let
