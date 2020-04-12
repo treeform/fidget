@@ -254,12 +254,13 @@ proc setupFidget() =
 
   useDepthBuffer(false)
 
-proc runFidget(draw: proc()) =
+proc runFidget(draw: proc(), tick: proc()) =
   drawMain = draw
+  tickMain = tick
   setupFidget()
-  while base.running:
-    base.tick()
-  base.exit()
+  while running:
+    updateLoop()
+  exit()
 
 when defined(ios) or defined(android):
   proc startFidget*(draw: proc()) =
@@ -268,6 +269,7 @@ when defined(ios) or defined(android):
 else:
   proc startFidget*(
       draw: proc(),
+      tick: proc() = nil,
       fullscreen = false,
       w: Positive = 1280,
       h: Positive = 800
@@ -276,7 +278,7 @@ else:
     uibase.fullscreen = fullscreen
     if not fullscreen:
       windowSize = vec2(w.float32, h.float32)
-    runFidget(draw)
+    runFidget(draw, tick)
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window url

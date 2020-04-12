@@ -121,6 +121,26 @@ type
     innerTitle*: string
     innerUrl*: string
 
+  MainLoopModes* = enum
+    ## There is no main loop, only call backs.
+    ## Note: starFidget returns instantly
+    ## Used for HTML single page apps.
+    CallbackHTML
+
+    ## Only repaints on event
+    ## Used for normal for desktop UI apps.
+    RepaintOnEvent
+
+    ## Repaints every frame (60hz or more based on display)
+    ## Updates are done every matching frame time.
+    ## Used for simple multimedia apps and games.
+    RepaintOnFrame
+
+    ## Repaints every frame (60hz or more based on display)
+    ## But calls the tick function for keyboard and mouse updates at 240hz
+    ## Used for low latency games.
+    RepaintSplitUpdate
+
 var
   window* = Window()
   parent*: Group
@@ -129,8 +149,8 @@ var
   groupStack*: seq[Group]
   current*: Group
   scrollBox*: Rect
-  scrollBoxMega*: Rect # scroll box is 500px biger in y direction
-  scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
+  scrollBoxMega*: Rect # scroll box is 500px bigger in y direction
+  scrollBoxMini*: Rect # scroll box is smaller by 100px useful for debugging
 
   mouse* = Mouse()
   keyboard* = Keyboard()
@@ -146,7 +166,13 @@ var
   windowFrame*: Vec2 # Pixel coordinates
   pixelRatio*: float # Multiplier to convert from screen coords to pixels
 
-when not defined(js):
+  mainLoopMode*: MainLoopModes
+
+
+when defined(js):
+  mainLoopMode = CallbackHTML
+else:
+  mainLoopMode = RepaintOnEvent
   var
     textBox*: TextBox
 

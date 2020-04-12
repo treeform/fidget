@@ -1,28 +1,33 @@
 import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath, flippy, strformat
+    typography/textboxes, unicode, vmath, flippy, strformat, std/monotimes,
+    print, ../internal
 
 var
   window*: staticglfw.Window
   dpi*: float32
   view*: Mat4
   proj*: Mat4
-  frameCount* = 0
+  frameCount*, tickCount*: int
   clearColor*: Vec4
   drawFrame*: proc()
   running*, focused*, minimized*: bool
   programStartTime* = epochTime()
   fpsTimeSeries = newTimeSeries()
+  tpsTimeSeries = newTimeSeries()
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
-  dt*, fps*, avgFrameTime*: float64
+  dt*, fps*, tps*, avgFrameTime*: float64
   eventHappened*: bool
   multisampling*: int
+  lastDraw: int64
+  deltaDraw: int64 = 1_000_000_000 div 10
+  avgDrawHz: float64
+  lastTick: int64
+  deltaTick: int64 = 1_000_000_000 div 240
+  avgTickHz: float64
 
-  ## Set to true so that it repains every frame, used for:
-  ##   games and multimedia apps rendering in realtime.
-  ## Set to false so that it repains only following user action, used for:
-  ##   mainstream app UIs.
-  repaintEveryFrame*: bool
+proc getTicks(): int64 =
+  getMonoTime().ticks
 
 proc onResize() =
   eventHappened = true
@@ -165,7 +170,34 @@ proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
 
-proc tick*(poll = true) =
+proc preTick() =
+  ## Does input and output operations.
+  ## Runs at 240
+  var x, y: float64
+  window.getCursorPos(addr x, addr y)
+  mousePos = vec2(x, y)
+  mousePos *= pixelRatio
+  mouseDelta = mousePos - mousePosPrev
+  mousePosPrev = mousePos
+
+proc postTick() =
+  mouseWheelDelta = 0
+  mouse.click = false
+  mouse.rightClick = false
+
+  # reset key and mouse press to default state
+  for i in 0..<buttonPress.len:
+    buttonPress[i] = false
+    buttonRelease[i] = false
+
+  tpsTimeSeries.addTime()
+  tps = float64(tpsTimeSeries.num())
+
+  inc tickCount
+  lastTick += deltaTick
+
+proc drawLoop() =
+  ## Does drawing operations.
   inc frameCount
   fpsTimeSeries.addTime()
   fps = float64(fpsTimeSeries.num())
@@ -175,63 +207,55 @@ proc tick*(poll = true) =
   dt = frameTime - prevFrameTime
   prevFrameTime = frameTime
 
-  if poll:
-    pollEvents()
+  assert drawFrame != nil
+  drawFrame()
+  var error: GLenum
+  while (error = glGetError(); error != GL_NO_ERROR):
+    echo "gl error: " & $error.uint32
+  window.swapBuffers()
+  #swapInterval(2)
 
+proc updateLoop*(poll = true) =
   if window.windowShouldClose() != 0:
     running = false
     return
 
-  if not repaintEveryFrame:
-    if not eventHappened or minimized:
-      # repaintEveryFrame is false
-      # so only repaint on events, event did not happen!
-      os.sleep(16)
-      return
+  case mainLoopMode:
+    of CallbackHTML:
+      raise newException(ValueError,
+        "CallbackHTML not supported in non JS mode")
 
-    eventHappened = false
+    of RepaintOnEvent:
+      if poll:
+        pollEvents()
+      if not eventHappened or minimized:
+        # so only repaint on events, event did not happen!
+        sleep(16)
+        return
+      preTick()
+      if tickMain != nil:
+        tickMain()
+      drawLoop()
+      postTick()
+      eventHappened = false
 
-  block:
-    var x, y: float64
-    window.getCursorPos(addr x, addr y)
-    mousePos = vec2(x, y)
-    mousePos *= pixelRatio
-    mouseDelta = mousePos - mousePosPrev
-    mousePosPrev = mousePos
+    of RepaintOnFrame:
+      if poll:
+        pollEvents()
+      preTick()
+      if tickMain != nil:
+        tickMain()
+      drawLoop()
+      postTick()
 
-  assert drawFrame != nil
-  drawFrame()
-
-  var error: GLenum
-  while (error = glGetError(); error != GL_NO_ERROR):
-    echo "gl error: " & $error.uint32
-
-  mouseWheelDelta = 0
-  mouse.click = false
-  mouse.rightClick = false
-
-  window.swapBuffers()
-
-  if buttonPress[F1]:
-    let
-      w = windowFrame.x.int
-      h = windowFrame.y.int
-    var
-      screenShot = newImage(w, h, 3)
-    glReadPixels(
-      0, 0, w.GLsizei, h.GLsizei, GL_RGB, GL_UNSIGNED_BYTE, screenShot.data[0].addr)
-    screenShot = screenShot.flipVertical()
-    for i in 1 .. 10000:
-      let path = &"screenshots/screenshots_{i}.png"
-      if not existsFile(path):
-        screenShot.save(path)
-        echo "Taking screenshot ", path
-        break
-
-  # reset key and mouse press to default state
-  for i in 0..<buttonPress.len:
-    buttonPress[i] = false
-    buttonRelease[i] = false
+    of RepaintSplitUpdate:
+      while lastTick < getTicks():
+        if poll:
+          pollEvents()
+        preTick()
+        tickMain()
+        postTick()
+      drawLoop()
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
@@ -331,7 +355,7 @@ proc start*() =
 
   proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
     onResize()
-    tick(poll = false)
+    updateLoop(poll = false)
 
   discard window.setFramebufferSizeCallback(onResize)
   discard window.setWindowFocusCallback(onFocus)
@@ -351,6 +375,9 @@ proc start*() =
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
+
+  lastDraw = getTicks()
+  lastTick = getTicks()
 
   onFocus(window, FOCUSED)
   onResize()
