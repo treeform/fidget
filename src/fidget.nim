@@ -384,7 +384,8 @@ proc parseParams*(): Table[string, string] =
   if len(urlParts) == 1:
     return
 
-  for pair in urlParts[1][1..^1].split("&"):
+  let noHash = urlParts[1].split('#')[0]
+  for pair in noHash[0..^1].split("&"):
     let
       arr = pair.split("=")
       key = arr[0]
