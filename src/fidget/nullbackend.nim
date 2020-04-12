@@ -9,7 +9,7 @@ proc draw*(group: Group) =
   ## Draws the group
 
 proc refresh*() =
-  ## Request the screen to be refreshn next
+  ## Request the screen be redrawn
   requestedFrame = true
 
 proc openBrowser*(url: string) =
