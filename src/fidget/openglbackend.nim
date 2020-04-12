@@ -203,8 +203,7 @@ proc draw*(group: Group) =
 
 proc redraw*() =
   ## Request the screen to be redrawn next
-  if not requestedFrame:
-    requestedFrame = true
+  requestedFrame = true
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser

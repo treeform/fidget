@@ -17,7 +17,6 @@ var
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
   dt*, fps*, tps*, avgFrameTime*: float64
-  eventHappened*: bool
   multisampling*: int
   lastDraw: int64
   deltaDraw: int64 = 1_000_000_000 div 10
@@ -30,7 +29,7 @@ proc getTicks(): int64 =
   getMonoTime().ticks
 
 proc updateWindowSize() =
-  eventHappened = true
+  requestedFrame = true
 
   var cwidth, cheight: cint
   window.getWindowSize(addr cwidth, addr cheight)
@@ -58,7 +57,7 @@ proc onFocus(window: staticglfw.Window, state: cint) {.cdecl.} =
 proc onSetKey(
   window: staticglfw.Window, key, scancode, action, modifiers: cint
 ) {.cdecl.} =
-  eventHappened = true
+  requestedFrame = true
   let setKey = action != RELEASE
   keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
   keyboard.ctrlKey = setKey and
@@ -126,7 +125,7 @@ proc onSetKey(
     buttonDown[key] = setKey
 
 proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
-  eventHappened = true
+  requestedFrame = true
   if keyboard.inputFocusIdPath != "":
     textBox.scrollBy(-yoffset * 50)
   else:
@@ -135,7 +134,7 @@ proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
 proc onMouseButton(
   window: staticglfw.Window, button, action, modifiers: cint
 ) {.cdecl.} =
-  eventHappened = true
+  requestedFrame = true
   let
     setKey = action != 0
     button = button + 1
@@ -152,10 +151,10 @@ proc onMouseButton(
     buttonRelease[button] = true
 
 proc onMouseMove(window: staticglfw.Window, x, y: cdouble) {.cdecl.} =
-  eventHappened = true
+  requestedFrame = true
 
 proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
-  eventHappened = true
+  requestedFrame = true
   if keyboard.inputFocusIdPath != "":
     keyboard.state = KeyState.Press
     textBox.typeCharacter(Rune(character))
@@ -228,8 +227,8 @@ proc updateLoop*(poll = true) =
     of RepaintOnEvent:
       if poll:
         pollEvents()
-      if not eventHappened or minimized:
-        # so only repaint on events, event did not happen!
+      if not requestedFrame or minimized:
+        # Only repaint when necessary
         sleep(16)
         return
       preTick()
@@ -237,7 +236,7 @@ proc updateLoop*(poll = true) =
         tickMain()
       drawLoop()
       postTick()
-      eventHappened = false
+      requestedFrame = false
 
     of RepaintOnFrame:
       if poll:
