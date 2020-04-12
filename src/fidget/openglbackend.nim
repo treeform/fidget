@@ -211,8 +211,7 @@ proc openBrowser*(url: string) =
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
-  rootUrl = url
-  refresh()
+  discard
 
 proc setupFidget(openglVersion: (int, int)) =
   base.start(openglVersion)

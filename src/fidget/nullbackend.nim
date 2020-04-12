@@ -18,8 +18,7 @@ proc openBrowser*(url: string) =
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
-  rootUrl = url
-  refresh()
+  discard
 
 proc startFidget*(draw: proc()) =
   ## Starts fidget UI library

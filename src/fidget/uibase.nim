@@ -156,7 +156,6 @@ var
   keyboard* = Keyboard()
   requestedFrame*: bool
   numGroups*: int
-  rootUrl*: string
   popupActive*: bool
   inPopup*: bool
   #fonts* = newTable[string, Font]()
