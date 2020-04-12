@@ -13,9 +13,9 @@ else:
   export openglbackend
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
-  ## Base template for group, frame, rectange ...
+  ## Base template for group, frame, rectangle...
 
-  # we should draw the parent first as we are drawing the a child now
+  # Verify we have drawn the parent first since we are drawing a child now
   parent = groupStack[^1]
   if not parent.wasDrawn:
     parent.draw()
@@ -377,10 +377,6 @@ template binding*(stringVariable: untyped) =
 template override*(name: string, inner: untyped) =
   template `name`(): untyped =
     inner
-
-# Navigation and URL functions
-# proc goto*(url: string)
-# proc openBrowser*(url: string)
 
 proc parseParams*(): TableRef[string, string] =
   ## Parses the params of the main URL.

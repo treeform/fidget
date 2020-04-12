@@ -168,7 +168,6 @@ var
 
   mainLoopMode*: MainLoopModes
 
-
 when defined(js):
   mainLoopMode = CallbackHTML
 else:
