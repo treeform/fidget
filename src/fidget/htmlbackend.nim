@@ -585,7 +585,6 @@ proc setUrl*(url: string) =
   if getUrl() != url:
     type Dummy = object
     dom.window.history.pushState(Dummy(), "", url)
-    echo "setUrl ", url
     refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
