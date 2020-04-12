@@ -279,8 +279,10 @@ proc getTitle*(): string =
 
 proc setTitle*(title: string) =
   ## Sets window title
-  windowTitle = title
-  setWindowTitle(title)
+  if (windowTitle != title):
+    windowTitle = title
+    setWindowTitle(title)
+    refresh()
 
 proc getUrl*(): string =
   windowUrl
