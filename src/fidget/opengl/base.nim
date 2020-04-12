@@ -29,7 +29,7 @@ var
 proc getTicks(): int64 =
   getMonoTime().ticks
 
-proc onResize() =
+proc updateWindowSize() =
   eventHappened = true
 
   var cwidth, cheight: cint
@@ -354,7 +354,7 @@ proc start*() =
   echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
-    onResize()
+    updateWindowSize()
     updateLoop(poll = false)
 
   discard window.setFramebufferSizeCallback(onResize)
@@ -380,7 +380,7 @@ proc start*() =
   lastTick = getTicks()
 
   onFocus(window, FOCUSED)
-  onResize()
+  updateWindowSize()
 
 proc captureMouse*() =
   setInputMode(window, CURSOR, CURSOR_DISABLED)
