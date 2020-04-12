@@ -578,14 +578,13 @@ proc openBrowserWithText*(text: string) =
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window title
-  if win.innerTitle != title:
+  if dom.document.title != title:
     dom.document.title = title
-    win.innerTitle = title
     refresh()
 
 proc `title`*(win: uibase.Window): string =
   ## Gets window title
-  win.innerTitle
+  $dom.document.title
 
 proc `url=`*(win: uibase.Window, url: string) =
   ## Sets window url

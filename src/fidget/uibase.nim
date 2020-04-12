@@ -118,7 +118,6 @@ type
     selectionCursor*: int # to which character are we selecting to
 
   Window* = ref object
-    innerTitle*: string
     innerUrl*: string
 
   MainLoopModes* = enum

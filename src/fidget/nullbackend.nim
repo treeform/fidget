@@ -3,7 +3,9 @@
 
 import internal, tables, times, uibase
 
-var values = newTable[string, string]()
+var
+  windowTitle: string
+  values = newTable[string, string]()
 
 proc draw*(group: Group) =
   ## Draws the group
@@ -30,12 +32,12 @@ proc startFidget*(draw: proc()) =
   echo "drawMain walk took: ", epochTime() - startTime, "ms"
 
 proc `title=`*(win: uibase.Window, title: string) =
-  ## Sets window url
-  win.innerTitle = title
+  ## Sets window title
+  windowTitle = title
 
 proc `title`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerTitle
+  ## Gets window title
+  windowTitle
 
 proc `url=`*(win: uibase.Window, url: string) =
   ## Sets window url
