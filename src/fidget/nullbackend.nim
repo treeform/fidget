@@ -4,7 +4,7 @@
 import internal, tables, times, uibase
 
 var
-  windowTitle: string
+  windowTitle, windowUrl: string
   values = newTable[string, string]()
 
 proc draw*(group: Group) =
@@ -31,21 +31,21 @@ proc startFidget*(draw: proc()) =
   drawMain()
   echo "drawMain walk took: ", epochTime() - startTime, "ms"
 
-proc setTitle*(title: string) =
-  ## Sets window title
-  windowTitle = title
-
 proc getTitle*(): string =
   ## Gets window title
   windowTitle
 
-proc `url=`*(win: uibase.Window, url: string) =
-  ## Sets window url
-  win.innerUrl = url
+proc setTitle*(title: string) =
+  ## Sets window title
+  windowTitle = title
 
-proc `url`*(win: uibase.Window): string =
+proc getUrl*(): string =
   ## Gets window url
-  return win.innerUrl
+  windowUrl
+
+proc setUrl*(url: string) =
+  ## Sets window url
+  windowUrl = url
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.

@@ -324,8 +324,6 @@ proc drawStart() =
   windowFrame.x = float screen.width
   windowFrame.y = float screen.height
 
-  uibase.window.innerUrl = $dom.window.location.search
-
   # set up root HTML
   root.box.x = 0
   root.box.y = 0
@@ -436,8 +434,6 @@ proc startFidget*(draw: proc()) =
   ## Start the HTML backend
   ## NOTE: returns instantly!
   drawMain = draw
-
-  uibase.window.innerUrl = $dom.window.location.pathname
 
   dom.window.addEventListener "load", proc(event: Event) =
     ## called when html page loads and JS can start running
@@ -558,14 +554,6 @@ proc startFidget*(draw: proc()) =
     hardRedraw()
     forceTextRelayout = false
 
-proc goto*(url: string) =
-  ## Goes to a new URL, inserts it into history so that back button works
-  type Dummy = object
-  dom.window.history.pushState(Dummy(), "", url)
-  echo "goto ", url
-  uibase.window.innerUrl = url
-  refresh()
-
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard dom.window.open(url, "_blank")
@@ -576,26 +564,27 @@ proc openBrowserWithText*(text: string) =
   window.document.write("<code style=display:block;white-space:pre-wrap>" &
       text & "</code>")
 
-proc setTitle*(title: string) =
-  ## Sets window title
-  if dom.document.title != title:
-    dom.document.title = title
-    refresh()
-
 proc getTitle*(): string =
   ## Gets window title
   $dom.document.title
 
-proc `url=`*(win: uibase.Window, url: string) =
-  ## Sets window url
-  if win.innerUrl != url:
-    win.innerUrl = url
+proc setTitle*(title: string) =
+  ## Sets window title
+  if getTitle() != title:
+    dom.document.title = title
     refresh()
 
-proc `url`*(win: uibase.Window): string =
-  ## Gets window url
-  #win.innerUrl
-  return $dom.window.location.pathname
+proc getUrl*(): string =
+  ## Gets the current URL
+  return $dom.window.location.pathname & $dom.window.location.search
+
+proc setUrl*(url: string) =
+  ## Goes to a new URL, inserts it into history so that back button works
+  if getUrl() != url:
+    type Dummy = object
+    dom.window.history.pushState(Dummy(), "", url)
+    echo "setUrl ", url
+    refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
