@@ -219,8 +219,8 @@ proc goto*(url: string) =
   rootUrl = url
   redraw()
 
-proc setupFidget() =
-  base.start()
+proc setupFidget(openglVersion: (int, int)) =
+  base.start(openglVersion)
 
   when defined(ios):
     ctx = newContext(1024*4)
@@ -254,10 +254,10 @@ proc setupFidget() =
 
   useDepthBuffer(false)
 
-proc runFidget(draw: proc(), tick: proc()) =
+proc runFidget(draw: proc(), tick: proc(), openglVersion: (int, int)) =
   drawMain = draw
   tickMain = tick
-  setupFidget()
+  setupFidget(openglVersion)
   while running:
     updateLoop()
   exit()
@@ -265,20 +265,21 @@ proc runFidget(draw: proc(), tick: proc()) =
 when defined(ios) or defined(android):
   proc startFidget*(draw: proc()) =
     ## Starts Fidget UI library
-    runFidget(draw)
+    runFidget(draw, (4, 1))
 else:
   proc startFidget*(
       draw: proc(),
       tick: proc() = nil,
       fullscreen = false,
       w: Positive = 1280,
-      h: Positive = 800
+      h: Positive = 800,
+      openglVersion = (4, 1)
   ) =
     ## Starts Fidget UI library
     uibase.fullscreen = fullscreen
     if not fullscreen:
       windowSize = vec2(w.float32, h.float32)
-    runFidget(draw, tick)
+    runFidget(draw, tick, openglVersion)
 
 proc `title=`*(win: uibase.Window, title: string) =
   ## Sets window url
