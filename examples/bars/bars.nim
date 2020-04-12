@@ -7,7 +7,7 @@ for i, bar in bars:
 
 proc drawMain() =
   # Set the window title.
-  window.title = "Fidget Bars Example"
+  setTitle("Fidget Bars Example")
 
   # Use simple math to layout things.
   let h = bars.len * 60 + 20

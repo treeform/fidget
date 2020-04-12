@@ -12,7 +12,7 @@ WHERE a = 234 and b = "nothing"
 
 proc drawMain() =
 
-  window.title = "Pad of Code"
+  setTitle("Pad of Code")
 
   frame "main":
     box 0, 0, parent.box.w-20, 1000

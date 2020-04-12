@@ -117,10 +117,6 @@ type
     textCursor*: int      # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 
-  Window* = ref object
-    innerTitle*: string
-    innerUrl*: string
-
   MainLoopModes* = enum
     ## There is no main loop, only call backs.
     ## Note: starFidget returns instantly
@@ -142,7 +138,6 @@ type
     RepaintSplitUpdate
 
 var
-  window* = Window()
   parent*: Group
   root*: Group
   prevRoot*: Group
@@ -156,7 +151,6 @@ var
   keyboard* = Keyboard()
   requestedFrame*: bool
   numGroups*: int
-  rootUrl*: string
   popupActive*: bool
   inPopup*: bool
   #fonts* = newTable[string, Font]()
@@ -167,7 +161,6 @@ var
   pixelRatio*: float # Multiplier to convert from screen coords to pixels
 
   mainLoopMode*: MainLoopModes
-
 
 when defined(js):
   mainLoopMode = CallbackHTML

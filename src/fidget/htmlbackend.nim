@@ -324,8 +324,6 @@ proc drawStart() =
   windowFrame.x = float screen.width
   windowFrame.y = float screen.height
 
-  uibase.window.innerUrl = $dom.window.location.search
-
   # set up root HTML
   root.box.x = 0
   root.box.y = 0
@@ -417,7 +415,7 @@ proc requestHardRedraw(time: float = 0.0) =
   requestedFrame = false
   hardRedraw()
 
-proc redraw*() =
+proc refresh*() =
   if not requestedFrame:
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
@@ -437,8 +435,6 @@ proc startFidget*(draw: proc()) =
   ## NOTE: returns instantly!
   drawMain = draw
 
-  uibase.window.innerUrl = $dom.window.location.pathname
-
   dom.window.addEventListener "load", proc(event: Event) =
     ## called when html page loads and JS can start running
     rootDomNode = document.createElement("div")
@@ -446,15 +442,15 @@ proc startFidget*(draw: proc()) =
 
     canvasNode = document.createElement("canvas")
     document.body.appendChild(canvasNode)
-    redraw()
+    refresh()
 
   dom.window.addEventListener "resize", proc(event: Event) =
     ## Resize does not need to do anything special in HTML mode
-    redraw()
+    refresh()
 
   dom.window.addEventListener "scroll", proc(event: Event) =
     ## Scroll does not need to do anything special in HTML mode
-    redraw()
+    refresh()
 
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
@@ -468,7 +464,7 @@ proc startFidget*(draw: proc()) =
 
   dom.window.addEventListener "mouseup", proc(event: Event) =
     ## When mouse button is released
-    redraw()
+    refresh()
     mouse.down = false
 
   dom.window.addEventListener "mousemove", proc(event: Event) =
@@ -476,7 +472,7 @@ proc startFidget*(draw: proc()) =
     let event = cast[MouseEvent](event)
     mouse.pos.x = float event.pageX
     mouse.pos.y = float event.pageY
-    redraw()
+    refresh()
 
   dom.window.addEventListener "keydown", proc(event: Event) =
     ## When keyboards key is pressed down
@@ -522,7 +518,7 @@ proc startFidget*(draw: proc()) =
       keyboard.state = Press
       keyboard.textCursor = activeTextElement.selectionStart
       keyboard.selectionCursor = activeTextElement.selectionEnd
-      redraw()
+      refresh()
 
   dom.window.addEventListener "focusin", proc(event: Event) =
     ## When INPUT element gets focus this is called, set the keyboard.input and
@@ -534,7 +530,7 @@ proc startFidget*(draw: proc()) =
       keyboard.inputFocusIdPath = $document.activeElement.id
       keyboard.textCursor = activeTextElement.selectionStart
       keyboard.selectionCursor = activeTextElement.selectionEnd
-      redraw()
+      refresh()
 
   dom.window.addEventListener "focusout", proc(event: Event) =
     ## When INPUT element looses focus this is called, clear keyboard.input and
@@ -542,29 +538,21 @@ proc startFidget*(draw: proc()) =
     ## Note: "blur" does not bubble, so its not used here.
 
     # redraw everything to sync up the bind(string)
-    redraw()
+    refresh()
 
     keyboard.input = ""
     keyboard.inputFocusIdPath = ""
-    redraw()
+    refresh()
 
   dom.window.addEventListener "popstate", proc(event: Event) =
     ## Called when users presses back or forward buttons.
-    redraw()
+    refresh()
 
   document.fonts.onloadingdone = proc(event: Event) =
     computeTextBoxCache.clear()
     forceTextRelayout = true
     hardRedraw()
     forceTextRelayout = false
-
-proc goto*(url: string) =
-  ## Goes to a new URL, inserts it into history so that back button works
-  type Dummy = object
-  dom.window.history.pushState(Dummy(), "", url)
-  echo "goto ", url
-  uibase.window.innerUrl = url
-  redraw()
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
@@ -576,27 +564,29 @@ proc openBrowserWithText*(text: string) =
   window.document.write("<code style=display:block;white-space:pre-wrap>" &
       text & "</code>")
 
-proc `title=`*(win: uibase.Window, title: string) =
-  ## Sets window title
-  if win.innerTitle != title:
-    dom.document.title = title
-    win.innerTitle = title
-    redraw()
-
-proc `title`*(win: uibase.Window): string =
+proc getTitle*(): string =
   ## Gets window title
-  win.innerTitle
+  $dom.document.title
 
-proc `url=`*(win: uibase.Window, url: string) =
-  ## Sets window url
-  if win.innerUrl != url:
-    win.innerUrl = url
-    redraw()
+proc setTitle*(title: string) =
+  ## Sets window title
+  if getTitle() != title:
+    dom.document.title = title
+    refresh()
 
-proc `url`*(win: uibase.Window): string =
-  ## Gets window url
-  #win.innerUrl
-  return $dom.window.location.pathname
+proc getUrl*(): string =
+  ## Gets the current URL
+  return $dom.window.location.pathname &
+    $dom.window.location.search &
+    $dom.window.location.hash
+
+proc setUrl*(url: string) =
+  ## Goes to a new URL, inserts it into history so that back button works
+  if getUrl() != url:
+    type Dummy = object
+    dom.window.history.pushState(Dummy(), "", url)
+    echo "setUrl ", url
+    refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
