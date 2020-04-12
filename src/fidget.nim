@@ -3,14 +3,14 @@ import chroma, fidget/uibase, json, macros, strutils, tables, vmath
 export chroma, uibase
 
 when defined(js):
-  import fidget/html
-  export html
+  import fidget/htmlbackend
+  export htmlbackend
 elif defined(null):
-  import fidget/null
-  export null
+  import fidget/nullbackend
+  export nullbackend
 else:
-  import fidget/opengl
-  export opengl
+  import fidget/openglbackend
+  export openglbackend
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
   ## Base template for group, frame, rectange ...
