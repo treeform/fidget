@@ -380,11 +380,11 @@ template override*(name: string, inner: untyped) =
 
 proc parseParams*(): Table[string, string] =
   ## Parses the params of the main URL.
-  let urlParts = getUrl().split('?')
-  if len(urlParts) == 1:
+  let splitSearch = getUrl().split('?')
+  if len(splitSearch) == 1:
     return
 
-  let noHash = urlParts[1].split('#')[0]
+  let noHash = splitSearch[1].split('#')[0]
   for pair in noHash[0..^1].split("&"):
     let
       arr = pair.split("=")
