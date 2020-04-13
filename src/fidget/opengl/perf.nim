@@ -1,4 +1,4 @@
-import math, strformat, strutils, times, std/monotimes
+import math, std/monotimes, strformat, strutils, times
 
 when defined(nimTypeNames):
   import tables
@@ -61,7 +61,7 @@ template timeIt*(tag: string, body: untyped) =
     let
       start = buffer[0].ticks
       finish = buffer[^1].ticks
-       # Convert from nanoseconds to floating point seconds
+        # Convert from nanoseconds to floating point seconds
       delta = float64(finish - start) / 1000000000.0
     echo tag, ": ", delta, "s"
   else:

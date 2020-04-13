@@ -1,5 +1,5 @@
-import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath, perf, ../internal
+import ../internal, ../uibase, chroma, input, opengl, os, perf, staticglfw,
+    times, typography/textboxes, unicode, vmath
 
 when defined(glDebugMessageCallback):
   import strformat, strutils
