@@ -17,13 +17,13 @@ var
   multiClick: int
   lastClickTime: float
 
-proc hAlignMode(align: HAlign): HAlignMode =
+func hAlignMode(align: HAlign): HAlignMode =
   case align:
     of hLeft: HAlignMode.Left
     of hCenter: Center
     of hRight: HAlignMode.Right
 
-proc vAlignMode(align: VAlign): VAlignMode =
+func vAlignMode(align: VAlign): VAlignMode =
   case align:
     of vTop: Top
     of vCenter: Middle
@@ -309,6 +309,8 @@ proc loadFont*(name: string, pathOrUrl: string) =
     fonts[name] = readFontSvg(pathOrUrl)
   elif pathOrUrl.endsWith(".ttf"):
     fonts[name] = readFontTtf(pathOrUrl)
+  else:
+    raise newException(Exception, "Unsupported font format")
 
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.
