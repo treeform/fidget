@@ -1,10 +1,8 @@
 import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath, flippy, perf,
-    print, ../internal
+    typography/textboxes, unicode, vmath, perf, ../internal
 
 when defined(glDebugMessageCallback):
   import strformat, strutils
-
 
 type
   MSAA* = enum
@@ -97,7 +95,7 @@ proc postTick() =
   inc tickCount
   lastTick += deltaTick
 
-proc draw() =
+proc drawAndSwap() =
   ## Does drawing operations.
   inc frameCount
   fpsTimeSeries.addTime()
@@ -133,7 +131,7 @@ proc updateLoop*(poll = true) =
       preTick()
       if tickMain != nil:
         tickMain()
-      draw()
+      drawAndSwap()
       postTick()
       requestedFrame = false
 
@@ -143,7 +141,7 @@ proc updateLoop*(poll = true) =
       preTick()
       if tickMain != nil:
         tickMain()
-      draw()
+      drawAndSwap()
       postTick()
 
     of RepaintSplitUpdate:
@@ -153,7 +151,7 @@ proc updateLoop*(poll = true) =
         preTick()
         tickMain()
         postTick()
-      draw()
+      drawAndSwap()
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
@@ -264,7 +262,7 @@ proc onMouseButton(
   requestedFrame = true
   let
     setKey = action != 0
-    button = button + 1
+    button = button + 1 # Fidget mouse buttons are +1 from staticglfw
   mouse.down = setKey
   if button == 1 and setKey:
     mouse.click = true
