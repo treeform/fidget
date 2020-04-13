@@ -290,9 +290,6 @@ proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     textBox.typeCharacter(Rune(character))
   else:
     keyboard.state = KeyState.Press
-    # keyboard.altKey = event.altKey
-    # keyboard.ctrlKey = event.ctrlKey
-    # keyboard.shiftKey = event.shiftKey
     keyboard.keyString = Rune(character).toUTF8()
 
 proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
