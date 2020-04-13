@@ -117,26 +117,6 @@ type
     textCursor*: int      # at which character in the input string are we
     selectionCursor*: int # to which character are we selecting to
 
-  MainLoopModes* = enum
-    ## There is no main loop, only call backs.
-    ## Note: starFidget returns instantly
-    ## Used for HTML single page apps.
-    CallbackHTML
-
-    ## Only repaints on event
-    ## Used for normal for desktop UI apps.
-    RepaintOnEvent
-
-    ## Repaints every frame (60hz or more based on display)
-    ## Updates are done every matching frame time.
-    ## Used for simple multimedia apps and games.
-    RepaintOnFrame
-
-    ## Repaints every frame (60hz or more based on display)
-    ## But calls the tick function for keyboard and mouse updates at 240hz
-    ## Used for low latency games.
-    RepaintSplitUpdate
-
 var
   parent*: Group
   root*: Group
@@ -160,14 +140,8 @@ var
   windowFrame*: Vec2 # Pixel coordinates
   pixelRatio*: float # Multiplier to convert from screen coords to pixels
 
-  mainLoopMode*: MainLoopModes
-
-when defined(js):
-  mainLoopMode = CallbackHTML
-else:
-  mainLoopMode = RepaintOnEvent
-  var
-    textBox*: TextBox
+when not defined(js):
+  var textBox*: TextBox
 
 mouse = Mouse()
 mouse.pos = Vec2()
