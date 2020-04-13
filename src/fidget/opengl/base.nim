@@ -1,6 +1,10 @@
 import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath, flippy, strformat, perf,
+    typography/textboxes, unicode, vmath, flippy, perf,
     print, ../internal
+
+when defined(glDebugMessageCallback):
+  import strformat, strutils
+
 
 type
   MSAA* = enum
@@ -170,11 +174,6 @@ proc exit*() =
   ## Cleanup GLFW.
   terminate()
 
-proc glGetInteger(what: GLenum): int =
-  var val: cint
-  glGetIntegerv(what, addr val)
-  return val.int
-
 proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
   updateWindowSize()
   updateLoop(poll = false)
@@ -329,27 +328,28 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   else:
     loadExtensions()
 
-  let flags = glGetInteger(GL_CONTEXT_FLAGS)
-  if (flags and cast[GLint](GL_CONTEXT_FLAG_DEBUG_BIT)) != 0:
-    when defined(glDebugMessageCallback):
-      # set up error reporting
+  when defined(glDebugMessageCallback):
+    var flags: GLint
+    glGetIntegerv(GL_CONTEXT_FLAGS, flags.addr)
+    if (flags and GL_CONTEXT_FLAG_DEBUG_BIT.GLint) != 0:
+      # Set up error logging
       proc printGlDebug(
-          source: GLenum,
-          typ: GLenum,
-          id: GLuint,
-          severity: GLenum,
-          length: GLsizei,
-          message: ptr GLchar,
-          userParam: pointer) {.stdcall.} =
-        echo "source=" & repr(source) & " type=" & repr(typ) & " id=" & repr(
-            id) & " severity=" & repr(severity) & ": " & $message
+        source, typ: GLenum,
+        id: GLuint,
+        severity: GLenum,
+        length: GLsizei,
+        message: ptr GLchar,
+        userParam: pointer
+      ) {.stdcall.} =
+        echo &"source={toHex(source.uint32)} type={toHex(typ.uint32)} " &
+          &"id={id} severity={toHex(severity.uint32)}: {$message}"
         if severity != GL_DEBUG_SEVERITY_NOTIFICATION:
           running = false
+
       glDebugMessageCallback(printGlDebug, nil)
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
       glEnable(GL_DEBUG_OUTPUT)
 
-  # Print some info
   echo getVersionString()
   echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
   echo "GL_SHADING_LANGUAGE_VERSION:",
