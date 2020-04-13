@@ -172,6 +172,11 @@ proc exit*() =
   ## Cleanup GLFW.
   terminate()
 
+proc glGetInteger*(what: GLenum): int =
+  var val: GLint
+  glGetIntegerv(what, val.addr)
+  return val.int
+
 proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
   updateWindowSize()
   updateLoop(poll = false)
@@ -327,8 +332,7 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
     loadExtensions()
 
   when defined(glDebugMessageCallback):
-    var flags: GLint
-    glGetIntegerv(GL_CONTEXT_FLAGS, flags.addr)
+    let flags = glGetInteger(GL_CONTEXT_FLAGS)
     if (flags and GL_CONTEXT_FLAG_DEBUG_BIT.GLint) != 0:
       # Set up error logging
       proc printGlDebug(
