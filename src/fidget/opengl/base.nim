@@ -301,32 +301,20 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   loopMode = mainLoopMode
 
   if msaa != msaaDisabled:
-    windowHint(SAMPLES, cint msaa)
+    windowHint(SAMPLES, msaa.cint)
 
-  windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
-  windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
-  windowHint(cint CONTEXT_VERSION_MAJOR, cint openglVersion[0])
-  windowHint(cint CONTEXT_VERSION_MINOR, cint openglVersion[1])
+  windowHint(OPENGL_FORWARD_COMPAT, GL_TRUE.cint)
+  windowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
+  windowHint(CONTEXT_VERSION_MAJOR, openglVersion[0].cint)
+  windowHint(CONTEXT_VERSION_MINOR, openglVersion[1].cint)
 
   if fullscreen:
     let
       monitor = getPrimaryMonitor()
       mode = getVideoMode(monitor)
-    window = createWindow(
-      mode.width,
-      mode.height,
-      "",
-      monitor,
-      nil
-    )
+    window = createWindow(mode.width, mode.height, "", monitor, nil)
   else:
-    window = createWindow(
-      cint windowSize.x,
-      cint windowSize.y,
-      "",
-      nil,
-      nil
-    )
+    window = createWindow(windowSize.x.cint, windowSize.y.cint, "", nil, nil)
 
   if window.isNil:
     quit("Failed to open window.")
