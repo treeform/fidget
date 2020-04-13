@@ -210,8 +210,12 @@ proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
 
-proc setupFidget(openglVersion: (int, int)) =
-  base.start(openglVersion)
+proc setupFidget(
+  openglVersion: (int, int),
+  msaa: MSAA,
+  mainLoopMode: MainLoopMode
+) =
+  base.start(openglVersion, msaa, mainLoopMode)
   setWindowTitle(windowTitle)
 
   when defined(ios):
@@ -246,10 +250,16 @@ proc setupFidget(openglVersion: (int, int)) =
 
   useDepthBuffer(false)
 
-proc runFidget(draw: proc(), tick: proc(), openglVersion: (int, int)) =
+proc runFidget(
+  draw: proc(),
+  tick: proc(),
+  openglVersion: (int, int),
+  msaa: MSAA,
+  mainLoopMode: MainLoopMode
+) =
   drawMain = draw
   tickMain = tick
-  setupFidget(openglVersion)
+  setupFidget(openglVersion, msaa, mainLoopMode)
   while running:
     updateLoop()
   exit()
@@ -257,7 +267,7 @@ proc runFidget(draw: proc(), tick: proc(), openglVersion: (int, int)) =
 when defined(ios) or defined(android):
   proc startFidget*(draw: proc()) =
     ## Starts Fidget UI library
-    runFidget(draw, (4, 1))
+    runFidget(draw)
 else:
   proc startFidget*(
       draw: proc(),
@@ -265,13 +275,15 @@ else:
       fullscreen = false,
       w: Positive = 1280,
       h: Positive = 800,
-      openglVersion = (4, 1)
+      openglVersion = (4, 1),
+      msaa = msaaDisabled,
+      mainLoopMode: MainLoopMode = RepaintOnEvent
   ) =
     ## Starts Fidget UI library
     uibase.fullscreen = fullscreen
     if not fullscreen:
       windowSize = vec2(w.float32, h.float32)
-    runFidget(draw, tick, openglVersion)
+    runFidget(draw, tick, openglVersion, msaa, mainLoopMode)
 
 proc getTitle*(): string =
   ## Gets window title
