@@ -12,20 +12,21 @@ func height*(slate: SlateImage): int =
 proc save*(slate: SlateImage, filePath: string) =
   ## Slate is a special file format that is fast to load and save with mip maps.
   var f = newFileStream(filePath, fmWrite)
+  defer: f.close()
+
   f.write("slate!!\0")
   for mip in slate.mipmaps:
+    var zipped = snappy.compress(mip.data)
     f.write("mip!")
-    f.write(uint32 mip.width)
-    f.write(uint32 mip.height)
-    #f.writeData(unsafeAddr mip.data[0], mip.data.len)
-    let zipped = snappy.compress(mip.data)
-    f.write(uint32 zipped.len)
-    f.writeData(unsafeAddr zipped[0], zipped.len)
-  f.close()
+    f.write(mip.width.uint32)
+    f.write(mip.height.uint32)
+    f.write(len(zipped).uint32)
+    f.writeData(zipped[0].addr, len(zipped))
 
 proc pngToSlate*(pngPath, slatePath: string) =
-  var image = loadImage(pngPath)
-  var slate = SlateImage()
+  var
+    image = loadImage(pngPath)
+    slate = SlateImage()
   image.alphaBleed()
   var mip = image
   while true:
@@ -37,27 +38,24 @@ proc pngToSlate*(pngPath, slatePath: string) =
 
 proc loadSlate*(filePath: string): SlateImage =
   ## Slate is a special file format that is fast to load and save with mip maps.
-  var slate = SlateImage()
   var f = newFileStream(filePath, fmRead)
+  defer: f.close()
+
   if f.readStr(8) != "slate!!\0":
     raise newException(Exception, &"Invalid slate header {filePath}.")
+
   while not f.atEnd():
     if f.readStr(4) != "mip!":
       raise newException(Exception, &"Invalid slate sub header {filePath}.")
+
     var mip = Image()
     mip.width = int f.readUint32()
     mip.height = int f.readUint32()
     mip.channels = 4
-    # mip.data = newSeq[uint8](mip.width * mip.height * 4)
-    # let read = f.readData(unsafeAddr mip.data[0], mip.data.len)
-    # if read != mip.data.len:
-    #   raise newException(Exception, "Slate read error.")
-    let zippedLen = int f.readUint32()
-    let zipped = newSeq[uint8](zippedLen)
-    let read = f.readData(unsafeAddr zipped[0], zippedLen)
+    let zippedLen = f.readUint32().int
+    var zipped = newSeq[uint8](zippedLen)
+    let read = f.readData(zipped[0].addr, zippedLen)
     if read != zippedLen:
       raise newException(Exception, "Slate read error.")
     mip.data = snappy.uncompress(zipped)
-    slate.mipmaps.add mip
-
-  return slate
+    result.mipmaps.add(mip)
