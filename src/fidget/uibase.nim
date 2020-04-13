@@ -73,7 +73,7 @@ type
     textPadding*: int
     imageName*: string
     cornerRadius*: (float, float, float, float)
-    wasDrawn*: bool # was group drawn or it still needs to be drawn
+    wasDrawn*: bool # Was group drawn or still needs to be drawn
     editableText*: bool
     multiline*: bool
     drawable*: bool
@@ -86,7 +86,7 @@ type
     Up
     Down
     Repeat
-    Press # used for text input
+    Press # Used for text input
 
   MouseCursorStyle* = enum
     Default
@@ -97,10 +97,10 @@ type
   Mouse* = ref object
     state: KeyState
     pos*: Vec2
-    click*: bool                   # mouse button just got held down
-    rightClick*: bool              # mouse right click
-    down*: bool                    # mouse button is held down
-    cursorStyle*: MouseCursorStyle # sets the mouse cursor icon
+    click*: bool                   # Mouse button just got held down
+    rightClick*: bool              # Mouse right click
+    down*: bool                    # Mouse button is held down
+    cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
 
   Keyboard* = ref object
     state*: KeyState
@@ -114,8 +114,8 @@ type
     inputFocusIdPath*: string
     prevInputFocusIdPath*: string
     input*: string
-    textCursor*: int      # at which character in the input string are we
-    selectionCursor*: int # to which character are we selecting to
+    textCursor*: int      # At which character in the input string are we
+    selectionCursor*: int # To which character are we selecting to
 
 var
   parent*: Group
@@ -124,17 +124,14 @@ var
   groupStack*: seq[Group]
   current*: Group
   scrollBox*: Rect
-  scrollBoxMega*: Rect # scroll box is 500px bigger in y direction
-  scrollBoxMini*: Rect # scroll box is smaller by 100px useful for debugging
-
+  scrollBoxMega*: Rect # Scroll box is 500px bigger in y direction
+  scrollBoxMini*: Rect # Scroll box is smaller by 100px useful for debugging
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
   numGroups*: int
   popupActive*: bool
   inPopup*: bool
-  #fonts* = newTable[string, Font]()
-
   fullscreen* = false
   windowSize*: Vec2    # Screen coordinates
   windowFrame*: Vec2   # Pixel coordinates
@@ -156,7 +153,7 @@ proc setupRoot*() =
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color
 
-proc consume*(keyboard: Keyboard) =
+func consume*(keyboard: Keyboard) =
   ## Reset the keyboard state consuming any event information.
   keyboard.state = Empty
   keyboard.keyCode = 0
@@ -167,6 +164,6 @@ proc consume*(keyboard: Keyboard) =
   keyboard.shiftKey = false
   keyboard.superKey = false
 
-proc consume*(mouse: Mouse) =
+func consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.
   mouse.click = false
