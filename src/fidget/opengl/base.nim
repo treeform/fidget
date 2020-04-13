@@ -30,7 +30,6 @@ var
   dpi*: float32
   view*: Mat4
   proj*: Mat4
-  clearColor*: Vec4
   drawFrame*: proc()
   running*, focused*, minimized*: bool
   programStartTime* = epochTime()
