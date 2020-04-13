@@ -37,12 +37,8 @@ var
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
   dt*, fps*, tps*, avgFrameTime*: float64
-  lastDraw: int64
-  deltaDraw: int64 = 1_000_000_000 div 10
-  avgDrawHz: float64
-  lastTick: int64
+  lastDraw, lastTick: int64
   deltaTick: int64 = 1_000_000_000 div 240
-  avgTickHz: float64
 
 proc getTicks(): int64 =
   getMonoTime().ticks
