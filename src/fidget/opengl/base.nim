@@ -21,13 +21,15 @@ type
     ## Used for low latency games.
     RepaintSplitUpdate
 
+const
+  deltaTick: int64 = 1_000_000_000 div 240
+
 var
   window: staticglfw.Window
   loopMode: MainLoopMode
   dpi*: float32
   view*: Mat4
   proj*: Mat4
-  frameCount*, tickCount*: int
   clearColor*: Vec4
   drawFrame*: proc()
   running*, focused*, minimized*: bool
@@ -37,8 +39,8 @@ var
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
   dt*, fps*, tps*, avgFrameTime*: float64
+  frameCount*, tickCount*: int
   lastDraw, lastTick: int64
-  deltaTick: int64 = 1_000_000_000 div 240
 
 proc getTicks(): int64 =
   getMonoTime().ticks
