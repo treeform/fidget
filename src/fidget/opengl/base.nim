@@ -28,8 +28,6 @@ var
   window: staticglfw.Window
   loopMode: MainLoopMode
   dpi*: float32
-  view*: Mat4
-  proj*: Mat4
   drawFrame*: proc()
   running*, focused*, minimized*: bool
   programStartTime* = epochTime()
@@ -40,6 +38,8 @@ var
   dt*, fps*, tps*, avgFrameTime*: float64
   frameCount*, tickCount*: int
   lastDraw, lastTick: int64
+  view*: Mat4
+  proj*: Mat4
 
 proc updateWindowSize() =
   requestedFrame = true
@@ -70,7 +70,6 @@ proc setWindowTitle*(title: string) =
 
 proc preTick() =
   ## Does input and output operations.
-  ## Runs at 240
   var x, y: float64
   window.getCursorPos(addr x, addr y)
   mousePos = vec2(x, y)
@@ -83,7 +82,7 @@ proc postTick() =
   mouse.click = false
   mouse.rightClick = false
 
-  # reset key and mouse press to default state
+  # Reset key and mouse press to default state
   for i in 0..<buttonPress.len:
     buttonPress[i] = false
     buttonRelease[i] = false
@@ -107,11 +106,12 @@ proc drawLoop() =
 
   assert drawFrame != nil
   drawFrame()
+
   var error: GLenum
   while (error = glGetError(); error != GL_NO_ERROR):
     echo "gl error: " & $error.uint32
+
   window.swapBuffers()
-  #swapInterval(2)
 
 proc updateLoop*(poll = true) =
   if window.windowShouldClose() != 0:
