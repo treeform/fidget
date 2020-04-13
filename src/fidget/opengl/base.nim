@@ -1,6 +1,8 @@
 import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath, flippy, strformat, std/monotimes,
-    print, ../internal
+    typography/textboxes, unicode, vmath, perf, ../internal
+
+when defined(glDebugMessageCallback):
+  import strformat, strutils
 
 type
   MSAA* = enum
@@ -28,9 +30,6 @@ var
   window: staticglfw.Window
   loopMode: MainLoopMode
   dpi*: float32
-  view*: Mat4
-  proj*: Mat4
-  clearColor*: Vec4
   drawFrame*: proc()
   running*, focused*, minimized*: bool
   programStartTime* = epochTime()
@@ -41,9 +40,8 @@ var
   dt*, fps*, tps*, avgFrameTime*: float64
   frameCount*, tickCount*: int
   lastDraw, lastTick: int64
-
-proc getTicks(): int64 =
-  getMonoTime().ticks
+  view*: Mat4
+  proj*: Mat4
 
 proc updateWindowSize() =
   requestedFrame = true
@@ -67,6 +65,121 @@ proc updateWindowSize() =
     mode = monitor.getVideoMode()
   monitor.getMonitorPhysicalSize(addr cwidth, addr cheight)
   dpi = mode.width.float32 / (cwidth.float32 / 25.4)
+
+proc setWindowTitle*(title: string) =
+  if window != nil:
+    window.setWindowTitle(title)
+
+proc preTick() =
+  ## Does input and output operations.
+  var x, y: float64
+  window.getCursorPos(addr x, addr y)
+  mousePos = vec2(x, y)
+  mousePos *= pixelRatio
+  mouseDelta = mousePos - mousePosPrev
+  mousePosPrev = mousePos
+
+proc postTick() =
+  mouseWheelDelta = 0
+  mouse.click = false
+  mouse.rightClick = false
+
+  # Reset key and mouse press to default state
+  for i in 0..<buttonPress.len:
+    buttonPress[i] = false
+    buttonRelease[i] = false
+
+  tpsTimeSeries.addTime()
+  tps = float64(tpsTimeSeries.num())
+
+  inc tickCount
+  lastTick += deltaTick
+
+proc drawAndSwap() =
+  ## Does drawing operations.
+  inc frameCount
+  fpsTimeSeries.addTime()
+  fps = float64(fpsTimeSeries.num())
+  avgFrameTime = fpsTimeSeries.avg()
+
+  frameTime = epochTime()
+  dt = frameTime - prevFrameTime
+  prevFrameTime = frameTime
+
+  assert drawFrame != nil
+  drawFrame()
+
+  var error: GLenum
+  while (error = glGetError(); error != GL_NO_ERROR):
+    echo "gl error: " & $error.uint32
+
+  window.swapBuffers()
+
+proc updateLoop*(poll = true) =
+  if window.windowShouldClose() != 0:
+    running = false
+    return
+
+  case loopMode:
+    of RepaintOnEvent:
+      if poll:
+        pollEvents()
+      if not requestedFrame or minimized:
+        # Only repaint when necessary
+        sleep(16)
+        return
+      preTick()
+      if tickMain != nil:
+        tickMain()
+      drawAndSwap()
+      postTick()
+      requestedFrame = false
+
+    of RepaintOnFrame:
+      if poll:
+        pollEvents()
+      preTick()
+      if tickMain != nil:
+        tickMain()
+      drawAndSwap()
+      postTick()
+
+    of RepaintSplitUpdate:
+      while lastTick < getTicks():
+        if poll:
+          pollEvents()
+        preTick()
+        tickMain()
+        postTick()
+      drawAndSwap()
+
+proc clearDepthBuffer*() =
+  glClear(GL_DEPTH_BUFFER_BIT)
+
+proc clearColorBuffer*(color: Color) =
+  glClearColor(color.r, color.g, color.b, color.a)
+  glClear(GL_COLOR_BUFFER_BIT)
+
+proc useDepthBuffer*(on: bool) =
+  if on:
+    glDepthMask(GL_TRUE)
+    glEnable(GL_DEPTH_TEST)
+  else:
+    glDepthMask(GL_FALSE)
+    glDisable(GL_DEPTH_TEST)
+
+proc exit*() =
+  ## Cleanup GLFW.
+  terminate()
+
+proc glGetInteger*(what: GLenum): int =
+  var val: GLint
+  glGetIntegerv(what, val.addr)
+  return val.int
+
+proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
+  updateWindowSize()
+  updateLoop(poll = false)
 
 proc onFocus(window: staticglfw.Window, state: cint) {.cdecl.} =
   focused = state == FOCUSED
@@ -154,7 +267,7 @@ proc onMouseButton(
   requestedFrame = true
   let
     setKey = action != 0
-    button = button + 1
+    button = button + 1 # Fidget mouse buttons are +1 from staticglfw
   mouse.down = setKey
   if button == 1 and setKey:
     mouse.click = true
@@ -182,117 +295,6 @@ proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     # keyboard.shiftKey = event.shiftKey
     keyboard.keyString = Rune(character).toUTF8()
 
-proc setWindowTitle*(title: string) =
-  if window != nil:
-    window.setWindowTitle(title)
-
-proc preTick() =
-  ## Does input and output operations.
-  ## Runs at 240
-  var x, y: float64
-  window.getCursorPos(addr x, addr y)
-  mousePos = vec2(x, y)
-  mousePos *= pixelRatio
-  mouseDelta = mousePos - mousePosPrev
-  mousePosPrev = mousePos
-
-proc postTick() =
-  mouseWheelDelta = 0
-  mouse.click = false
-  mouse.rightClick = false
-
-  # reset key and mouse press to default state
-  for i in 0..<buttonPress.len:
-    buttonPress[i] = false
-    buttonRelease[i] = false
-
-  tpsTimeSeries.addTime()
-  tps = float64(tpsTimeSeries.num())
-
-  inc tickCount
-  lastTick += deltaTick
-
-proc drawLoop() =
-  ## Does drawing operations.
-  inc frameCount
-  fpsTimeSeries.addTime()
-  fps = float64(fpsTimeSeries.num())
-  avgFrameTime = fpsTimeSeries.avg()
-
-  frameTime = epochTime()
-  dt = frameTime - prevFrameTime
-  prevFrameTime = frameTime
-
-  assert drawFrame != nil
-  drawFrame()
-  var error: GLenum
-  while (error = glGetError(); error != GL_NO_ERROR):
-    echo "gl error: " & $error.uint32
-  window.swapBuffers()
-  #swapInterval(2)
-
-proc updateLoop*(poll = true) =
-  if window.windowShouldClose() != 0:
-    running = false
-    return
-
-  case loopMode:
-    of RepaintOnEvent:
-      if poll:
-        pollEvents()
-      if not requestedFrame or minimized:
-        # Only repaint when necessary
-        sleep(16)
-        return
-      preTick()
-      if tickMain != nil:
-        tickMain()
-      drawLoop()
-      postTick()
-      requestedFrame = false
-
-    of RepaintOnFrame:
-      if poll:
-        pollEvents()
-      preTick()
-      if tickMain != nil:
-        tickMain()
-      drawLoop()
-      postTick()
-
-    of RepaintSplitUpdate:
-      while lastTick < getTicks():
-        if poll:
-          pollEvents()
-        preTick()
-        tickMain()
-        postTick()
-      drawLoop()
-
-proc clearDepthBuffer*() =
-  glClear(GL_DEPTH_BUFFER_BIT)
-
-proc clearColorBuffer*(color: Color) =
-  glClearColor(color.r, color.g, color.b, color.a)
-  glClear(GL_COLOR_BUFFER_BIT)
-
-proc useDepthBuffer*(on: bool) =
-  if on:
-    glDepthMask(GL_TRUE)
-    glEnable(GL_DEPTH_TEST)
-  else:
-    glDepthMask(GL_FALSE)
-    glDisable(GL_DEPTH_TEST)
-
-proc exit*() =
-  ## Cleanup GLFW.
-  terminate()
-
-proc glGetInteger(what: GLenum): int =
-  var val: cint
-  glGetIntegerv(what, addr val)
-  return val.int
-
 proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   if init() == 0:
     quit("Failed to intialize GLFW.")
@@ -301,32 +303,20 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   loopMode = mainLoopMode
 
   if msaa != msaaDisabled:
-    windowHint(SAMPLES, cint msaa)
+    windowHint(SAMPLES, msaa.cint)
 
-  windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
-  windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
-  windowHint(cint CONTEXT_VERSION_MAJOR, cint openglVersion[0])
-  windowHint(cint CONTEXT_VERSION_MINOR, cint openglVersion[1])
+  windowHint(OPENGL_FORWARD_COMPAT, GL_TRUE.cint)
+  windowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
+  windowHint(CONTEXT_VERSION_MAJOR, openglVersion[0].cint)
+  windowHint(CONTEXT_VERSION_MINOR, openglVersion[1].cint)
 
   if fullscreen:
     let
       monitor = getPrimaryMonitor()
       mode = getVideoMode(monitor)
-    window = createWindow(
-      mode.width,
-      mode.height,
-      "",
-      monitor,
-      nil
-    )
+    window = createWindow(mode.width, mode.height, "", monitor, nil)
   else:
-    window = createWindow(
-      cint windowSize.x,
-      cint windowSize.y,
-      "",
-      nil,
-      nil
-    )
+    window = createWindow(windowSize.x.cint, windowSize.y.cint, "", nil, nil)
 
   if window.isNil:
     quit("Failed to open window.")
@@ -341,34 +331,31 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   else:
     loadExtensions()
 
-  let flags = glGetInteger(GL_CONTEXT_FLAGS)
-  if (flags and cast[GLint](GL_CONTEXT_FLAG_DEBUG_BIT)) != 0:
-    when defined(glDebugMessageCallback):
-      # set up error reporting
+  when defined(glDebugMessageCallback):
+    let flags = glGetInteger(GL_CONTEXT_FLAGS)
+    if (flags and GL_CONTEXT_FLAG_DEBUG_BIT.GLint) != 0:
+      # Set up error logging
       proc printGlDebug(
-          source: GLenum,
-          typ: GLenum,
-          id: GLuint,
-          severity: GLenum,
-          length: GLsizei,
-          message: ptr GLchar,
-          userParam: pointer) {.stdcall.} =
-        echo "source=" & repr(source) & " type=" & repr(typ) & " id=" & repr(
-            id) & " severity=" & repr(severity) & ": " & $message
+        source, typ: GLenum,
+        id: GLuint,
+        severity: GLenum,
+        length: GLsizei,
+        message: ptr GLchar,
+        userParam: pointer
+      ) {.stdcall.} =
+        echo &"source={toHex(source.uint32)} type={toHex(typ.uint32)} " &
+          &"id={id} severity={toHex(severity.uint32)}: {$message}"
         if severity != GL_DEBUG_SEVERITY_NOTIFICATION:
           running = false
+
       glDebugMessageCallback(printGlDebug, nil)
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
       glEnable(GL_DEBUG_OUTPUT)
 
-  # Print some info
   echo getVersionString()
   echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
-  echo "GL_SHADING_LANGUAGE_VERSION:", cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
-
-  proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
-    updateWindowSize()
-    updateLoop(poll = false)
+  echo "GL_SHADING_LANGUAGE_VERSION:",
+    cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   discard window.setFramebufferSizeCallback(onResize)
   discard window.setWindowFocusCallback(onFocus)
@@ -378,19 +365,11 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   discard window.setCursorPosCallback(onMouseMove)
   discard window.setCharCallback(onSetCharCallback)
 
-  # window.setInputMode(CURSOR, CURSOR_HIDDEN)
-
-  # enable face culling
-  # glEnable(GL_CULL_FACE)
-  # glCullFace(GL_BACK)
-  # glFrontFace(GL_CCW)
-
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-  #glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA)
 
   lastDraw = getTicks()
-  lastTick = getTicks()
+  lastTick = lastDraw
 
   onFocus(window, FOCUSED)
   updateWindowSize()
