@@ -13,7 +13,7 @@ var
   fonts = newTable[string, Font]()
   windowTitle, windowUrl: string
 
-  # used for double-clicking:
+  # Used for double-clicking
   multiClick: int
   lastClickTime: float
 
