@@ -93,7 +93,7 @@ proc postTick() =
   inc tickCount
   lastTick += deltaTick
 
-proc drawLoop() =
+proc draw() =
   ## Does drawing operations.
   inc frameCount
   fpsTimeSeries.addTime()
@@ -129,7 +129,7 @@ proc updateLoop*(poll = true) =
       preTick()
       if tickMain != nil:
         tickMain()
-      drawLoop()
+      draw()
       postTick()
       requestedFrame = false
 
@@ -139,7 +139,7 @@ proc updateLoop*(poll = true) =
       preTick()
       if tickMain != nil:
         tickMain()
-      drawLoop()
+      draw()
       postTick()
 
     of RepaintSplitUpdate:
@@ -149,7 +149,7 @@ proc updateLoop*(poll = true) =
         preTick()
         tickMain()
         postTick()
-      drawLoop()
+      draw()
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
