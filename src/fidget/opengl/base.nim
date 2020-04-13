@@ -1,5 +1,5 @@
 import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
-    typography/textboxes, unicode, vmath, flippy, strformat, std/monotimes,
+    typography/textboxes, unicode, vmath, flippy, strformat, perf,
     print, ../internal
 
 type
@@ -41,9 +41,6 @@ var
   dt*, fps*, tps*, avgFrameTime*: float64
   frameCount*, tickCount*: int
   lastDraw, lastTick: int64
-
-proc getTicks(): int64 =
-  getMonoTime().ticks
 
 proc updateWindowSize() =
   requestedFrame = true
@@ -375,7 +372,7 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   lastDraw = getTicks()
-  lastTick = getTicks()
+  lastTick = lastDraw
 
   onFocus(window, FOCUSED)
   updateWindowSize()

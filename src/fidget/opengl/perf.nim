@@ -21,10 +21,13 @@ var
   perfEnabled* = true
   defaultBuffer: seq[PerfEntry]
 
+proc getTicks*(): int64 =
+  getMonoTime().ticks
+
 proc addEntry(tag: string, kind: EntryKind, buffer: var seq[PerfEntry]) =
   var entry = PerfEntry()
   entry.tag = tag
-  entry.ticks = getMonoTime().ticks
+  entry.ticks = getTicks()
   entry.kind = kind
 
   buffer.add(entry)
