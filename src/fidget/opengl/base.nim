@@ -2,8 +2,28 @@ import ../uibase, chroma, input, opengl, os, perf, staticglfw, times,
     typography/textboxes, unicode, vmath, flippy, strformat, std/monotimes,
     print, ../internal
 
+type
+  MSAA* = enum
+    msaaDisabled, msaa2x = 2, msaa4x = 4, msaa8x = 8
+
+  MainLoopMode* = enum
+    ## Only repaints on event
+    ## Used for normal for desktop UI apps.
+    RepaintOnEvent
+
+    ## Repaints every frame (60hz or more based on display)
+    ## Updates are done every matching frame time.
+    ## Used for simple multimedia apps and games.
+    RepaintOnFrame
+
+    ## Repaints every frame (60hz or more based on display)
+    ## But calls the tick function for keyboard and mouse updates at 240hz
+    ## Used for low latency games.
+    RepaintSplitUpdate
+
 var
   window: staticglfw.Window
+  loopMode: MainLoopMode
   dpi*: float32
   view*: Mat4
   proj*: Mat4
@@ -17,7 +37,6 @@ var
   prevFrameTime* = programStartTime
   frameTime* = prevFrameTime
   dt*, fps*, tps*, avgFrameTime*: float64
-  multisampling*: int
   lastDraw: int64
   deltaDraw: int64 = 1_000_000_000 div 10
   avgDrawHz: float64
@@ -219,11 +238,7 @@ proc updateLoop*(poll = true) =
     running = false
     return
 
-  case mainLoopMode:
-    of CallbackHTML:
-      raise newException(ValueError,
-        "CallbackHTML not supported in non JS mode")
-
+  case loopMode:
     of RepaintOnEvent:
       if poll:
         pollEvents()
@@ -280,14 +295,15 @@ proc glGetInteger(what: GLenum): int =
   glGetIntegerv(what, addr val)
   return val.int
 
-proc start*(openglVersion: (int, int)) =
+proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   if init() == 0:
     quit("Failed to intialize GLFW.")
 
   running = true
+  loopMode = mainLoopMode
 
-  if multisampling > 0:
-    windowHint(SAMPLES, multisampling.cint)
+  if msaa != msaaDisabled:
+    windowHint(SAMPLES, cint msaa)
 
   windowHint(cint OPENGL_FORWARD_COMPAT, cint GL_TRUE)
   windowHint(cint OPENGL_PROFILE, OPENGL_CORE_PROFILE)
