@@ -118,7 +118,7 @@ template onKeyUp*(inner: untyped) =
     inner
 
 template onKeyDown*(inner: untyped) =
-  ## This is called when key is pressed.
+  ## This is called when key is held down.
   if keyboard.state == Down:
     inner
 
@@ -148,7 +148,7 @@ template onFocus*(inner: untyped) =
     inner
 
 template onUnFocus*(inner: untyped) =
-  ## On loosing focus on an imput element.
+  ## On loosing focus on an input element.
   if keyboard.inputFocusIdPath != current.idPath and
       keyboard.inputFocusIdPath == current.idPath:
     inner

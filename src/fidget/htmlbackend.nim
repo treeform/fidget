@@ -73,6 +73,19 @@ proc computeTextHeight*(
   let (_, h) = computeTextBox(text, width, fontName, fontSize, fontWeight)
   return h
 
+var baseLineCache = newTable[string, float]()
+proc getBaseLine *(
+  fontName: string,
+  fontSize: float,
+  fontWeight: float,
+): float =
+  let font = &"{fontSize}px {fontName}"
+  if font notin baseLineCache:
+    ctx.font = &"{fontSize}px {fontName}"
+    let m = ctx.measureText("A")
+    baseLineCache[font] = fontSize - m.actualBoundingBoxAscent
+  baseLineCache[font]
+
 proc tag(group: Group): string =
   if group.kind == "":
     return ""
@@ -158,7 +171,7 @@ proc drawDiff(current: Group) =
       dom.style.backgroundColor = $current.fill.toHtmlRgba()
       dom.style.color = "rgba(0,0,0,0)"
 
-  # check storke (border color)
+  # check stroke (border color)
   if old.stroke != current.stroke or
       old.strokeWeight != current.strokeWeight:
     inc perf.numLowLevelCalls
@@ -172,7 +185,7 @@ proc drawDiff(current: Group) =
     else:
       dom.style.borderStyle = "none"
 
-  # check cornerRadius (border raidus)
+  # check cornerRadius (border radius)
   if old.cornerRadius != current.cornerRadius:
     old.cornerRadius = current.cornerRadius
     dom.style.borderRadius = (
@@ -209,11 +222,7 @@ proc drawDiff(current: Group) =
     dom.style.fontFamily = current.textStyle.fontFamily
     dom.style.fontSize = $current.textStyle.fontSize & "px"
     dom.style.fontWeight = $current.textStyle.fontWeight
-    # TODO check this
-    if current.textStyle.lineHeight == 0:
-      dom.style.lineHeight = "normal"
-    else:
-      dom.style.lineHeight = $current.textStyle.lineHeight & "px"
+    dom.style.lineHeight = $max(0, current.textStyle.lineHeight) & "px"
 
   # check imageName (background image)
   if old.imageName != current.imageName:
@@ -238,6 +247,8 @@ proc drawDiff(current: Group) =
   if old.screenBox.wh == current.box.wh:
     current.textOffset = old.textOffset
 
+  forceTextRelayout = true
+
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
@@ -249,40 +260,46 @@ proc drawDiff(current: Group) =
         old.text = current.text
 
         dom.innerText = current.text
+        dom.style.verticalAlign = "text-top"
 
-        if current.textStyle.textAlignHorizontal != hLeft or
-            current.textStyle.textAlignVertical != vTop:
-          var box = computeTextBox(
-            current.text,
-            current.screenBox.w,
-            current.textStyle.fontFamily,
-            current.textStyle.fontSize,
-            current.textStyle.fontWeight
-          )
+        var box = computeTextBox(
+          current.text,
+          current.screenBox.w,
+          current.textStyle.fontFamily,
+          current.textStyle.fontSize,
+          current.textStyle.fontWeight
+        )
+        var baseLine = getBaseLine(
+          current.textStyle.fontFamily,
+          current.textStyle.fontSize,
+          current.textStyle.fontWeight
+        )
 
-          var left = 0.0
-          case current.textStyle.textAlignHorizontal:
-            of hLeft:
-              left = 0
-            of hRight:
-              left = current.screenBox.w - box[0]
-            of hCenter:
-              left = current.screenBox.w / 2 - box[0] / 2
+        var left = 0.0
+        case current.textStyle.textAlignHorizontal:
+          of hLeft:
+            left = 0
+          of hRight:
+            left = current.screenBox.w - box[0]
+          of hCenter:
+            left = current.screenBox.w / 2 - box[0] / 2
 
-          var top = 0.0
-          case current.textStyle.textAlignVertical:
-            of vTop:
-              top = 0
-            of vBottom:
-              top = current.screenBox.h - box[1]
-            of vCenter:
-              top = current.screenBox.h / 2 - box[1] / 2
+        var top = 0.0
+        case current.textStyle.textAlignVertical:
+          of vTop:
+            top = 0
+          of vBottom:
+            top = current.screenBox.h - box[1] + baseLine
+          of vCenter:
+            top = current.screenBox.h / 2 - box[1] / 2 + baseLine / 2
 
-          current.textOffset.x = left
-          current.textOffset.y = top
-        else:
-          current.textOffset.x = 0
-          current.textOffset.y = 0
+        var lineOffset = current.textStyle.fontSize / 2 -
+          max(0, current.textStyle.lineHeight) / 2
+        current.textOffset.x = left
+        current.textOffset.y = top + lineOffset
+      else:
+        current.textOffset.x = 0
+        current.textOffset.y = 0
 
   if current.tag == "input":
     dom.style.paddingBottom = $(current.box.h - current.textStyle.lineHeight) & "px"
