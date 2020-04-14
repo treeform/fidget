@@ -72,19 +72,12 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
-when defined(ios) or defined(android):
-  const
-    atlastVertSrc = staticRead("glsl/atlas.es.vert")
-    atlastFragSrc = staticRead("glsl/atlas.es.frag")
-    maskVertSrc = staticRead("glsl/mask.es.vert")
-    maskFragSrc = staticRead("glsl/mask.es.frag")
-else:
-  const
-    dir = "../fidget/src/fidget/opengl"
-    atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
-    atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
-    maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
-    maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
+const
+  dir = "../fidget/src/fidget/opengl"
+  atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
+  atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
+  maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
+  maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 proc newContext*(
     size = 1024,
@@ -105,12 +98,6 @@ proc newContext*(
   ctx.image.fill(rgba(255, 255, 255, 0))
   ctx.texture = ctx.image.initTexture()
 
-  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
-
-  ctx.mesh.shader = newShader(atlasVert, atlasFrag)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.finalize()
-
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
   ctx.maskTexture = ctx.maskImage.initTexture()
@@ -118,9 +105,10 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
+  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
   ctx.mesh.shader = ctx.shader
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
   ctx.mesh.finalize()
   return ctx
 
@@ -165,7 +153,8 @@ proc findEmptyRect*(ctx: Context, width, height: int): Rect =
 proc putImage*(ctx: Context, path: string, image: Image) =
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.size)
-  ctx.texture.updateSubImage(
+  updateSubImage(
+    ctx.texture,
     int(rect.x),
     int(rect.y),
     image
@@ -178,7 +167,8 @@ proc putSlate*(ctx: Context, path: string, slate: SlateImage) =
     x = int(rect.x)
     y = int(rect.y)
   for level, mip in slate.mipmaps:
-    ctx.texture.updateSubImage(
+    updateSubImage(
+      ctx.texture,
       x,
       y,
       mip,
@@ -383,7 +373,6 @@ proc beginMask*(ctx: Context) =
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
 
     glGenTextures(1, addr ctx.maskTextureId)
-    ctx.maskTexture.id = ctx.maskTextureId
 
     ctx.maskImage = Image()
     ctx.maskImage.width = (int windowFrame.x)
@@ -412,7 +401,7 @@ proc beginMask*(ctx: Context) =
 
   ctx.mesh.shader = ctx.maskShader
   ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
@@ -428,8 +417,8 @@ proc endMask*(ctx: Context) =
 
   ctx.mesh.shader = ctx.shader
   ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
