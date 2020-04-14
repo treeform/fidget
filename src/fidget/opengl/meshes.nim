@@ -1,4 +1,4 @@
-import ../uibase, accessors, base, chroma, math, opengl, shaders, strformat, textures, vmath
+import ../uibase, accessors, base, chroma, math, opengl, shaders, textures, vmath
 
 type
   VertBufferKind* = enum
@@ -19,14 +19,12 @@ type
 
   Mesh* = ref object
     ## Main mesh object that has everything it needs to render.
-    name*: string
     buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
     shader*: Shader
     mat*: Mat4
 
     # OpenGL data
-    drawMode*: GLenum
     vao*: GLuint
 
 proc newVertBuffer*(
@@ -100,7 +98,6 @@ proc newMesh*(): Mesh =
   result.mat = identity()
   result.buffers = newSeq[VertBuffer]()
   result.textures = newSeq[TexUniform]()
-  result.drawMode = GL_TRIANGLES
   glGenVertexArrays(1, addr result.vao)
 
 proc newBasicMesh*(): Mesh =
@@ -230,7 +227,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
 
   mesh.shader.bindUniforms()
 
-  glDrawArrays(mesh.drawMode, 0, GLsizei max)
+  glDrawArrays(GL_TRIANGLES, 0, GLsizei max)
 
   # Unbind
   glBindVertexArray(0)
