@@ -10,7 +10,7 @@ type
     maxQuads: int         ## Max quads to draw before issuing an OpenGL call and starting again
 
     image*: Image         ## Image of the atlas remove?
-    textureId*: GLuint    ## Texture of the atlas
+    texture*: Texture     ## Texture of the atlas
     heights*: seq[uint16] ## Height map of the free space in the atlas
     size*: int            ## Size x size dimensions of the atlas
     margin*: int          ## Default margin between images
@@ -20,7 +20,7 @@ type
 
     # mask
     maskImage*: Image     ## Mask image
-    maskTexture*: GLuint  ## Mask texture
+    maskTexture*: Texture ## Mask texture
     maskFBO*: GLuint
     maskShader*: Shader
     maskTextureId: GLuint
@@ -96,7 +96,7 @@ proc newContext*(
   ctx.heights = newSeq[uint16](size)
   ctx.image = newImage("", size, size, 4)
   ctx.image.fill(rgba(255, 255, 255, 0))
-  ctx.textureId = ctx.image.initTexture()
+  ctx.texture = ctx.image.initTexture()
 
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
@@ -107,8 +107,8 @@ proc newContext*(
 
   ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
   ctx.mesh.shader = ctx.shader
-  ctx.mesh.loadTexture("rgbaTex", ctx.textureId)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTextureId)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
   ctx.mesh.finalize()
   return ctx
 
@@ -154,7 +154,7 @@ proc putImage*(ctx: Context, path: string, image: Image) =
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.size)
   updateSubImage(
-    ctx.textureId,
+    ctx.texture,
     int(rect.x),
     int(rect.y),
     image
@@ -168,7 +168,7 @@ proc putSlate*(ctx: Context, path: string, slate: SlateImage) =
     y = int(rect.y)
   for level, mip in slate.mipmaps:
     updateSubImage(
-      ctx.textureId,
+      ctx.texture,
       x,
       y,
       mip,
@@ -401,7 +401,7 @@ proc beginMask*(ctx: Context) =
 
   ctx.mesh.shader = ctx.maskShader
   ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.textureId)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
@@ -417,8 +417,8 @@ proc endMask*(ctx: Context) =
 
   ctx.mesh.shader = ctx.shader
   ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.textureId)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
