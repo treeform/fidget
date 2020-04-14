@@ -126,24 +126,12 @@ function visit(node) {
       }
   }
   if (node.type == "TEXT") {
-      // text += ind() + "textAlignHorizontal h" + titleCase(node.textAlignHorizontal) + "\n"
-      // text += ind() + "textAlignVertical v" + titleCase(node.textAlignVertical) + "\n"
-      // if (node.textStyleId) {
-      //   text += ind() + "textStyleId " + node.textStyleId + "\n"
-      // } else {
-      //   text += ind() + "fontSize " + node.fontSize + "\n"
-      //   text += ind() + "fontName \"" + node.fontName.family + " " + node.fontName.style + "\"\n"
-      // }
-      console.log(node);
-      console.log(node.lineHeight);
       let fontFamily = JSON.stringify(node.fontName.family);
       var lineHeight = 0;
       if (node.lineHeight.unit == "PIXELS") {
           lineHeight = node.lineHeight.value;
       }
       let fontWeight = fontStyleMapping[node.fontName.style];
-      //text += ind() + "???" + JSON.stringify(node.getRangeLineHeight(0, 1)) + "\n"
-      //text += ind() + `lineHeight ${node.lineHeight.unit} ${node.lineHeight.value}\n`
       var h = "hCenter";
       if (node.textAlignHorizontal == "LEFT")
           h = "hLeft";
