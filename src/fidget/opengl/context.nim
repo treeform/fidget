@@ -72,19 +72,12 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
-when defined(ios) or defined(android):
-  const
-    atlastVertSrc = staticRead("glsl/atlas.es.vert")
-    atlastFragSrc = staticRead("glsl/atlas.es.frag")
-    maskVertSrc = staticRead("glsl/mask.es.vert")
-    maskFragSrc = staticRead("glsl/mask.es.frag")
-else:
-  const
-    dir = "../fidget/src/fidget/opengl"
-    atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
-    atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
-    maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
-    maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
+const
+  dir = "../fidget/src/fidget/opengl"
+  atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
+  atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
+  maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
+  maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 proc newContext*(
     size = 1024,
