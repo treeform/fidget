@@ -15,7 +15,6 @@ type
   TexUniform* = object
     ## Texture uniform
     name*: string
-    loc*: int
     texture*: Texture
 
   Mesh* = ref object
@@ -133,10 +132,6 @@ proc loadTexture*(mesh: Mesh, name: string, texture: Texture) =
   var uniform = TexUniform()
   uniform.name = name
   uniform.texture = texture
-  uniform.loc = glGetUniformLocation(mesh.shader.programId, name)
-  if uniform.loc == -1:
-    echo &"can't find uniform {name} in mesh.shader.name"
-    quit()
   mesh.textures.add(uniform)
 
 proc upload*(mesh: Mesh) =
@@ -229,11 +224,11 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   # Do the drawing
   glBindVertexArray(mesh.vao)
 
-  mesh.shader.bindUniforms()
-
   for i, uniform in mesh.textures:
     uniform.texture.textureBind(i)
-    glUniform1i(GLint uniform.loc, GLint i)
+    mesh.shader.setUniform(uniform.name, i.int32)
+
+  mesh.shader.bindUniforms()
 
   glDrawArrays(mesh.drawMode, 0, GLsizei max)
 
