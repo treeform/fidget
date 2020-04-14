@@ -17,17 +17,6 @@ type
     data*: seq[float32]
     vbo*: GLuint
 
-  UniformKind* = enum
-    ## Type of a uniform.
-    UniformVec3
-
-  Uniform* = ref object
-    ## Uniform that holds data.
-    name*: string
-    kind*: UniformKind
-    loc*: int
-    vec3*: Vec3
-
   TexUniform* = object
     ## Texture uniform
     name*: string
@@ -39,9 +28,8 @@ type
     name*: string
     buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
-    uniforms*: seq[Uniform]
     kids*: seq[Mesh]
-    shader*: GLuint
+    shader*: Shader
     mat*: Mat4
 
     # OpenGL data
@@ -92,7 +80,7 @@ proc uploadBuf*(buf: VertBuffer) =
 proc bindBuf*(buf: VertBuffer, mesh: Mesh, index: int) =
   ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
-  let loc = glGetAttribLocation(mesh.shader, uniformName).GLuint
+  let loc = glGetAttribLocation(mesh.shader.programId, uniformName).GLuint
   glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
   glVertexAttribPointer(loc, buf.stride.GLint, cGL_FLOAT, GL_FALSE, 0, nil)
   glEnableVertexAttribArray(GLuint index)
@@ -104,7 +92,6 @@ proc newMesh*(): Mesh =
   result.mat = identity()
   result.buffers = newSeq[VertBuffer]()
   result.textures = newSeq[TexUniform]()
-  result.uniforms = newSeq[Uniform]()
   result.drawMode = GL_TRIANGLES
   when defined(android):
     glGenVertexArraysOES(1, addr result.vao)
@@ -135,16 +122,12 @@ proc newUvColorMesh*(size: int = 0): Mesh =
   result.buffers.add newVertBuffer(Uv, size = size)
   result.buffers.add newVertBuffer(Color, size = size)
 
-proc loadShader*(mesh: Mesh, vertFileName: string, fragFileName: string) =
-  ## Load the shader
-  mesh.shader = compileShaderFiles(vertFileName, fragFileName)
-
 proc loadTexture*(mesh: Mesh, name: string, texture: Texture) =
   ## Load the texture ad attach it to a uniform.
   var uniform = TexUniform()
   uniform.name = name
   uniform.texture = texture
-  uniform.loc = glGetUniformLocation(mesh.shader, name)
+  uniform.loc = glGetUniformLocation(mesh.shader.programId, name)
   if uniform.loc == -1:
     echo &"can't find uniform {name} in mesh.shader.name"
     quit()
@@ -371,34 +354,6 @@ proc genNormals*(mesh: Mesh) =
     normBuf.addVert(norm)
     i += 3
 
-proc addUniform*(mesh: Mesh, name: string, v: Vec3) =
-  ## Add a new uniform to the mesh.
-  var uniform = Uniform()
-  uniform.name = name
-  uniform.vec3 = v
-  uniform.loc = glGetUniformLocation(mesh.shader, name)
-  if uniform.loc == -1:
-    echo "could not find uniform: ", name
-  mesh.uniforms.add(uniform)
-
-proc updateUniform*(mesh: Mesh, name: string, v: Vec3) =
-  ## Update the uniform.
-  for uniform in mesh.uniforms.mitems:
-    if uniform.name == name:
-      uniform.vec3 = v
-  for kid in mesh.kids.mitems:
-    kid.updateUniform(name, v)
-
-proc uniformBind*(mesh: Mesh, uniform: Uniform) =
-  ## Bind the uniform.
-  if uniform.loc != -1:
-    glUniform3f(
-      GLint uniform.loc,
-      uniform.vec3.x,
-      uniform.vec3.y,
-      uniform.vec3.z
-    )
-
 proc find*(mesh: Mesh, name: string): Mesh =
   ## Find a node the the mesh kids.
   if mesh.name == name:
@@ -410,51 +365,15 @@ proc find*(mesh: Mesh, name: string): Mesh =
 
 proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   ## Draw the basic mesh.
-  glUseProgram(mesh.shader)
+  glUseProgram(mesh.shader.programId)
 
-  ## Bind the regular uniforms:
-  var uniTextureSize = glGetUniformLocation(mesh.shader, "windowFrame")
-  if uniTextureSize > -1:
-    var arr: array[2, float32]
-    arr[0] = float32 windowFrame.x
-    arr[1] = float32 windowFrame.y
-    glUniform2f(uniTextureSize, arr[0], arr[1])
-
-  var uniModel = glGetUniformLocation(mesh.shader, "model")
-  if uniModel > -1:
-    glUniformMatrix4fv(
-      uniModel,
-      1,
-      false,
-      cast[ptr float32](mat[0].unsafeAddr))
-
-  var uniView = glGetUniformLocation(mesh.shader, "view")
-  if uniView > -1:
-    glUniformMatrix4fv(
-      uniView,
-      1,
-      false,
-      cast[ptr float32](view[0].unsafeAddr)
-    )
-
-  var uniProj = glGetUniformLocation(mesh.shader, "proj")
-  if uniProj > -1:
-    glUniformMatrix4fv(
-      uniProj,
-      1,
-      false,
-      cast[ptr float32](proj[0].unsafeAddr)
-    )
-
-  var uniSuperTrans = glGetUniformLocation(mesh.shader, "superTrans")
-  if uniSuperTrans > -1:
-    var superTrans = proj * view * mat
-    glUniformMatrix4fv(
-      uniSuperTrans,
-      1,
-      false,
-      cast[ptr float32](superTrans[0].unsafeAddr)
-    )
+  # Bind the regular uniforms:
+  if mesh.shader.hasUniform("windowFrame"):
+    mesh.shader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
+  # mesh.shader.setUniform("model", mat)
+  # mesh.shader.setUniform("view", view)
+  mesh.shader.setUniform("proj", proj)
+  # mesh.shader.setUniform("superTrans", proj * view *  mat)
 
   # Do the drawing
   when defined(android):
@@ -462,8 +381,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   else:
     glBindVertexArray(mesh.vao)
 
-  for uniform in mesh.uniforms:
-    mesh.uniformBind(uniform)
+  mesh.shader.bindUniforms()
 
   for i, uniform in mesh.textures:
     uniform.texture.textureBind(i)
