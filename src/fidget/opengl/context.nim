@@ -1,4 +1,4 @@
-import ../uibase, chroma, flippy, meshes, opengl, os, shaders, slates, strformat,
+import ../uibase, chroma, flippy, meshes, opengl, os, shaders, strformat,
     tables, textures, times, vmath
 
 type
@@ -160,13 +160,13 @@ proc putImage*(ctx: Context, path: string, image: Image) =
     image
   )
 
-proc putSlate*(ctx: Context, path: string, slate: Slate) =
-  let rect = ctx.findEmptyRect(slate.width, slate.height)
+proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
+  let rect = ctx.findEmptyRect(flippy.width, flippy.height)
   ctx.entries[path] = rect / float(ctx.size)
   var
     x = int(rect.x)
     y = int(rect.y)
-  for level, mip in slate.mipmaps:
+  for level, mip in flippy.mipmaps:
     updateSubImage(
       ctx.texture,
       x,
@@ -250,25 +250,25 @@ proc drawUvRect*(
 proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
     # need to load imagePath
-    # check to see if approparte .slate file is around
+    # check to see if approparte .flippy file is around
     echo "[load] ", imagePath
     if not fileExists(imagePath):
       #quit(&"Image '{imagePath}' not found")
       raise newException(Exception, &"Image '{imagePath}' not found")
     let
-      slateImagePath = imagePath.changeFileExt(".slate")
-    if not existsFile(slateImagePath):
-      # no slate file generate new one
-      pngToSlate(imagePath, slateImagePath)
+      flippyImagePath = imagePath.changeFileExt(".flippy")
+    if not existsFile(flippyImagePath):
+      # No Flippy file generate new one
+      pngToFlippy(imagePath, flippyImagePath)
     else:
       let
-        mtSlate = getLastModificationTime(slateImagePath).toUnix
+        mtFlippy = getLastModificationTime(flippyImagePath).toUnix
         mtImage = getLastModificationTime(imagePath).toUnix
-      if mtSlate < mtImage:
-        # slate file too old, regenerate
-        pngToSlate(imagePath, slateImagePath)
-    var slate = loadSlate(slateImagePath)
-    ctx.putSlate(imagePath, slate)
+      if mtFlippy < mtImage:
+        # Flippy file too old, regenerate
+        pngToFlippy(imagePath, flippyImagePath)
+    var flippy = loadFlippy(flippyImagePath)
+    ctx.putFlippy(imagePath, flippy)
   return ctx.entries[imagePath]
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
