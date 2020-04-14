@@ -1,9 +1,4 @@
-import ../uibase, chroma, math, opengl, shaders, strformat, textures, vmath
-
-when defined(ios) or defined(android):
-  import basemobile as base
-else:
-  import base as base
+import ../uibase, base, chroma, math, opengl, shaders, strformat, textures, vmath
 
 type
   VertBufferKind* = enum
@@ -92,10 +87,7 @@ proc newMesh*(): Mesh =
   result.buffers = newSeq[VertBuffer]()
   result.textures = newSeq[TexUniform]()
   result.drawMode = GL_TRIANGLES
-  when defined(android):
-    glGenVertexArraysOES(1, addr result.vao)
-  else:
-    glGenVertexArrays(1, addr result.vao)
+  glGenVertexArrays(1, addr result.vao)
 
 proc newBasicMesh*(): Mesh =
   ## Create a basic mesh, with only the position buffers.
@@ -145,10 +137,7 @@ proc upload*(mesh: Mesh, max: int) =
 proc finalize*(mesh: Mesh) =
   ## Calls this to upload all the data nad uniforms.
   mesh.upload()
-  when defined(android):
-    glBindVertexArrayOES(mesh.vao)
-  else:
-    glBindVertexArray(mesh.vao)
+  glBindVertexArray(mesh.vao)
   for i, buf in mesh.buffers.mpairs:
     buf.bindBuf(mesh, i)
 
@@ -223,10 +212,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   # mesh.shader.setUniform("superTrans", proj * view *  mat)
 
   # Do the drawing
-  when defined(android):
-    glBindVertexArrayOES(mesh.vao)
-  else:
-    glBindVertexArray(mesh.vao)
+  glBindVertexArray(mesh.vao)
 
   mesh.shader.bindUniforms()
 
@@ -237,10 +223,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   glDrawArrays(mesh.drawMode, 0, GLsizei max)
 
   # Unbind
-  when defined(android):
-    glBindVertexArrayOES(0)
-  else:
-    glBindVertexArray(0)
+  glBindVertexArray(0)
   glUseProgram(0)
 
 proc draw*(mesh: Mesh) =
