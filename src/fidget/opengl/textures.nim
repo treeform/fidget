@@ -1,22 +1,11 @@
 import flippy, opengl
 
-type
-  TextureKind* = enum
-    ## Texture type.
-    Texture2D, CubeMap
-
-  Texture* = object
-    ## Texture object.
-    kind*: TextureKind
-    id*: GLuint
-
-proc initTexture*(image: Image): Texture =
+proc initTexture*(image: Image): GLuint =
   ## Create a texture object.
-  var texture = Texture()
-  texture.kind = Texture2D
+  var textureId: GLuint
 
-  glGenTextures(1, texture.id.addr)
-  glBindTexture(GL_TEXTURE_2D, texture.id)
+  glGenTextures(1, textureId.addr)
+  glBindTexture(GL_TEXTURE_2D, textureId)
 
   var format: GLenum
   if image.channels == 4:
@@ -45,11 +34,11 @@ proc initTexture*(image: Image): Texture =
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-  return texture
+  return textureId
 
-proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
+proc updateSubImage*(textureId: GLuint, x, y: int, image: Image, level: int) =
   ## Update a small part of a texture image.
-  glBindTexture(GL_TEXTURE_2D, texture.id)
+  glBindTexture(GL_TEXTURE_2D, textureId)
   glTexSubImage2D(
     GL_TEXTURE_2D,
     level = GLint(level),
@@ -62,7 +51,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     pixels = cast[pointer](image.data[0].addr)
   )
 
-proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
+proc updateSubImage*(textureId: GLuint, x, y: int, image: Image) =
   ## Update a small part of texture with a new image.
   var
     x = x
@@ -71,18 +60,13 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     level = 0
 
   while image.width > 1 and image.height > 1:
-    texture.updateSubImage(x, y, image, level)
+    updateSubImage(textureId, x, y, image, level)
     image = image.minifyBy2()
     x = x div 2
     y = y div 2
     inc(level)
 
-proc textureBind*(texture: Texture, number: int) =
+proc textureBind*(textureId: GLuint, number: int) =
   ## Bind the texture to a number.
   glActiveTexture(GLenum(int(GL_TEXTURE0) + number))
-
-  case texture.kind:
-    of CubeMap:
-      glBindTexture(GL_TEXTURE_CUBE_MAP, texture.id)
-    of Texture2D:
-      glBindTexture(GL_TEXTURE_2D, texture.id)
+  glBindTexture(GL_TEXTURE_2D, textureId)
