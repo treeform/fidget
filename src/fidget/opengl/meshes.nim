@@ -28,7 +28,6 @@ type
     name*: string
     buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
-    kids*: seq[Mesh]
     shader*: Shader
     mat*: Mat4
 
@@ -354,15 +353,6 @@ proc genNormals*(mesh: Mesh) =
     normBuf.addVert(norm)
     i += 3
 
-proc find*(mesh: Mesh, name: string): Mesh =
-  ## Find a node the the mesh kids.
-  if mesh.name == name:
-    return mesh
-  for kid in mesh.kids.mitems:
-    var found = kid.find(name)
-    if found != nil:
-      return found
-
 proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   ## Draw the basic mesh.
   glUseProgram(mesh.shader.programId)
@@ -396,28 +386,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
     glBindVertexArray(0)
   glUseProgram(0)
 
-proc draw*(mesh: Mesh, parentMat: Mat4) =
-  ## Draw the mesh with a parent mat.
-  var thisMat = parentMat * mesh.mat
-  if mesh.numVerts > 0:
-    mesh.drawBasic(thisMat, mesh.numVerts)
-
-  for kid in mesh.kids.mitems:
-    kid.draw(thisMat)
-
 proc draw*(mesh: Mesh) =
   ## Draw the mesh.
   if mesh.numVerts > 0:
     mesh.drawBasic(mesh.mat, mesh.numVerts)
-
-  for kid in mesh.kids.mitems:
-    kid.draw(mesh.mat)
-
-proc printMeshTree*(mesh: Mesh, indent = 0) =
-  ## Print the mesh and its subtree.
-  var space = ""
-  for i in 0..<indent:
-    space &= "  "
-  echo space, mesh.name, " [", $mesh.numVerts, "] ", mesh.mat.pos
-  for kid in mesh.kids:
-    printMeshTree(kid, indent + 1)
