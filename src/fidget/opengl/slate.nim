@@ -1,15 +1,15 @@
 import flippy, snappy, streams, strformat
 
-type SlateImage* = object
+type Slate* = object
   mipmaps*: seq[Image]
 
-func width*(slate: SlateImage): int =
+func width*(slate: Slate): int =
   slate.mipmaps[0].width
 
-func height*(slate: SlateImage): int =
+func height*(slate: Slate): int =
   slate.mipmaps[0].height
 
-proc save*(slate: SlateImage, filePath: string) =
+proc save*(slate: Slate, filePath: string) =
   ## Slate is a special file format that is fast to load and save with mip maps.
   var f = newFileStream(filePath, fmWrite)
   defer: f.close()
@@ -26,7 +26,7 @@ proc save*(slate: SlateImage, filePath: string) =
 proc pngToSlate*(pngPath, slatePath: string) =
   var
     image = loadImage(pngPath)
-    slate = SlateImage()
+    slate = Slate()
   image.alphaBleed()
   var mip = image
   while true:
@@ -36,7 +36,7 @@ proc pngToSlate*(pngPath, slatePath: string) =
     mip = mip.minify(2)
   slate.save(slatePath)
 
-proc loadSlate*(filePath: string): SlateImage =
+proc loadSlate*(filePath: string): Slate =
   ## Slate is a special file format that is fast to load and save with mip maps.
   var f = newFileStream(filePath, fmRead)
   defer: f.close()
