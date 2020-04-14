@@ -112,8 +112,7 @@ proc openBrowser*(url: string) =
 
 proc goto*(url: string) =
   ## Goes to a new URL, inserts it into history so that back button works
-  rootUrl = url
-  redraw()
+  discard
 
 proc display() =
   ## Called every frame by main while loop

@@ -3,28 +3,20 @@
 
 import internal, tables, times, uibase
 
-var values = newTable[string, string]()
+var
+  windowTitle, windowUrl: string
+  values = newTable[string, string]()
 
 proc draw*(group: Group) =
   ## Draws the group
 
-proc redraw*() =
-  ## Request the screen to be redrawn next
-  if not requestedFrame:
-    requestedFrame = true
+proc refresh*() =
+  ## Request the screen be redrawn
+  requestedFrame = true
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
-
-proc openBrowserWithText*(text: string) =
-  ## Opens a new window with just this text on it
-  discard
-
-proc goto*(url: string) =
-  ## Goes to a new URL, inserts it into history so that back button works
-  rootUrl = url
-  redraw()
 
 proc startFidget*(draw: proc()) =
   ## Starts fidget UI library
@@ -35,21 +27,21 @@ proc startFidget*(draw: proc()) =
   drawMain()
   echo "drawMain walk took: ", epochTime() - startTime, "ms"
 
-proc `title=`*(win: uibase.Window, title: string) =
-  ## Sets window url
-  win.innerTitle = title
+proc getTitle*(): string =
+  ## Gets window title
+  windowTitle
 
-proc `title`*(win: uibase.Window): string =
+proc setTitle*(title: string) =
+  ## Sets window title
+  windowTitle = title
+
+proc getUrl*(): string =
   ## Gets window url
-  return win.innerTitle
+  windowUrl
 
-proc `url=`*(win: uibase.Window, url: string) =
+proc setUrl*(url: string) =
   ## Sets window url
-  win.innerUrl = url
-
-proc `url`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerUrl
+  windowUrl = url
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.

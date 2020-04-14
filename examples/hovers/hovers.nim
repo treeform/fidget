@@ -6,7 +6,7 @@ for i, bar in bars:
 
 proc drawMain() =
 
-  window.title = "Hovers Example"
+  setTitle("Hovers Example")
 
   popupActive = true
 

@@ -21,7 +21,7 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
 
 proc drawMain() =
 
-  window.title = titleValue
+  setTitle(titleValue)
 
   group "title":
     box 100, 10, 200, 50
@@ -35,7 +35,7 @@ proc drawMain() =
       binding titleValue
 
       onInput:
-        window.title = titleValue
+        setTitle(titleValue)
 
   group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200

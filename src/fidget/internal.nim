@@ -1,1 +1,3 @@
-var drawMain*: proc()
+var
+  drawMain*: proc()
+  tickMain*: proc()

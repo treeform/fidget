@@ -73,7 +73,7 @@ type
     textPadding*: int
     imageName*: string
     cornerRadius*: (float, float, float, float)
-    wasDrawn*: bool # was group drawn or it still needs to be drawn
+    wasDrawn*: bool # Was group drawn or still needs to be drawn
     editableText*: bool
     multiline*: bool
     drawable*: bool
@@ -86,7 +86,7 @@ type
     Up
     Down
     Repeat
-    Press # used for text input
+    Press # Used for text input
 
   MouseCursorStyle* = enum
     Default
@@ -97,11 +97,11 @@ type
   Mouse* = ref object
     state: KeyState
     pos*: Vec2
-    button*: int
-    click*: bool                   # mouse button just got held down
-    rightClick*: bool              # mouse right click
-    down*: bool                    # mouse button is held down
-    cursorStyle*: MouseCursorStyle # sets the mouse cursor icon
+    button*: int                   # Mouse button number
+    click*: bool                   # Mouse button just got held down
+    rightClick*: bool              # Mouse right click
+    down*: bool                    # Mouse button is held down
+
 
   Keyboard* = ref object
     state*: KeyState
@@ -115,46 +115,31 @@ type
     inputFocusIdPath*: string
     prevInputFocusIdPath*: string
     input*: string
-    textCursor*: int      # at which character in the input string are we
-    selectionCursor*: int # to which character are we selecting to
-
-  Window* = ref object
-    innerTitle*: string
-    innerUrl*: string
+    textCursor*: int      # At which character in the input string are we
+    selectionCursor*: int # To which character are we selecting to
 
 var
-  window* = Window()
   parent*: Group
   root*: Group
   prevRoot*: Group
   groupStack*: seq[Group]
   current*: Group
   scrollBox*: Rect
-  scrollBoxMega*: Rect # scroll box is 500px biger in y direction
-  scrollBoxMini*: Rect # scroll box is smaller by 100px usefull for debugggin
-
-  ## Set to true so that it repains every frame, used for:
-  ##   games and multimedia apps rendering in realtime.
-  ## Set to false so that it repains only following user action, used for:
-  ##   mainstream app UIs.
-  repaintEveryFrame*: bool = true
+  scrollBoxMega*: Rect # Scroll box is 500px bigger in y direction
+  scrollBoxMini*: Rect # Scroll box is smaller by 100px useful for debugging
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
   numGroups*: int
-  rootUrl*: string
   popupActive*: bool
   inPopup*: bool
-  #fonts* = newTable[string, Font]()
-
   fullscreen* = false
-  windowSize*: Vec2 # Screen coordinates
-  windowFrame*: Vec2 # Pixel coordinates
-  pixelRatio*: float # Multiplier to convert from screen coords to pixels
+  windowSize*: Vec2    # Screen coordinates
+  windowFrame*: Vec2   # Pixel coordinates
+  pixelRatio*: float   # Multiplier to convert from screen coords to pixels
 
 when not defined(js):
-  var
-    textBox*: TextBox
+  var textBox*: TextBox
 
 mouse = Mouse()
 mouse.pos = Vec2()
@@ -169,7 +154,7 @@ proc setupRoot*() =
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color
 
-proc consume*(keyboard: Keyboard) =
+func consume*(keyboard: Keyboard) =
   ## Reset the keyboard state consuming any event information.
   keyboard.state = Empty
   keyboard.keyCode = 0
@@ -180,6 +165,6 @@ proc consume*(keyboard: Keyboard) =
   keyboard.shiftKey = false
   keyboard.superKey = false
 
-proc consume*(mouse: Mouse) =
+func consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.
   mouse.click = false

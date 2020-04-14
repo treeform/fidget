@@ -346,7 +346,8 @@ proc basicControls() =
       characters "Text field:"
 
 proc drawMain() =
-  window.title = "Fidget Example"
+  setTitle("Fidget Example")
+
   component "iceUI":
     orgBox 0, 0, 530, 185
     box root.box
