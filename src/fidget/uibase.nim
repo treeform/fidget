@@ -97,6 +97,7 @@ type
   Mouse* = ref object
     state: KeyState
     pos*: Vec2
+    button*: int
     click*: bool                   # mouse button just got held down
     rightClick*: bool              # mouse right click
     down*: bool                    # mouse button is held down

@@ -459,6 +459,7 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
     let event = cast[MouseEvent](event)
+    mouse.button = event.button
     mouse.pos.x = float event.pageX
     mouse.pos.y = float event.pageY
     mouse.click = true
