@@ -98,12 +98,6 @@ proc newContext*(
   ctx.image.fill(rgba(255, 255, 255, 0))
   ctx.texture = ctx.image.initTexture()
 
-  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
-
-  ctx.mesh.shader = newShader(atlasVert, atlasFrag)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.finalize()
-
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
   ctx.maskTexture = ctx.maskImage.initTexture()
@@ -111,6 +105,7 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
+  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
   ctx.mesh.shader = ctx.shader
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
   ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
