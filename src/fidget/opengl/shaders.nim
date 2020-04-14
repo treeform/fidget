@@ -217,8 +217,7 @@ proc hasUniform*(shader: Shader, name: string): bool =
   for uniform in shader.uniforms:
     if uniform.name == name:
       return true
-
-  false
+  return false
 
 proc setUniform(
   shader: Shader,
