@@ -1,4 +1,4 @@
-import ../uibase, chroma, flippy, meshes, opengl, os, shaders, slate, strformat,
+import ../uibase, chroma, flippy, meshes, opengl, os, shaders, slates, strformat,
     tables, textures, times, vmath
 
 type
