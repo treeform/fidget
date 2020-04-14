@@ -65,8 +65,3 @@ proc updateSubImage*(textureId: GLuint, x, y: int, image: Image) =
     x = x div 2
     y = y div 2
     inc(level)
-
-proc textureBind*(textureId: GLuint, number: int) =
-  ## Bind the texture to a number.
-  glActiveTexture(GLenum(int(GL_TEXTURE0) + number))
-  glBindTexture(GL_TEXTURE_2D, textureId)

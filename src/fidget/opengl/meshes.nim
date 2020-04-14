@@ -1,4 +1,4 @@
-import ../uibase, accessors, base, chroma, math, opengl, shaders, textures, vmath
+import ../uibase, accessors, base, chroma, math, opengl, shaders, vmath
 
 type
   VertBufferKind* = enum
@@ -222,7 +222,8 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   glBindVertexArray(mesh.vao)
 
   for i, uniform in mesh.textures:
-    textureBind(uniform.textureId, i)
+    glActiveTexture(GLenum(int(GL_TEXTURE0) + i))
+    glBindTexture(GL_TEXTURE_2D, uniform.textureId)
     mesh.shader.setUniform(uniform.name, i.int32)
 
   mesh.shader.bindUniforms()
