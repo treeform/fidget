@@ -1,4 +1,4 @@
-import ../uibase, base, chroma, math, opengl, shaders, strformat, textures, vmath
+import ../uibase, accessors, base, chroma, math, opengl, shaders, strformat, textures, vmath
 
 type
   VertBufferKind* = enum
@@ -71,13 +71,28 @@ proc uploadBuf*(buf: VertBuffer) =
   if buf.len > 0:
     buf.uploadBuf(buf.len)
 
-proc bindBuf*(buf: VertBuffer, mesh: Mesh, index: int) =
+proc bindBuf*(buf: VertBuffer, mesh: Mesh) =
   ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
-  let loc = glGetAttribLocation(mesh.shader.programId, uniformName).GLuint
-  glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
-  glVertexAttribPointer(loc, buf.stride.GLint, cGL_FLOAT, GL_FALSE, 0, nil)
-  glEnableVertexAttribArray(GLuint index)
+
+  var accessorKind: AccessorKind
+  case buf.stride:
+    of 1:
+      accessorKind = akSCALAR
+    of 2:
+      accessorKind = akVEC2
+    of 3:
+      accessorKind = akVEC3
+    of 4:
+      accessorKind = akVEC4
+    of 9:
+      accessorKind = akMAT3
+    of 16:
+      accessorKind = akMAT4
+    else:
+      raise newException(Exception, "Unexpected stride")
+
+  mesh.shader.bindAttrib(uniformName, buf.vbo, accessorKind, cGL_FLOAT)
 
 proc newMesh*(): Mesh =
   ## Creates a empty new mesh.
@@ -138,8 +153,8 @@ proc finalize*(mesh: Mesh) =
   ## Calls this to upload all the data nad uniforms.
   mesh.upload()
   glBindVertexArray(mesh.vao)
-  for i, buf in mesh.buffers.mpairs:
-    buf.bindBuf(mesh, i)
+  for buf in mesh.buffers:
+    buf.bindBuf(mesh)
 
 proc getVert2*(buf: VertBuffer, i: int): Vec2 =
   ## Get a vertex from the buffer.
