@@ -18,8 +18,8 @@ proc bindBufferData*(buffer: ptr Buffer, target: GLenum) =
       return
 
     let byteLength = buffer.count *
-          buffer.kind.componentCount() *
-          buffer.componentType.size()
+      buffer.kind.componentCount() *
+      buffer.componentType.size()
 
     glGenBuffers(1, buffer.bufferId.addr)
     glBindBuffer(target, buffer.bufferId)
