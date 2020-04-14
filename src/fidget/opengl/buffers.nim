@@ -10,23 +10,24 @@ type
     bufferId*: GLuint
 
 proc bindBufferData*(buffer: ptr Buffer, target: GLenum) =
-  if buffer.bufferId == 0:
-    # This buffer needs to be sent to the GPU
+  if buffer.bufferId != 0:
+    # This buffer has already been created
+    return
 
-    if len(buffer.data) == 0:
-      # Empty, skip
-      return
+  if len(buffer.data) == 0:
+    # Empty, skip
+    return
 
-    let byteLength = buffer.count *
-      buffer.kind.componentCount() *
-      buffer.componentType.size()
+  let byteLength = buffer.count *
+    buffer.kind.componentCount() *
+    buffer.componentType.size()
 
-    glGenBuffers(1, buffer.bufferId.addr)
-    glBindBuffer(target, buffer.bufferId)
+  glGenBuffers(1, buffer.bufferId.addr)
+  glBindBuffer(target, buffer.bufferId)
 
-    glBufferData(
-      target,
-      byteLength,
-      buffer.data[0].addr,
-      GL_STATIC_DRAW
-    )
+  glBufferData(
+    target,
+    byteLength,
+    buffer.data[0].addr,
+    GL_STATIC_DRAW
+  )
