@@ -101,7 +101,7 @@ type
     click*: bool                   # Mouse button just got held down
     rightClick*: bool              # Mouse right click
     down*: bool                    # Mouse button is held down
-
+    cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
 
   Keyboard* = ref object
     state*: KeyState
