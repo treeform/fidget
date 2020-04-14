@@ -1,57 +1,128 @@
-import flippy, opengl
+import buffers, flippy, opengl, strformat
 
-proc initTexture*(image: Image): GLuint =
-  ## Create a texture object.
-  var textureId: GLuint
+type
+  MinFilter* = enum
+    minDefault,
+    minNearest = GL_NEAREST,
+    minLinear = GL_LINEAR,
+    minNearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
+    minLinearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
+    minNearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
+    minLinearMipmapLinear = GL_LINEAR_MIPMAP_LINEAR
 
-  glGenTextures(1, textureId.addr)
-  glBindTexture(GL_TEXTURE_2D, textureId)
+  MagFilter* = enum
+    magDefault,
+    magNearest = GL_NEAREST,
+    magLinear = GL_LINEAR
 
-  var format: GLenum
-  if image.channels == 4:
-    format = GL_RGBA
-  elif image.channels == 3:
-    format = GL_RGB
-  else:
-    raise newException(
-      ValueError,
-      "Texture init error for " & $image & ", invalid channels value"
-    )
+  Wrap* = enum
+    wDefault,
+    wRepeat = GL_REPEAT,
+    wClampToEdge = GL_CLAMP_TO_EDGE,
+    wMirroredRepeat = GL_MIRRORED_REPEAT
+
+  Texture* = object
+    source*: Buffer
+    width*, height*: int32
+    format*, internalFormat*: GLenum
+    minFilter*: MinFilter
+    magFilter*: MagFilter
+    wrapS*, wrapT*: Wrap
+    textureId*: GLuint
+
+proc bindTextureBufferData*(texture: ptr Texture) =
+  bindBufferData(texture.source.addr, GL_TEXTURE_BUFFER)
+
+  if texture.source.bufferId == 0:
+    # No backing buffer, skip
+    return
+
+  if texture.textureId != 0:
+    # The texture buffer already created
+    return
+
+  glGenTextures(1, texture.textureId.addr)
+  glBindTexture(GL_TEXTURE_BUFFER, texture.textureId)
+
+  glTexBuffer(
+    GL_TEXTURE_BUFFER,
+    texture.internalFormat,
+    texture.source.bufferId
+  )
+
+proc bindTextureData*(texture: ptr Texture) =
+  if texture.textureId != 0:
+    # Texture already ready
+    return
+
+  glGenTextures(1, texture.textureId.addr)
+  glBindTexture(GL_TEXTURE_2D, texture.textureId)
 
   glTexImage2D(
     target = GL_TEXTURE_2D,
     level = 0,
-    internalFormat = GLint(GL_RGBA),
-    width = image.width.GLsizei,
-    height = image.width.GLsizei,
+    internalFormat = texture.internalFormat.GLint,
+    width = texture.width,
+    height = texture.height,
     border = 0,
-    format = format,
-    `type` = GL_UNSIGNED_BYTE,
-    pixels = cast[pointer](image.data[0].addr)
+    format = texture.format,
+    `type` = texture.source.componentType,
+    pixels = texture.source.data[0].addr
   )
+
+  if texture.magFilter != magDefault:
+    glTexParameteri(
+      GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture.magFilter.GLint
+    )
+  if texture.minFilter != minDefault:
+    glTexParameteri(
+      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture.minFilter.GLint
+    )
+  if texture.wrapS != wDefault:
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texture.wrapS.GLint)
+  if texture.wrapT != wDefault:
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
 
   glGenerateMipmap(GL_TEXTURE_2D)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-  return textureId
+func getFormat(image: Image): GLenum =
+  if image.channels == 4:
+    result = GL_RGBA
+  elif image.channels == 3:
+    result = GL_RGB
+  else:
+    raise newException(
+      ValueError,
+      &"Texture init error for {$image}, invalid channels value"
+    )
 
-proc updateSubImage*(textureId: GLuint, x, y: int, image: Image, level: int) =
+proc initTexture*(image: Image): Texture =
+  result.width = image.width.GLint
+  result.height = image.height.GLint
+  result.source.data = image.data
+  result.source.componentType = GL_UNSIGNED_BYTE
+  result.format = image.getFormat()
+  result.internalFormat = GL_RGBA
+  result.minFilter = minLinearMipmapLinear
+  result.magFilter = magLinear
+  bindTextureData(result.addr)
+
+proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
   ## Update a small part of a texture image.
-  glBindTexture(GL_TEXTURE_2D, textureId)
+  glBindTexture(GL_TEXTURE_2D, texture.textureId)
   glTexSubImage2D(
     GL_TEXTURE_2D,
-    level = GLint(level),
-    xoffset = GLint(x),
-    yoffset = GLint(y),
-    width = GLsizei(image.width),
-    height = GLsizei(image.height),
-    format = GL_RGBA,
+    level = level.GLint,
+    xoffset = x.GLint,
+    yoffset = y.GLint,
+    width = image.width.GLint,
+    height = image.height.GLint,
+    format = image.getFormat(),
     `type` = GL_UNSIGNED_BYTE,
-    pixels = cast[pointer](image.data[0].addr)
+    pixels = image.data[0].addr
   )
 
-proc updateSubImage*(textureId: GLuint, x, y: int, image: Image) =
+proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   ## Update a small part of texture with a new image.
   var
     x = x
@@ -60,7 +131,7 @@ proc updateSubImage*(textureId: GLuint, x, y: int, image: Image) =
     level = 0
 
   while image.width > 1 and image.height > 1:
-    updateSubImage(textureId, x, y, image, level)
+    texture.updateSubImage(x, y, image, level)
     image = image.minifyBy2()
     x = x div 2
     y = y div 2
