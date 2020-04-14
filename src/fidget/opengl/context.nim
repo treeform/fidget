@@ -14,7 +14,7 @@ type
     heights*: seq[uint16] ## Height map of the free space in the atlas
     size*: int            ## Size x size dimensions of the atlas
     margin*: int          ## Default margin between images
-    shader*: GLuint
+    shader*: Shader
     mat*: Mat4            ## Current matrix
     mats: seq[Mat4]       ## Matrix stack
 
@@ -22,7 +22,7 @@ type
     maskImage*: Image     ## Mask image
     maskTexture*: Texture ## Mask texture
     maskFBO*: GLuint
-    maskShader*: GLuint
+    maskShader*: Shader
     maskTextureId: GLuint
 
 proc rect*(x, y, w, h: int): Rect =
@@ -80,10 +80,11 @@ when defined(ios) or defined(android):
     maskFragSrc = staticRead("glsl/mask.es.frag")
 else:
   const
-    atlastVertSrc = staticRead("glsl/atlas.vert")
-    atlastFragSrc = staticRead("glsl/atlas.frag")
-    maskVertSrc = staticRead("glsl/mask.vert")
-    maskFragSrc = staticRead("glsl/mask.frag")
+    dir = "../fidget/src/fidget/opengl"
+    atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
+    atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
+    maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
+    maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 proc newContext*(
     size = 1024,
@@ -106,7 +107,7 @@ proc newContext*(
 
   ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
 
-  ctx.mesh.loadShader(atlastVertSrc, atlastFragSrc)
+  ctx.mesh.shader = newShader(atlasVert, atlasFrag)
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
   ctx.mesh.finalize()
 
@@ -114,10 +115,9 @@ proc newContext*(
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
   ctx.maskTexture = ctx.maskImage.initTexture()
 
-  ctx.shader = compileShaderFiles(atlastVertSrc, atlastFragSrc)
-  ctx.maskShader = compileShaderFiles(maskVertSrc, maskFragSrc)
+  ctx.shader = newShader(atlasVert, atlasFrag)
+  ctx.maskShader = newShader(maskVert, maskFrag)
 
-  #ctx.mesh.loadShader(atlastVertSrc, atlastFragSrc)
   ctx.mesh.shader = ctx.shader
   ctx.mesh.loadTexture("rgbaTex", ctx.texture)
   ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
