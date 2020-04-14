@@ -1,28 +1,24 @@
-import chroma, internal, opengl/context, opengl/input, strformat, strutils,
+import chroma, internal, opengl/base, opengl/context, opengl/input, strformat, strutils,
     tables, times, typography, typography/textboxes, uibase, vmath
 
 export input
 
-when defined(ios) or defined(android):
-  import opengl/basemobile as base
-else:
-  import opengl/base as base
-
 var
   ctx: Context
   fonts = newTable[string, Font]()
+  windowTitle, windowUrl: string
 
-  # used for double-clicking:
+  # Used for double-clicking
   multiClick: int
   lastClickTime: float
 
-proc hAlignMode(align: HAlign): HAlignMode =
+func hAlignMode(align: HAlign): HAlignMode =
   case align:
     of hLeft: HAlignMode.Left
     of hCenter: Center
     of hRight: HAlignMode.Right
 
-proc vAlignMode(align: VAlign): VAlignMode =
+func vAlignMode(align: VAlign): VAlignMode =
   case align:
     of vTop: Top
     of vCenter: Middle
@@ -201,26 +197,21 @@ proc draw*(group: Group) =
 
   ctx.restoreTransform()
 
-proc redraw*() =
-  ## Request the screen to be redrawn next
-  if not requestedFrame:
-    requestedFrame = true
+proc refresh*() =
+  ## Request the screen be redrawn
+  requestedFrame = true
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
 
-proc openBrowserWithText*(text: string) =
-  ## Opens a new window with just this text on it
-  discard
-
-proc goto*(url: string) =
-  ## Goes to a new URL, inserts it into history so that back button works
-  rootUrl = url
-  redraw()
-
-proc setupFidget() =
-  base.start()
+proc setupFidget(
+  openglVersion: (int, int),
+  msaa: MSAA,
+  mainLoopMode: MainLoopMode
+) =
+  base.start(openglVersion, msaa, mainLoopMode)
+  setWindowTitle(windowTitle)
 
   when defined(ios):
     ctx = newContext(1024*4)
@@ -254,46 +245,53 @@ proc setupFidget() =
 
   useDepthBuffer(false)
 
-proc runFidget(draw: proc()) =
+proc runFidget(
+  draw: proc(),
+  tick: proc(),
+  openglVersion: (int, int),
+  msaa: MSAA,
+  mainLoopMode: MainLoopMode
+) =
   drawMain = draw
-  setupFidget()
-  while base.running:
-    base.tick()
-  base.exit()
+  tickMain = tick
+  setupFidget(openglVersion, msaa, mainLoopMode)
+  while running:
+    updateLoop()
+  exit()
 
-when defined(ios) or defined(android):
-  proc startFidget*(draw: proc()) =
-    ## Starts Fidget UI library
-    runFidget(draw)
-else:
-  proc startFidget*(
-      draw: proc(),
-      fullscreen = false,
-      w: Positive = 1280,
-      h: Positive = 800
-  ) =
-    ## Starts Fidget UI library
-    uibase.fullscreen = fullscreen
-    if not fullscreen:
-      windowSize = vec2(w.float32, h.float32)
-    runFidget(draw)
+proc startFidget*(
+    draw: proc(),
+    tick: proc() = nil,
+    fullscreen = false,
+    w: Positive = 1280,
+    h: Positive = 800,
+    openglVersion = (4, 1),
+    msaa = msaaDisabled,
+    mainLoopMode: MainLoopMode = RepaintOnEvent
+) =
+  ## Starts Fidget UI library
+  uibase.fullscreen = fullscreen
+  if not fullscreen:
+    windowSize = vec2(w.float32, h.float32)
+  runFidget(draw, tick, openglVersion, msaa, mainLoopMode)
 
-proc `title=`*(win: uibase.Window, title: string) =
-  ## Sets window url
-  win.innerTitle = title
-  setWindowTitle(title)
+proc getTitle*(): string =
+  ## Gets window title
+  windowTitle
 
-proc `title`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerTitle
+proc setTitle*(title: string) =
+  ## Sets window title
+  if (windowTitle != title):
+    windowTitle = title
+    setWindowTitle(title)
+    refresh()
 
-proc `url=`*(win: uibase.Window, url: string) =
-  ## Sets window url
-  win.innerUrl = url
+proc getUrl*(): string =
+  windowUrl
 
-proc `url`*(win: uibase.Window): string =
-  ## Gets window url
-  return win.innerUrl
+proc setUrl*(url: string) =
+  windowUrl = url
+  refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
@@ -301,6 +299,8 @@ proc loadFont*(name: string, pathOrUrl: string) =
     fonts[name] = readFontSvg(pathOrUrl)
   elif pathOrUrl.endsWith(".ttf"):
     fonts[name] = readFontTtf(pathOrUrl)
+  else:
+    raise newException(Exception, "Unsupported font format")
 
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.

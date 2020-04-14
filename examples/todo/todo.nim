@@ -9,7 +9,7 @@ var newItem: string
 todoItems = @["clean the house", "get milk"]
 
 proc drawMain() =
-  window.title = "Fidget Example"
+  setTitle("Fidget Example")
 
   frame "todoApp":
     box 0, 0, 473, 798

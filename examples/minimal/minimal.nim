@@ -8,7 +8,7 @@ proc drawMain() =
         box 20+i*120, 20, 100, 100
         fill "#2B9FEA"
 
-when defined(js) or defined(ios) or defined(android):
+when defined(js):
   startFidget(drawMain)
 else:
   startFidget(drawMain, w = 620, h = 140)

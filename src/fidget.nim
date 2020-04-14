@@ -3,19 +3,19 @@ import chroma, fidget/uibase, json, macros, strutils, tables, vmath
 export chroma, uibase
 
 when defined(js):
-  import fidget/html
-  export html
+  import fidget/htmlbackend
+  export htmlbackend
 elif defined(null):
-  import fidget/null
-  export null
+  import fidget/nullbackend
+  export nullbackend
 else:
-  import fidget/opengl
-  export opengl
+  import fidget/openglbackend
+  export openglbackend
 
 template node(kindStr: string, name: string, inner: untyped): untyped =
-  ## Base template for group, frame, rectange ...
+  ## Base template for group, frame, rectangle...
 
-  # we should draw the parent first as we are drawing the a child now
+  # Verify we have drawn the parent first since we are drawing a child now
   parent = groupStack[^1]
   if not parent.wasDrawn:
     parent.draw()
@@ -118,7 +118,7 @@ template onKeyUp*(inner: untyped) =
     inner
 
 template onKeyDown*(inner: untyped) =
-  ## This is called when key is pressed.
+  ## This is called when key is held down.
   if keyboard.state == Down:
     inner
 
@@ -148,7 +148,7 @@ template onFocus*(inner: untyped) =
     inner
 
 template onUnFocus*(inner: untyped) =
-  ## On loosing focus on an imput element.
+  ## On loosing focus on an input element.
   if keyboard.inputFocusIdPath != current.idPath and
       keyboard.inputFocusIdPath == current.idPath:
     inner
@@ -371,24 +371,23 @@ template binding*(stringVariable: untyped) =
   editableText true
   onInput:
     stringVariable = keyboard.input
-    redraw()
+    refresh()
   characters stringVariable
 
 template override*(name: string, inner: untyped) =
   template `name`(): untyped =
     inner
 
-# Navigation and URL functions
-# proc goto*(url: string)
-# proc openBrowser*(url: string)
-
-proc parseParams*(): TableRef[string, string] =
+proc parseParams*(): Table[string, string] =
   ## Parses the params of the main URL.
-  result = newTable[string, string]()
-  if window.innerUrl.len > 0:
-    for pair in window.innerUrl[1..^1].split("&"):
-      let
-        arr = pair.split("=")
-        key = arr[0]
-        val = arr[1]
-      result[key] = val
+  let splitSearch = getUrl().split('?')
+  if len(splitSearch) == 1:
+    return
+
+  let noHash = splitSearch[1].split('#')[0]
+  for pair in noHash[0..^1].split("&"):
+    let
+      arr = pair.split("=")
+      key = arr[0]
+      val = arr[1]
+    result[key] = val

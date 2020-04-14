@@ -6,7 +6,7 @@ var
 
 loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
 
-window.title = "Inputs Example"
+setTitle("Inputs Example")
 
 proc drawMain() =
   frame "main":

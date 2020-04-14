@@ -1,4 +1,4 @@
-import math, strformat, strutils, times
+import math, std/monotimes, strformat, strutils, times
 
 when defined(nimTypeNames):
   import tables
@@ -7,9 +7,9 @@ type
   EntryKind = enum
     Begin, End, Mark
 
-  PerfEntry* = ref object
+  PerfEntry* = object
     tag: string
-    time: float
+    ticks: int64
     kind: EntryKind
 
   TimeSeries* = ref object
@@ -21,10 +21,13 @@ var
   perfEnabled* = true
   defaultBuffer: seq[PerfEntry]
 
+proc getTicks*(): int64 =
+  getMonoTime().ticks
+
 proc addEntry(tag: string, kind: EntryKind, buffer: var seq[PerfEntry]) =
   var entry = PerfEntry()
   entry.tag = tag
-  entry.time = epochTime()
+  entry.ticks = getTicks()
   entry.kind = kind
 
   buffer.add(entry)
@@ -55,9 +58,12 @@ template timeIt*(tag: string, body: untyped) =
   perf tag, buffer, body
 
   if len(buffer) > 0:
-    let start = buffer[0].time
-    let finish = buffer[^1].time
-    echo tag, ": ", finish - start, "s"
+    let
+      start = buffer[0].ticks
+      finish = buffer[^1].ticks
+      # Convert from nanoseconds to floating point seconds
+      delta = float64(finish - start) / 1000000000.0
+    echo tag, ": ", delta, "s"
   else:
     echo tag, " not timed, perf disabled"
 
@@ -68,11 +74,12 @@ proc `$`*(buffer: seq[PerfEntry]): string =
   var
     lines: seq[string]
     indent = ""
-    prevTime = buffer[0].time
+    prevTicks = buffer[0].ticks
 
   for i, entry in buffer:
-    let delta = entry.time - prevTime
-    prevTime = entry.time
+    # Convert from nanoseconds to floating point seconds
+    let delta = float64(entry.ticks - prevTicks) / 1000000000.0
+    prevTicks = entry.ticks
 
     case entry.kind:
       of Begin:
