@@ -1,4 +1,4 @@
-import ../uibase, chroma, flippy, meshes, opengl, os, shaders, slate, strformat,
+import ../uibase, chroma, flippy, meshes, opengl, os, shaders, slates, strformat,
     tables, textures, times, vmath
 
 type
@@ -160,7 +160,7 @@ proc putImage*(ctx: Context, path: string, image: Image) =
     image
   )
 
-proc putSlate*(ctx: Context, path: string, slate: SlateImage) =
+proc putSlate*(ctx: Context, path: string, slate: Slate) =
   let rect = ctx.findEmptyRect(slate.width, slate.height)
   ctx.entries[path] = rect / float(ctx.size)
   var
