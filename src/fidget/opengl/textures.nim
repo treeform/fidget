@@ -102,7 +102,7 @@ proc initTexture*(image: Image): Texture =
   result.source.data = image.data
   result.source.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
-  result.internalFormat = GL_RGBA
+  result.internalFormat = GL_RGBA8
   result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
   bindTextureData(result.addr)
