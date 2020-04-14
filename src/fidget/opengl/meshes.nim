@@ -1,4 +1,4 @@
-import ../uibase, accessors, base, chroma, math, opengl, shaders, vmath
+import ../uibase, buffers, base, chroma, math, opengl, shaders, vmath
 
 type
   VertBufferKind* = enum
@@ -72,24 +72,24 @@ proc bindBuf*(buf: VertBuffer, mesh: Mesh) =
   ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
 
-  var accessorKind: AccessorKind
+  var bufferKind: BufferKind
   case buf.stride:
     of 1:
-      accessorKind = akSCALAR
+      bufferKind = bkSCALAR
     of 2:
-      accessorKind = akVEC2
+      bufferKind = bkVEC2
     of 3:
-      accessorKind = akVEC3
+      bufferKind = bkVEC3
     of 4:
-      accessorKind = akVEC4
+      bufferKind = bkVEC4
     of 9:
-      accessorKind = akMAT3
+      bufferKind = bkMAT3
     of 16:
-      accessorKind = akMAT4
+      bufferKind = bkMAT4
     else:
       raise newException(Exception, "Unexpected stride")
 
-  mesh.shader.bindAttrib(uniformName, buf.vbo, accessorKind, cGL_FLOAT)
+  mesh.shader.bindAttrib(uniformName, buf.vbo, bufferKind, cGL_FLOAT)
 
 proc newMesh*(): Mesh =
   ## Creates a empty new mesh.
