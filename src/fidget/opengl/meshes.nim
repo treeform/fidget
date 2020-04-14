@@ -15,7 +15,7 @@ type
   TexUniform* = object
     ## Texture uniform
     name*: string
-    texture*: Texture
+    textureId*: GLuint
 
   Mesh* = ref object
     ## Main mesh object that has everything it needs to render.
@@ -124,11 +124,11 @@ proc newUvColorMesh*(size: int = 0): Mesh =
   result.buffers.add newVertBuffer(Uv, size = size)
   result.buffers.add newVertBuffer(Color, size = size)
 
-proc loadTexture*(mesh: Mesh, name: string, texture: Texture) =
+proc loadTexture*(mesh: Mesh, name: string, textureId: GLuint) =
   ## Load the texture ad attach it to a uniform.
   var uniform = TexUniform()
   uniform.name = name
-  uniform.texture = texture
+  uniform.textureId = textureId
   mesh.textures.add(uniform)
 
 proc upload*(mesh: Mesh) =
@@ -222,7 +222,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   glBindVertexArray(mesh.vao)
 
   for i, uniform in mesh.textures:
-    uniform.texture.textureBind(i)
+    textureBind(uniform.textureId, i)
     mesh.shader.setUniform(uniform.name, i.int32)
 
   mesh.shader.bindUniforms()
