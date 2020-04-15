@@ -22,7 +22,6 @@ type
     maskTexture*: Texture ## Mask texture
     maskFBO*: GLuint
     maskShader*: Shader
-    maskTextureId: GLuint
 
 proc rect*(x, y, w, h: int): Rect =
   ## Integer Rect to float Rect.
@@ -371,20 +370,18 @@ proc beginMask*(ctx: Context) =
     glGenFramebuffers(1, addr ctx.maskFBO)
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
 
-    glGenTextures(1, addr ctx.maskTextureId)
-
     ctx.maskImage = Image()
     ctx.maskImage.width = (int windowFrame.x)
     ctx.maskImage.height = (int windowFrame.y)
 
-    glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
     glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width,
         GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-        ctx.maskTextureId, 0)
+        ctx.maskTexture.textureId, 0)
 
     if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
       quit("Some thing wrong with frame buffer. 2")
@@ -425,7 +422,7 @@ proc startFrame*(ctx: Context, screenSize: Vec2) =
     (ctx.maskImage.height != int screenSize.y):
     ctx.maskImage.width = (int windowFrame.x)
     ctx.maskImage.height = (int windowFrame.y)
-    glBindTexture(GL_TEXTURE_2D, ctx.maskTextureId)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
     glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width,
         GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     ctx.clearMask()
