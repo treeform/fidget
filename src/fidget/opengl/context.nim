@@ -372,6 +372,7 @@ proc beginMask*(ctx: Context) =
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
 
     glGenTextures(1, addr ctx.maskTextureId)
+    ctx.maskTexture.textureId = ctx.maskTextureId
 
     ctx.maskImage = Image()
     ctx.maskImage.width = (int windowFrame.x)
