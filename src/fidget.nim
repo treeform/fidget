@@ -83,8 +83,8 @@ template instance*(name: string, inner: untyped): untyped =
   ## Starts a new instance of a component.
   node("component", name, inner)
 
-template rectangle*(color: string) =
-  ## Shorthand for rectange with fill.
+template rectangle*(color: string|Color) =
+  ## Shorthand for rectangle with fill.
   rectangle "":
     box 0, 0, parent.box.w, parent.box.h
     fill color

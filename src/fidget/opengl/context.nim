@@ -1,4 +1,4 @@
-import ../uibase, chroma, flippy, meshes, opengl, os, shaders, slate, strformat,
+import ../uibase, chroma, flippy, meshes, opengl, os, shaders, strformat,
     tables, textures, times, vmath
 
 type
@@ -72,19 +72,12 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
 
-when defined(ios) or defined(android):
-  const
-    atlastVertSrc = staticRead("glsl/atlas.es.vert")
-    atlastFragSrc = staticRead("glsl/atlas.es.frag")
-    maskVertSrc = staticRead("glsl/mask.es.vert")
-    maskFragSrc = staticRead("glsl/mask.es.frag")
-else:
-  const
-    dir = "../fidget/src/fidget/opengl"
-    atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
-    atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
-    maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
-    maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
+const
+  dir = "../fidget/src/fidget/opengl"
+  atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
+  atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
+  maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
+  maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 proc newContext*(
     size = 1024,
@@ -105,12 +98,6 @@ proc newContext*(
   ctx.image.fill(rgba(255, 255, 255, 0))
   ctx.texture = ctx.image.initTexture()
 
-  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
-
-  ctx.mesh.shader = newShader(atlasVert, atlasFrag)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.finalize()
-
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
   ctx.maskTexture = ctx.maskImage.initTexture()
@@ -118,9 +105,10 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
+  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
   ctx.mesh.shader = ctx.shader
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
   ctx.mesh.finalize()
   return ctx
 
@@ -165,20 +153,22 @@ proc findEmptyRect*(ctx: Context, width, height: int): Rect =
 proc putImage*(ctx: Context, path: string, image: Image) =
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.size)
-  ctx.texture.updateSubImage(
+  updateSubImage(
+    ctx.texture,
     int(rect.x),
     int(rect.y),
     image
   )
 
-proc putSlate*(ctx: Context, path: string, slate: SlateImage) =
-  let rect = ctx.findEmptyRect(slate.width, slate.height)
+proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
+  let rect = ctx.findEmptyRect(flippy.width, flippy.height)
   ctx.entries[path] = rect / float(ctx.size)
   var
     x = int(rect.x)
     y = int(rect.y)
-  for level, mip in slate.mipmaps:
-    ctx.texture.updateSubImage(
+  for level, mip in flippy.mipmaps:
+    updateSubImage(
+      ctx.texture,
       x,
       y,
       mip,
@@ -260,25 +250,25 @@ proc drawUvRect*(
 proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
     # need to load imagePath
-    # check to see if approparte .slate file is around
+    # check to see if approparte .flippy file is around
     echo "[load] ", imagePath
     if not fileExists(imagePath):
       #quit(&"Image '{imagePath}' not found")
       raise newException(Exception, &"Image '{imagePath}' not found")
     let
-      slateImagePath = imagePath.changeFileExt(".slate")
-    if not existsFile(slateImagePath):
-      # no slate file generate new one
-      pngToSlate(imagePath, slateImagePath)
+      flippyImagePath = imagePath.changeFileExt(".flippy")
+    if not existsFile(flippyImagePath):
+      # No Flippy file generate new one
+      pngToFlippy(imagePath, flippyImagePath)
     else:
       let
-        mtSlate = getLastModificationTime(slateImagePath).toUnix
+        mtFlippy = getLastModificationTime(flippyImagePath).toUnix
         mtImage = getLastModificationTime(imagePath).toUnix
-      if mtSlate < mtImage:
-        # slate file too old, regenerate
-        pngToSlate(imagePath, slateImagePath)
-    var slate = loadSlate(slateImagePath)
-    ctx.putSlate(imagePath, slate)
+      if mtFlippy < mtImage:
+        # Flippy file too old, regenerate
+        pngToFlippy(imagePath, flippyImagePath)
+    var flippy = loadFlippy(flippyImagePath)
+    ctx.putFlippy(imagePath, flippy)
   return ctx.entries[imagePath]
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
@@ -383,7 +373,6 @@ proc beginMask*(ctx: Context) =
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
 
     glGenTextures(1, addr ctx.maskTextureId)
-    ctx.maskTexture.id = ctx.maskTextureId
 
     ctx.maskImage = Image()
     ctx.maskImage.width = (int windowFrame.x)
@@ -412,7 +401,7 @@ proc beginMask*(ctx: Context) =
 
   ctx.mesh.shader = ctx.maskShader
   ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
@@ -428,8 +417,8 @@ proc endMask*(ctx: Context) =
 
   ctx.mesh.shader = ctx.shader
   ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture)
+  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.

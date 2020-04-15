@@ -321,12 +321,7 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   window.makeContextCurrent()
 
   # Load OpenGL
-  when defined(ios) or defined(android):
-    # TODO, something causes a crash
-    # loadExtensions()
-    discard
-  else:
-    loadExtensions()
+  loadExtensions()
 
   when defined(glDebugMessageCallback):
     let flags = glGetInteger(GL_CONTEXT_FLAGS)

@@ -1,4 +1,4 @@
-import accessors, opengl, os, strformat, strutils, vmath
+import buffers, opengl, os, strformat, strutils, vmath
 
 type
   ShaderAttrib = object
@@ -8,7 +8,7 @@ type
   Uniform = object
     name: string
     componentType: GLenum
-    kind: AccessorKind
+    kind: BufferKind
     values: array[16, float32]
     location: GLint
 
@@ -223,7 +223,7 @@ proc setUniform(
   shader: Shader,
   name: string,
   componentType: GLenum,
-  kind: AccessorKind,
+  kind: BufferKind,
   values: array[16, float32]
 ) =
   for uniform in shader.uniforms.mitems:
@@ -251,7 +251,7 @@ proc raiseUniformComponentTypeException(
     &"Uniform \"{name}\" is of unexpected component type {hex}"
   )
 
-proc raiseUniformKindException(name: string, kind: AccessorKind) =
+proc raiseUniformKindException(name: string, kind: BufferKind) =
   raise newException(
     Exception,
     &"Uniform \"{name}\" is of unexpected kind {kind}"
@@ -266,16 +266,16 @@ proc setUniform*(
   for i in 0 ..< min(len(args), 16):
     values[i] = args[i].float32
 
-  var kind: AccessorKind
+  var kind: BufferKind
   case len(args):
     of 1:
-      kind = akSCALAR
+      kind = bkSCALAR
     of 2:
-      kind = akVEC2
+      kind = bkVEC2
     of 3:
-      kind = akVEC3
+      kind = bkVEC3
     of 4:
-      kind = akVEC4
+      kind = bkVEC4
     else:
       raiseUniformVarargsException(name, len(args))
 
@@ -290,16 +290,16 @@ proc setUniform*(
   for i in 0 ..< min(len(args), 16):
     values[i] = args[i]
 
-  var kind: AccessorKind
+  var kind: BufferKind
   case len(args):
     of 1:
-      kind = akSCALAR
+      kind = bkSCALAR
     of 2:
-      kind = akVEC2
+      kind = bkVEC2
     of 3:
-      kind = akVEC3
+      kind = bkVEC3
     of 4:
-      kind = akVEC4
+      kind = bkVEC4
     else:
       raiseUniformVarargsException(name, len(args))
 
@@ -314,7 +314,7 @@ proc setUniform*(
   values[0] = v.x
   values[1] = v.y
   values[2] = v.z
-  shader.setUniform(name, cGL_FLOAT, akVEC3, values)
+  shader.setUniform(name, cGL_FLOAT, bkVEC3, values)
 
 proc setUniform*(
   shader: Shader,
@@ -326,14 +326,14 @@ proc setUniform*(
   values[1] = v.y
   values[2] = v.z
   values[3] = v.w
-  shader.setUniform(name, cGL_FLOAT, akVEC4, values)
+  shader.setUniform(name, cGL_FLOAT, bkVEC4, values)
 
 proc setUniform*(
   shader: Shader,
   name: string,
   m: Mat4
 ) =
-  shader.setUniform(name, cGL_FLOAT, akMAT4, m)
+  shader.setUniform(name, cGL_FLOAT, bkMAT4, m)
 
 proc bindUniforms*(shader: Shader) =
   for uniform in shader.uniforms.mitems:
@@ -344,12 +344,12 @@ proc bindUniforms*(shader: Shader) =
       raiseUniformComponentTypeException(uniform.name, uniform.componentType)
 
     case uniform.kind:
-      of akSCALAR:
+      of bkSCALAR:
         if uniform.componentType == cGL_INT:
           glUniform1i(uniform.location, uniform.values[0].GLint)
         else:
           glUniform1f(uniform.location, uniform.values[0])
-      of akVEC2:
+      of bkVEC2:
         if uniform.componentType == cGL_INT:
           glUniform2i(
             uniform.location,
@@ -361,7 +361,7 @@ proc bindUniforms*(shader: Shader) =
             uniform.values[0],
             uniform.values[1]
           )
-      of akVEC3:
+      of bkVEC3:
         if uniform.componentType == cGL_INT:
           glUniform3i(
             uniform.location,
@@ -376,7 +376,7 @@ proc bindUniforms*(shader: Shader) =
             uniform.values[1],
             uniform.values[2]
           )
-      of akVEC4:
+      of bkVEC4:
         if uniform.componentType == cGL_INT:
           glUniform4i(
             uniform.location,
@@ -393,7 +393,7 @@ proc bindUniforms*(shader: Shader) =
             uniform.values[2],
             uniform.values[3]
           )
-      of akMAT4:
+      of bkMAT4:
         glUniformMatrix4fv(
           uniform.location,
           1,
@@ -407,7 +407,7 @@ proc bindAttrib*(
   shader: Shader,
   name: string,
   bufferId: GLuint,
-  accessorKind: AccessorKind,
+  bufferKind: BufferKind,
   componentType: GLenum,
   target = GL_ARRAY_BUFFER,
   normalized = false
@@ -416,10 +416,10 @@ proc bindAttrib*(
 
   for attrib in shader.attribs:
     if name == attrib.name:
-      if normalized or accessorKind != akSCALAR:
+      if normalized or bufferKind != bkSCALAR:
         glVertexAttribPointer(
           attrib.location.GLuint,
-          accessorKind.componentCount().GLint,
+          bufferKind.componentCount().GLint,
           componentType,
           if normalized: GL_TRUE else: GL_FALSE,
           0,
@@ -428,7 +428,7 @@ proc bindAttrib*(
       else:
         glVertexAttribIPointer(
           attrib.location.GLuint,
-          accessorKind.componentCount().GLint,
+          bufferKind.componentCount().GLint,
           componentType,
           0,
           nil
