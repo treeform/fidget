@@ -30,9 +30,11 @@ type
     maskShader*: Shader
     vao*: GLuint
 
-    buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
     activeShader*: Shader
+
+    positions, colors, uvs: VertBuffer
+
 
   VertBufferKind = enum
     ## Type of a buffer - what data does it hold.
@@ -106,8 +108,9 @@ proc bindAttrib(buf: VertBuffer, shader: Shader) =
 
 proc upload*(ctx: Context) =
   ## When buffers change, uploads them to GPU.
-  for buf in ctx.buffers:
-    buf.uploadBuf()
+  ctx.positions.uploadBuf()
+  ctx.colors.uploadBuf()
+  ctx.uvs.uploadBuf()
 
 proc getVert2(buf: VertBuffer, i: int): Vec2 =
   ## Get a vertex from the buffer.
@@ -153,15 +156,7 @@ proc setVertColor(buf: VertBuffer, i: int, color: Color) =
 
 proc numVerts*(ctx: Context): int =
   ## Return number of vertexes in the mesh.
-  if ctx.buffers.len > 0:
-    return ctx.buffers[0].len
-  return 0
-
-proc getBuf(ctx: Context, kind: VertBufferKind): VertBuffer =
-  ## Gets a buffer of a given type.
-  for buf in ctx.buffers:
-    if buf.kind == kind:
-      return buf
+  return ctx.positions.len
 
 proc drawBasic*(ctx: Context, max: int) =
   ## Draw the basic mesh.
@@ -253,10 +248,9 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.buffers = newSeq[VertBuffer]()
-  ctx.buffers.add newVertBuffer(Position, maxQuads * 6)
-  ctx.buffers.add newVertBuffer(Uv, maxQuads * 6)
-  ctx.buffers.add newVertBuffer(Color, maxQuads * 6)
+  ctx.positions = newVertBuffer(Position, maxQuads * 6)
+  ctx.uvs = newVertBuffer(Uv, maxQuads * 6)
+  ctx.colors = newVertBuffer(Color, maxQuads * 6)
   ctx.textures = newSeq[TexUniform]()
 
   ctx.activeShader = ctx.shader
@@ -266,9 +260,9 @@ proc newContext*(
   glGenVertexArrays(1, addr ctx.vao)
   ctx.upload()
   glBindVertexArray(ctx.vao)
-  for buf in ctx.buffers:
-    buf.bindAttrib(ctx.activeShader)
-
+  ctx.positions.bindAttrib(ctx.activeShader)
+  ctx.colors.bindAttrib(ctx.activeShader)
+  ctx.uvs.bindAttrib(ctx.activeShader)
   return ctx
 
 proc findEmptyRect*(ctx: Context, width, height: int): Rect =
@@ -359,11 +353,6 @@ proc drawUvRect*(
   ) =
   ## Adds an image rect with a path to an ctx
   ctx.checkBatch()
-  var
-    posBuf = ctx.getBuf(Position)
-    uvBuf = ctx.getBuf(Uv)
-    colorBuf = ctx.getBuf(VertBufferKind.Color)
-
   let
     posQuad = [
       ctx.mat * vec3(at.x, to.y, 0.0),
@@ -381,26 +370,26 @@ proc drawUvRect*(
   assert ctx.quadCount < ctx.maxQuads
 
   let c = ctx.quadCount * 6
-  posBuf.setVert3(c+0, posQuad[0])
-  posBuf.setVert3(c+1, posQuad[2])
-  posBuf.setVert3(c+2, posQuad[1])
-  posBuf.setVert3(c+3, posQuad[2])
-  posBuf.setVert3(c+4, posQuad[0])
-  posBuf.setVert3(c+5, posQuad[3])
+  ctx.positions.setVert3(c+0, posQuad[0])
+  ctx.positions.setVert3(c+1, posQuad[2])
+  ctx.positions.setVert3(c+2, posQuad[1])
+  ctx.positions.setVert3(c+3, posQuad[2])
+  ctx.positions.setVert3(c+4, posQuad[0])
+  ctx.positions.setVert3(c+5, posQuad[3])
 
-  uvBuf.setVert2(c+0, uvQuad[0])
-  uvBuf.setVert2(c+1, uvQuad[2])
-  uvBuf.setVert2(c+2, uvQuad[1])
-  uvBuf.setVert2(c+3, uvQuad[2])
-  uvBuf.setVert2(c+4, uvQuad[0])
-  uvBuf.setVert2(c+5, uvQuad[3])
+  ctx.uvs.setVert2(c+0, uvQuad[0])
+  ctx.uvs.setVert2(c+1, uvQuad[2])
+  ctx.uvs.setVert2(c+2, uvQuad[1])
+  ctx.uvs.setVert2(c+3, uvQuad[2])
+  ctx.uvs.setVert2(c+4, uvQuad[0])
+  ctx.uvs.setVert2(c+5, uvQuad[3])
 
-  colorBuf.setVertColor(c+0, color)
-  colorBuf.setVertColor(c+1, color)
-  colorBuf.setVertColor(c+2, color)
-  colorBuf.setVertColor(c+3, color)
-  colorBuf.setVertColor(c+4, color)
-  colorBuf.setVertColor(c+5, color)
+  ctx.colors.setVertColor(c+0, color)
+  ctx.colors.setVertColor(c+1, color)
+  ctx.colors.setVertColor(c+2, color)
+  ctx.colors.setVertColor(c+3, color)
+  ctx.colors.setVertColor(c+4, color)
+  ctx.colors.setVertColor(c+5, color)
 
   inc ctx.quadCount
 
