@@ -12,7 +12,6 @@ type
   Context* = ref object
     entries*: ref Table[string, Rect] ## Mapping of image name to UV position in the texture
 
-    mesh*: MMesh           ## Where the quads are drawn
     quadCount: int        ## Number of quads drawn so far
     maxQuads: int         ## Max quads to draw before issuing an OpenGL call and starting again
 
@@ -29,33 +28,29 @@ type
     maskTexture*: Texture ## Mask texture
     maskFBO*: GLuint
     maskShader*: Shader
+    vao*: GLuint
 
-  VertBufferKind* = enum
+    buffers*: seq[VertBuffer]
+    textures*: seq[TexUniform]
+    activeShader*: Shader
+
+  VertBufferKind = enum
     ## Type of a buffer - what data does it hold.
     Position, Color, Uv
 
-  VertBuffer* = ref object
+  VertBuffer = ref object
     ## Buffer and data holder.
     kind*: VertBufferKind
     stride*: int
     data*: seq[float32]
     vbo*: GLuint
 
-  TexUniform* = object
+  TexUniform = object
     ## Texture uniform
     name*: string
     textureId*: GLuint
 
-  MMesh* = ref object
-    ## Main mesh object that has everything it needs to render.
-    buffers*: seq[VertBuffer]
-    textures*: seq[TexUniform]
-    shader*: Shader
-
-    # OpenGL data
-    vao*: GLuint
-
-proc newVertBuffer*(kind: VertBufferKind, size: int): VertBuffer =
+proc newVertBuffer(kind: VertBufferKind, size: int): VertBuffer =
   ## Create a new vertex buffer.
   result = VertBuffer()
   result.kind = kind
@@ -69,24 +64,24 @@ proc newVertBuffer*(kind: VertBufferKind, size: int): VertBuffer =
   result.data = newSeq[float32](result.stride * size)
   glGenBuffers(1, addr result.vbo)
 
-proc len*(buf: VertBuffer): int =
+proc len(buf: VertBuffer): int =
   ## Get the length of the buffer.
   buf.data.len div buf.stride
 
-proc uploadBuf*(buf: VertBuffer, max: int) =
+proc uploadBuf(buf: VertBuffer, max: int) =
   ## Upload only a part of the buffer up to the max.
   ## Create for dynamic buffers that are sized bigger then the data hey hold.
   var len = buf.stride * max * 4
   glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
   glBufferData(GL_ARRAY_BUFFER, len, addr buf.data[0], GL_STATIC_DRAW)
 
-proc uploadBuf*(buf: VertBuffer) =
+proc uploadBuf(buf: VertBuffer) =
   ## Upload a buffer to the GPU.
   ## Needed if you have updated the buffer and want to send new changes.
   if buf.len > 0:
     buf.uploadBuf(buf.len)
 
-proc bindAttrib*(buf: VertBuffer, mesh: MMesh) =
+proc bindAttrib(buf: VertBuffer, shader: Shader) =
   ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
 
@@ -107,70 +102,40 @@ proc bindAttrib*(buf: VertBuffer, mesh: MMesh) =
     else:
       raise newException(Exception, "Unexpected stride")
 
-  mesh.shader.bindAttrib(uniformName, buf.vbo, bufferKind, cGL_FLOAT)
+  shader.bindAttrib(uniformName, buf.vbo, bufferKind, cGL_FLOAT)
 
-proc newMesh*(size: int): MMesh =
-  ## Creates a empty new mesh.
-  ## New vert buffers need to be added.
-  result = MMesh()
-  result.buffers = newSeq[VertBuffer]()
-  result.buffers.add newVertBuffer(Position, size)
-  result.buffers.add newVertBuffer(Uv, size )
-  result.buffers.add newVertBuffer(Color, size)
-  result.textures = newSeq[TexUniform]()
-  glGenVertexArrays(1, addr result.vao)
-
-proc loadTexture*(mesh: MMesh, name: string, textureId: GLuint) =
-  ## Load the texture ad attach it to a uniform.
-  var uniform = TexUniform()
-  uniform.name = name
-  uniform.textureId = textureId
-  mesh.textures.add(uniform)
-
-proc upload*(mesh: MMesh) =
+proc upload*(ctx: Context) =
   ## When buffers change, uploads them to GPU.
-  for buf in mesh.buffers.mitems:
+  for buf in ctx.buffers:
     buf.uploadBuf()
 
-proc upload*(mesh: MMesh, max: int) =
-  ## When buffers change, uploads them to GPU.
-  for buf in mesh.buffers.mitems:
-    buf.uploadBuf(max)
-
-proc finalize*(mesh: MMesh) =
-  ## Calls this to upload all the data nad uniforms.
-  mesh.upload()
-  glBindVertexArray(mesh.vao)
-  for buf in mesh.buffers:
-    buf.bindAttrib(mesh)
-
-proc getVert2*(buf: VertBuffer, i: int): Vec2 =
+proc getVert2(buf: VertBuffer, i: int): Vec2 =
   ## Get a vertex from the buffer.
   assert buf.stride == 2
   result.x = buf.data[i * 2 + 0]
   result.y = buf.data[i * 2 + 1]
 
-proc setVert2*(buf: VertBuffer, i: int, v: Vec2) =
+proc setVert2(buf: VertBuffer, i: int, v: Vec2) =
   ## Set a vertex in the buffer.
   assert buf.stride == 2
   buf.data[i * 2 + 0] = v.x
   buf.data[i * 2 + 1] = v.y
 
-proc getVert3*(buf: VertBuffer, i: int): Vec3 =
+proc getVert3(buf: VertBuffer, i: int): Vec3 =
   ## Get a vertex from the buffer.
   assert buf.stride == 3
   result.x = buf.data[i * 3 + 0]
   result.y = buf.data[i * 3 + 1]
   result.z = buf.data[i * 3 + 2]
 
-proc setVert3*(buf: VertBuffer, i: int, v: Vec3) =
+proc setVert3(buf: VertBuffer, i: int, v: Vec3) =
   ## Set a vertex in the buffer.
   assert buf.stride == 3
   buf.data[i * 3 + 0] = v.x
   buf.data[i * 3 + 1] = v.y
   buf.data[i * 3 + 2] = v.z
 
-proc getVertColor*(buf: VertBuffer, i: int): Color =
+proc getVertColor(buf: VertBuffer, i: int): Color =
   ## Get a color from the buffer.
   assert buf.stride == 4
   result.r = buf.data[i * 4 + 0]
@@ -178,7 +143,7 @@ proc getVertColor*(buf: VertBuffer, i: int): Color =
   result.b = buf.data[i * 4 + 2]
   result.a = buf.data[i * 4 + 3]
 
-proc setVertColor*(buf: VertBuffer, i: int, color: Color) =
+proc setVertColor(buf: VertBuffer, i: int, color: Color) =
   ## Set a color in the buffer.
   assert buf.stride == 4
   buf.data[i * 4 + 0] = color.r
@@ -186,40 +151,33 @@ proc setVertColor*(buf: VertBuffer, i: int, color: Color) =
   buf.data[i * 4 + 2] = color.b
   buf.data[i * 4 + 3] = color.a
 
-proc numVerts*(mesh: MMesh): int =
+proc numVerts*(ctx: Context): int =
   ## Return number of vertexes in the mesh.
-  if mesh.buffers.len > 0:
-    return mesh.buffers[0].len
+  if ctx.buffers.len > 0:
+    return ctx.buffers[0].len
   return 0
 
-proc numTri*(mesh: MMesh): int =
-  ## Return number of triangles in the mesh.
-  return mesh.numVerts() div 3
-
-proc getBuf*(mesh: MMesh, kind: VertBufferKind): VertBuffer =
+proc getBuf(ctx: Context, kind: VertBufferKind): VertBuffer =
   ## Gets a buffer of a given type.
-  for buf in mesh.buffers:
+  for buf in ctx.buffers:
     if buf.kind == kind:
       return buf
 
-proc drawBasic*(mesh: MMesh, max: int) =
+proc drawBasic*(ctx: Context, max: int) =
   ## Draw the basic mesh.
-  glUseProgram(mesh.shader.programId)
+  glUseProgram(ctx.activeShader.programId)
 
   # Bind the regular uniforms:
-  if mesh.shader.hasUniform("windowFrame"):
-    mesh.shader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
-  mesh.shader.setUniform("proj", proj)
+  if ctx.activeShader.hasUniform("windowFrame"):
+    ctx.activeShader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
+  ctx.activeShader.setUniform("proj", proj)
 
-  # Do the drawing
-  glBindVertexArray(mesh.vao)
-
-  for i, uniform in mesh.textures:
+  for i, uniform in ctx.textures:
     glActiveTexture(GLenum(int(GL_TEXTURE0) + i))
     glBindTexture(GL_TEXTURE_2D, uniform.textureId)
-    mesh.shader.setUniform(uniform.name, i.int32)
+    ctx.activeShader.setUniform(uniform.name, i.int32)
 
-  mesh.shader.bindUniforms()
+  ctx.activeShader.bindUniforms()
 
   glDrawArrays(GL_TRIANGLES, 0, GLsizei max)
 
@@ -270,10 +228,10 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   result.y = -result.y + windowFrame.y
 
 proc newContext*(
-    size = 1024,
-    margin = 4,
-    maxQuads = 1024,
-  ): Context =
+  size = 1024,
+  margin = 4,
+  maxQuads = 1024,
+): Context =
   ## Creates a new context.
   var ctx = Context()
   ctx.entries = newTable[string, Rect]()
@@ -295,11 +253,22 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.mesh = newMesh(size = maxQuads*2*3)
-  ctx.mesh.shader = ctx.shader
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
-  ctx.mesh.finalize()
+  ctx.buffers = newSeq[VertBuffer]()
+  ctx.buffers.add newVertBuffer(Position, maxQuads * 6)
+  ctx.buffers.add newVertBuffer(Uv, maxQuads * 6)
+  ctx.buffers.add newVertBuffer(Color, maxQuads * 6)
+  ctx.textures = newSeq[TexUniform]()
+
+  ctx.activeShader = ctx.shader
+  ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
+  ctx.textures.add(TexUniform(name: "rgbaMask", textureId: ctx.maskTexture.textureId))
+
+  glGenVertexArrays(1, addr ctx.vao)
+  ctx.upload()
+  glBindVertexArray(ctx.vao)
+  for buf in ctx.buffers:
+    buf.bindAttrib(ctx.activeShader)
+
   return ctx
 
 proc findEmptyRect*(ctx: Context, width, height: int): Rect =
@@ -370,8 +339,9 @@ proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
 proc drawMesh*(ctx: Context) =
   ## Flips - draws current buffer and starts a new one.
   if ctx.quadCount > 0:
-    ctx.mesh.upload(ctx.quadCount*6)
-    ctx.mesh.drawBasic(ctx.quadCount*6)
+    ctx.upload()
+    glBindVertexArray(ctx.vao)
+    ctx.drawBasic(ctx.quadCount*6)
     ctx.quadCount = 0
 
 proc checkBatch*(ctx: Context) =
@@ -390,9 +360,9 @@ proc drawUvRect*(
   ## Adds an image rect with a path to an ctx
   ctx.checkBatch()
   var
-    posBuf = ctx.mesh.getBuf(Position)
-    uvBuf = ctx.mesh.getBuf(Uv)
-    colorBuf = ctx.mesh.getBuf(VertBufferKind.Color)
+    posBuf = ctx.getBuf(Position)
+    uvBuf = ctx.getBuf(Uv)
+    colorBuf = ctx.getBuf(VertBufferKind.Color)
 
   let
     posQuad = [
@@ -585,9 +555,9 @@ proc beginMask*(ctx: Context) =
   glClearColor(0, 0, 0, 0.0)
   glClear(GL_COLOR_BUFFER_BIT)
 
-  ctx.mesh.shader = ctx.maskShader
-  ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
+  ctx.activeShader = ctx.maskShader
+  ctx.textures.setLen(0)
+  ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
@@ -601,10 +571,10 @@ proc endMask*(ctx: Context) =
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
-  ctx.mesh.shader = ctx.shader
-  ctx.mesh.textures.setLen(0)
-  ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
-  ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
+  ctx.activeShader = ctx.shader
+  ctx.textures.setLen(0)
+  ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
+  ctx.textures.add(TexUniform(name: "rgbaMask", textureId: ctx.maskTexture.textureId))
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
