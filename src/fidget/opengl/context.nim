@@ -37,7 +37,7 @@ type
 
   VertBuffer = ref object
     ## Buffer and data holder.
-    stride*: int
+    kind*: BufferKind
     data*: seq[float32]
     vbo*: GLuint
 
@@ -46,21 +46,21 @@ type
     name*: string
     textureId*: GLuint
 
-proc newVertBuffer(stride, size: int): VertBuffer =
+proc newVertBuffer(kind: BufferKind, size: int): VertBuffer =
   ## Create a new vertex buffer.
   result = VertBuffer()
-  result.stride = stride
-  result.data = newSeq[float32](result.stride * size)
+  result.kind = kind
+  result.data = newSeq[float32](result.kind.componentCount() * size)
   glGenBuffers(1, addr result.vbo)
 
 proc len(buf: VertBuffer): int =
   ## Get the length of the buffer.
-  buf.data.len div buf.stride
+  buf.data.len div buf.kind.componentCount()
 
 proc uploadBuf(buf: VertBuffer, max: int) =
   ## Upload only a part of the buffer up to the max.
   ## Create for dynamic buffers that are sized bigger then the data hey hold.
-  var len = buf.stride * max * 4
+  var len = buf.kind.componentCount() * max * 4
   glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
   glBufferData(GL_ARRAY_BUFFER, len, addr buf.data[0], GL_STATIC_DRAW)
 
@@ -78,19 +78,19 @@ proc upload*(ctx: Context) =
 
 proc getVert2(buf: VertBuffer, i: int): Vec2 =
   ## Get a vertex from the buffer.
-  assert buf.stride == 2
+  assert buf.kind.componentCount() == 2
   result.x = buf.data[i * 2 + 0]
   result.y = buf.data[i * 2 + 1]
 
 proc setVert2(buf: VertBuffer, i: int, v: Vec2) =
   ## Set a vertex in the buffer.
-  assert buf.stride == 2
+  assert buf.kind.componentCount() == 2
   buf.data[i * 2 + 0] = v.x
   buf.data[i * 2 + 1] = v.y
 
 proc getVertColor(buf: VertBuffer, i: int): Color =
   ## Get a color from the buffer.
-  assert buf.stride == 4
+  assert buf.kind.componentCount() == 4
   result.r = buf.data[i * 4 + 0]
   result.g = buf.data[i * 4 + 1]
   result.b = buf.data[i * 4 + 2]
@@ -98,7 +98,7 @@ proc getVertColor(buf: VertBuffer, i: int): Color =
 
 proc setVertColor(buf: VertBuffer, i: int, color: Color) =
   ## Set a color in the buffer.
-  assert buf.stride == 4
+  assert buf.kind.componentCount() == 4
   buf.data[i * 4 + 0] = color.r
   buf.data[i * 4 + 1] = color.g
   buf.data[i * 4 + 2] = color.b
@@ -194,9 +194,9 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.positions = newVertBuffer(2, maxQuads * 6)
-  ctx.uvs = newVertBuffer(2, maxQuads * 6)
-  ctx.colors = newVertBuffer(4, maxQuads * 6)
+  ctx.positions = newVertBuffer(bkVEC2, maxQuads * 6)
+  ctx.uvs = newVertBuffer(bkVEC2, maxQuads * 6)
+  ctx.colors = newVertBuffer(bkVEC4, maxQuads * 6)
   ctx.textures = newSeq[TexUniform]()
 
   ctx.activeShader = ctx.shader
