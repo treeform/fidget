@@ -22,7 +22,6 @@ type
     buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
     shader*: Shader
-    mat*: Mat4
 
     # OpenGL data
     vao*: GLuint
@@ -95,7 +94,6 @@ proc newMesh*(): Mesh =
   ## Creates a empty new mesh.
   ## New vert buffers need to be added.
   result = Mesh()
-  result.mat = identity()
   result.buffers = newSeq[VertBuffer]()
   result.textures = newSeq[TexUniform]()
   glGenVertexArrays(1, addr result.vao)
@@ -189,7 +187,7 @@ proc getBuf*(mesh: Mesh, kind: VertBufferKind): VertBuffer =
     if buf.kind == kind:
       return buf
 
-proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
+proc drawBasic*(mesh: Mesh, max: int) =
   ## Draw the basic mesh.
   glUseProgram(mesh.shader.programId)
 
@@ -217,4 +215,4 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
 proc draw*(mesh: Mesh) =
   ## Draw the mesh.
   if mesh.numVerts > 0:
-    mesh.drawBasic(mesh.mat, mesh.numVerts)
+    mesh.drawBasic(mesh.numVerts)
