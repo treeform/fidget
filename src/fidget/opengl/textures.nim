@@ -22,35 +22,29 @@ type
     wMirroredRepeat = GL_MIRRORED_REPEAT
 
   Texture* = object
-    source*: Buffer
     width*, height*: int32
-    format*, internalFormat*: GLenum
+    componentType*, format*, internalFormat*: GLenum
     minFilter*: MinFilter
     magFilter*: MagFilter
     wrapS*, wrapT*: Wrap
     textureId*: GLuint
 
-proc bindTextureBufferData*(texture: ptr Texture) =
-  bindBufferData(texture.source.addr, GL_TEXTURE_BUFFER)
+proc bindTextureBufferData*(
+  texture: ptr Texture, buffer: ptr Buffer, data: pointer
+) =
+  bindBufferData(buffer, data)
 
-  if texture.source.bufferId == 0:
-    # No backing buffer, skip
-    return
+  if texture.textureId == 0:
+    glGenTextures(1, texture.textureId.addr)
 
-  if texture.textureId != 0:
-    # The texture buffer already created
-    return
-
-  glGenTextures(1, texture.textureId.addr)
   glBindTexture(GL_TEXTURE_BUFFER, texture.textureId)
-
   glTexBuffer(
     GL_TEXTURE_BUFFER,
     texture.internalFormat,
-    texture.source.bufferId
+    buffer.bufferId
   )
 
-proc bindTextureData*(texture: ptr Texture) =
+proc bindTextureData*(texture: ptr Texture, data: pointer) =
   if texture.textureId != 0:
     # Texture already ready
     return
@@ -66,8 +60,8 @@ proc bindTextureData*(texture: ptr Texture) =
     height = texture.height,
     border = 0,
     format = texture.format,
-    `type` = texture.source.componentType,
-    pixels = texture.source.data[0].addr
+    `type` = texture.componentType,
+    pixels = data
   )
 
   if texture.magFilter != magDefault:
@@ -99,13 +93,12 @@ func getFormat(image: Image): GLenum =
 proc initTexture*(image: Image): Texture =
   result.width = image.width.GLint
   result.height = image.height.GLint
-  result.source.data = image.data
-  result.source.componentType = GL_UNSIGNED_BYTE
+  result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
   result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
-  bindTextureData(result.addr)
+  bindTextureData(result.addr, image.data[0].addr)
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
   ## Update a small part of a texture image.
