@@ -12,7 +12,7 @@ type
   Context* = ref object
     entries*: ref Table[string, Rect] ## Mapping of image name to UV position in the texture
 
-    mesh*: Mesh           ## Where the quads are drawn
+    mesh*: MMesh           ## Where the quads are drawn
     quadCount: int        ## Number of quads drawn so far
     maxQuads: int         ## Max quads to draw before issuing an OpenGL call and starting again
 
@@ -46,7 +46,7 @@ type
     name*: string
     textureId*: GLuint
 
-  Mesh* = ref object
+  MMesh* = ref object
     ## Main mesh object that has everything it needs to render.
     buffers*: seq[VertBuffer]
     textures*: seq[TexUniform]
@@ -86,7 +86,7 @@ proc uploadBuf*(buf: VertBuffer) =
   if buf.len > 0:
     buf.uploadBuf(buf.len)
 
-proc bindAttrib*(buf: VertBuffer, mesh: Mesh) =
+proc bindAttrib*(buf: VertBuffer, mesh: MMesh) =
   ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
 
@@ -109,10 +109,10 @@ proc bindAttrib*(buf: VertBuffer, mesh: Mesh) =
 
   mesh.shader.bindAttrib(uniformName, buf.vbo, bufferKind, cGL_FLOAT)
 
-proc newMesh*(size: int): Mesh =
+proc newMesh*(size: int): MMesh =
   ## Creates a empty new mesh.
   ## New vert buffers need to be added.
-  result = Mesh()
+  result = MMesh()
   result.buffers = newSeq[VertBuffer]()
   result.buffers.add newVertBuffer(Position, size)
   result.buffers.add newVertBuffer(Uv, size )
@@ -120,24 +120,24 @@ proc newMesh*(size: int): Mesh =
   result.textures = newSeq[TexUniform]()
   glGenVertexArrays(1, addr result.vao)
 
-proc loadTexture*(mesh: Mesh, name: string, textureId: GLuint) =
+proc loadTexture*(mesh: MMesh, name: string, textureId: GLuint) =
   ## Load the texture ad attach it to a uniform.
   var uniform = TexUniform()
   uniform.name = name
   uniform.textureId = textureId
   mesh.textures.add(uniform)
 
-proc upload*(mesh: Mesh) =
+proc upload*(mesh: MMesh) =
   ## When buffers change, uploads them to GPU.
   for buf in mesh.buffers.mitems:
     buf.uploadBuf()
 
-proc upload*(mesh: Mesh, max: int) =
+proc upload*(mesh: MMesh, max: int) =
   ## When buffers change, uploads them to GPU.
   for buf in mesh.buffers.mitems:
     buf.uploadBuf(max)
 
-proc finalize*(mesh: Mesh) =
+proc finalize*(mesh: MMesh) =
   ## Calls this to upload all the data nad uniforms.
   mesh.upload()
   glBindVertexArray(mesh.vao)
@@ -186,23 +186,23 @@ proc setVertColor*(buf: VertBuffer, i: int, color: Color) =
   buf.data[i * 4 + 2] = color.b
   buf.data[i * 4 + 3] = color.a
 
-proc numVerts*(mesh: Mesh): int =
+proc numVerts*(mesh: MMesh): int =
   ## Return number of vertexes in the mesh.
   if mesh.buffers.len > 0:
     return mesh.buffers[0].len
   return 0
 
-proc numTri*(mesh: Mesh): int =
+proc numTri*(mesh: MMesh): int =
   ## Return number of triangles in the mesh.
   return mesh.numVerts() div 3
 
-proc getBuf*(mesh: Mesh, kind: VertBufferKind): VertBuffer =
+proc getBuf*(mesh: MMesh, kind: VertBufferKind): VertBuffer =
   ## Gets a buffer of a given type.
   for buf in mesh.buffers:
     if buf.kind == kind:
       return buf
 
-proc drawBasic*(mesh: Mesh, max: int) =
+proc drawBasic*(mesh: MMesh, max: int) =
   ## Draw the basic mesh.
   glUseProgram(mesh.shader.programId)
 
