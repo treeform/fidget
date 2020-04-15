@@ -1,12 +1,7 @@
-import chroma, internal, opengl/context, opengl/input, strformat, strutils,
+import chroma, internal, opengl/base, opengl/context, opengl/input, strformat, strutils,
     tables, times, typography, typography/textboxes, uibase, vmath
 
 export input
-
-when defined(ios) or defined(android):
-  import opengl/basemobile as base
-else:
-  import opengl/base as base
 
 var
   ctx: Context
@@ -264,26 +259,21 @@ proc runFidget(
     updateLoop()
   exit()
 
-when defined(ios) or defined(android):
-  proc startFidget*(draw: proc()) =
-    ## Starts Fidget UI library
-    runFidget(draw)
-else:
-  proc startFidget*(
-      draw: proc(),
-      tick: proc() = nil,
-      fullscreen = false,
-      w: Positive = 1280,
-      h: Positive = 800,
-      openglVersion = (4, 1),
-      msaa = msaaDisabled,
-      mainLoopMode: MainLoopMode = RepaintOnEvent
-  ) =
-    ## Starts Fidget UI library
-    uibase.fullscreen = fullscreen
-    if not fullscreen:
-      windowSize = vec2(w.float32, h.float32)
-    runFidget(draw, tick, openglVersion, msaa, mainLoopMode)
+proc startFidget*(
+    draw: proc(),
+    tick: proc() = nil,
+    fullscreen = false,
+    w: Positive = 1280,
+    h: Positive = 800,
+    openglVersion = (4, 1),
+    msaa = msaaDisabled,
+    mainLoopMode: MainLoopMode = RepaintOnEvent
+) =
+  ## Starts Fidget UI library
+  uibase.fullscreen = fullscreen
+  if not fullscreen:
+    windowSize = vec2(w.float32, h.float32)
+  runFidget(draw, tick, openglVersion, msaa, mainLoopMode)
 
 proc getTitle*(): string =
   ## Gets window title

@@ -73,6 +73,26 @@ proc computeTextHeight*(
   let (_, h) = computeTextBox(text, width, fontName, fontSize, fontWeight)
   return h
 
+type
+  TextMetrics* {.importc.} = ref object
+    width: float   # This is read-only
+    actualBoundingBoxAscent*: float
+    actualBoundingBoxDescent*: float
+    actualBoundingBoxLeft*: float
+    actualBoundingBoxRight*: float
+    alphabeticBaseline*: float
+    emHeightAscent*: float
+    emHeightDescent*: float
+    fontBoundingBoxAscent*: float
+    fontBoundingBoxDescent*: float
+    hangingBaseline*: float
+    ideographicBaseline*: float
+
+proc measureText(
+  ctx: CanvasRenderingContext2D;
+  text: cstring
+): TextMetrics {.importcpp.}
+
 var baseLineCache = newTable[string, float]()
 proc getBaseLine *(
   fontName: string,
@@ -472,6 +492,7 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
     let event = cast[MouseEvent](event)
+    mouse.button = event.button
     mouse.pos.x = float event.pageX
     mouse.pos.y = float event.pageY
     mouse.click = true
