@@ -121,57 +121,61 @@ proc newContext*(
   maxQuads = 1024,
 ): Context =
   ## Creates a new context.
-  var ctx = Context()
-  ctx.entries = newTable[string, Rect]()
-  ctx.size = size
-  ctx.margin = margin
-  ctx.maxQuads = maxQuads
-  ctx.mat = mat4()
-  ctx.mats = newSeq[Mat4]()
+  result = Context()
+  result.entries = newTable[string, Rect]()
+  result.size = size
+  result.margin = margin
+  result.maxQuads = maxQuads
+  result.mat = mat4()
+  result.mats = newSeq[Mat4]()
 
-  ctx.heights = newSeq[uint16](size)
+  result.heights = newSeq[uint16](size)
   let img = newImage("", size, size, 4)
   img.fill(rgba(255, 255, 255, 0))
-  ctx.texture = img.initTexture()
+  result.texture = img.initTexture()
 
   let maskImage = newImage("", 1024, 1024, 4)
   maskImage.fill(rgba(255, 255, 255, 255))
-  ctx.maskTexture = maskImage.initTexture()
+  result.maskTexture = maskImage.initTexture()
 
-  ctx.shader = newShader(atlasVert, atlasFrag)
-  ctx.maskShader = newShader(maskVert, maskFrag)
+  result.shader = newShader(atlasVert, atlasFrag)
+  result.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.positions.buffer.componentType = cGL_FLOAT
-  ctx.positions.buffer.kind = bkVEC2
-  ctx.positions.buffer.target = GL_ARRAY_BUFFER
-  ctx.positions.data = newSeq[float32](ctx.positions.buffer.kind.componentCount() * maxQuads * 6)
+  result.positions.buffer.componentType = cGL_FLOAT
+  result.positions.buffer.kind = bkVEC2
+  result.positions.buffer.target = GL_ARRAY_BUFFER
+  result.positions.data = newSeq[float32](
+    result.positions.buffer.kind.componentCount() * maxQuads * 6
+  )
 
-  ctx.colors.buffer.componentType = GL_UNSIGNED_BYTE
-  ctx.colors.buffer.kind = bkVEC4
-  ctx.colors.buffer.target = GL_ARRAY_BUFFER
-  ctx.colors.buffer.normalized = true
-  ctx.colors.data = newSeq[uint8](ctx.colors.buffer.kind.componentCount() * maxQuads * 6)
+  result.colors.buffer.componentType = GL_UNSIGNED_BYTE
+  result.colors.buffer.kind = bkVEC4
+  result.colors.buffer.target = GL_ARRAY_BUFFER
+  result.colors.buffer.normalized = true
+  result.colors.data = newSeq[uint8](
+    result.colors.buffer.kind.componentCount() * maxQuads * 6
+  )
 
-  ctx.uvs.buffer.componentType = cGL_FLOAT
-  ctx.uvs.buffer.kind = bkVEC2
-  ctx.uvs.buffer.target = GL_ARRAY_BUFFER
-  ctx.uvs.data = newSeq[float32](ctx.uvs.buffer.kind.componentCount() * maxQuads * 6)
+  result.uvs.buffer.componentType = cGL_FLOAT
+  result.uvs.buffer.kind = bkVEC2
+  result.uvs.buffer.target = GL_ARRAY_BUFFER
+  result.uvs.data = newSeq[float32](
+    result.uvs.buffer.kind.componentCount() * maxQuads * 6
+  )
 
-  ctx.activeShader = ctx.shader
-  ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
-  ctx.textures.add(TexUniform(name: "rgbaMask", textureId: ctx.maskTexture.textureId))
+  result.activeShader = result.shader
+  result.textures.add(TexUniform(name: "rgbaTex", textureId: result.texture.textureId))
+  result.textures.add(TexUniform(name: "rgbaMask", textureId: result.maskTexture.textureId))
 
-  glGenVertexArrays(1, addr ctx.vao)
-  ctx.upload()
-  glBindVertexArray(ctx.vao)
+  glGenVertexArrays(1, addr result.vao)
+  result.upload()
+  glBindVertexArray(result.vao)
 
-  ctx.activeShader.bindAttrib("vertexPosition", ctx.positions.buffer)
-  ctx.activeShader.bindAttrib("vertexColor", ctx.colors.buffer)
-  ctx.activeShader.bindAttrib("vertexUv", ctx.uvs.buffer)
+  result.activeShader.bindAttrib("vertexPosition", result.positions.buffer)
+  result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
+  result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
 
-  return ctx
-
-proc findEmptyRect*(ctx: Context, width, height: int): Rect =
+proc findEmptyRect(ctx: Context, width, height: int): Rect =
   var imgWidth = width + ctx.margin * 2
   var imgHeight = height + ctx.margin * 2
 
@@ -244,7 +248,7 @@ proc drawMesh*(ctx: Context) =
     ctx.drawBasic(ctx.quadCount*6)
     ctx.quadCount = 0
 
-proc checkBatch*(ctx: Context) =
+proc checkBatch(ctx: Context) =
   if ctx.quadCount == ctx.maxQuads:
     # ctx is full dump the images in the ctx now and start a new batch
     ctx.drawMesh()
@@ -261,7 +265,7 @@ proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
   buf[i * 4 + 2] = color.b
   buf[i * 4 + 3] = color.a
 
-func `*`*(m: Mat4, v: Vec2): Vec2 =
+func `*`(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v, 0.0)).xy
 
 proc drawUvRect*(
@@ -323,7 +327,7 @@ proc drawUvRect*(
   ) =
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy, uvRect.xy + uvRect.wh, color)
 
-proc getOrLoadImageRect*(ctx: Context, imagePath: string): Rect =
+proc getOrLoadImageRect(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
     # need to load imagePath
     # check to see if approparte .flippy file is around
