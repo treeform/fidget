@@ -30,17 +30,11 @@ type
 
     vao*: GLuint
 
-    textures*: seq[TexUniform]
     activeShader*: Shader
 
     positions: tuple[buffer: Buffer, data: seq[float32]]
     colors: tuple[buffer: Buffer, data: seq[uint8]]
     uvs: tuple[buffer: Buffer, data: seq[float32]]
-
-  TexUniform = object
-    ## Texture uniform
-    name*: string
-    textureId*: GLuint
 
 proc upload*(ctx: Context) =
   ## When buffers change, uploads them to GPU.
@@ -60,10 +54,14 @@ proc drawBasic*(ctx: Context, max: int) =
     ctx.activeShader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
   ctx.activeShader.setUniform("proj", proj)
 
-  for i, uniform in ctx.textures:
-    glActiveTexture(GLenum(int(GL_TEXTURE0) + i))
-    glBindTexture(GL_TEXTURE_2D, uniform.textureId)
-    ctx.activeShader.setUniform(uniform.name, i.int32)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, ctx.texture.textureId)
+  ctx.activeShader.setUniform("rgbaTex", 0)
+
+  if ctx.activeShader.hasUniform("rgbaMask"):
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
+    ctx.activeShader.setUniform("rgbaMask", 1)
 
   ctx.activeShader.bindUniforms()
 
@@ -164,8 +162,6 @@ proc newContext*(
   )
 
   result.activeShader = result.shader
-  result.textures.add(TexUniform(name: "rgbaTex", textureId: result.texture.textureId))
-  result.textures.add(TexUniform(name: "rgbaMask", textureId: result.maskTexture.textureId))
 
   glGenVertexArrays(1, addr result.vao)
   result.upload()
@@ -470,8 +466,6 @@ proc beginMask*(ctx: Context) =
   glClear(GL_COLOR_BUFFER_BIT)
 
   ctx.activeShader = ctx.maskShader
-  ctx.textures.setLen(0)
-  ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
@@ -486,9 +480,6 @@ proc endMask*(ctx: Context) =
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
   ctx.activeShader = ctx.shader
-  ctx.textures.setLen(0)
-  ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
-  ctx.textures.add(TexUniform(name: "rgbaMask", textureId: ctx.maskTexture.textureId))
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
