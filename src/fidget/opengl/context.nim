@@ -9,7 +9,6 @@ type
     quadCount: int        ## Number of quads drawn so far
     maxQuads: int         ## Max quads to draw before issuing an OpenGL call and starting again
 
-    image*: Image         ## Image of the atlas remove?
     texture*: Texture     ## Texture of the atlas
     heights*: seq[uint16] ## Height map of the free space in the atlas
     size*: int            ## Size x size dimensions of the atlas
@@ -94,9 +93,9 @@ proc newContext*(
   ctx.mats = newSeq[Mat4]()
 
   ctx.heights = newSeq[uint16](size)
-  ctx.image = newImage("", size, size, 4)
-  ctx.image.fill(rgba(255, 255, 255, 0))
-  ctx.texture = ctx.image.initTexture()
+  let img = newImage("", size, size, 4)
+  img.fill(rgba(255, 255, 255, 0))
+  ctx.texture = img.initTexture()
 
   ctx.maskImage = newImage("", 1024, 1024, 4)
   ctx.maskImage.fill(rgba(255, 255, 255, 255))
