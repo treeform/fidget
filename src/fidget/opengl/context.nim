@@ -35,13 +35,8 @@ type
 
     positions, colors, uvs: VertBuffer
 
-  VertBufferKind = enum
-    ## Type of a buffer - what data does it hold.
-    Position, Color, Uv
-
   VertBuffer = ref object
     ## Buffer and data holder.
-    kind*: VertBufferKind
     stride*: int
     data*: seq[float32]
     vbo*: GLuint
@@ -51,17 +46,10 @@ type
     name*: string
     textureId*: GLuint
 
-proc newVertBuffer(kind: VertBufferKind, size: int): VertBuffer =
+proc newVertBuffer(stride, size: int): VertBuffer =
   ## Create a new vertex buffer.
   result = VertBuffer()
-  result.kind = kind
-  case kind:
-    of Position:
-      result.stride = 2
-    of Color:
-      result.stride = 4
-    of Uv:
-      result.stride = 2
+  result.stride = stride
   result.data = newSeq[float32](result.stride * size)
   glGenBuffers(1, addr result.vbo)
 
@@ -81,29 +69,6 @@ proc uploadBuf(buf: VertBuffer) =
   ## Needed if you have updated the buffer and want to send new changes.
   if buf.len > 0:
     buf.uploadBuf(buf.len)
-
-proc bindAttrib(buf: VertBuffer, shader: Shader) =
-  ## Binds the buffer to the mesh and shader
-  let uniformName = "vertex" & $buf.kind
-
-  var bufferKind: BufferKind
-  case buf.stride:
-    of 1:
-      bufferKind = bkSCALAR
-    of 2:
-      bufferKind = bkVEC2
-    of 3:
-      bufferKind = bkVEC3
-    of 4:
-      bufferKind = bkVEC4
-    of 9:
-      bufferKind = bkMAT3
-    of 16:
-      bufferKind = bkMAT4
-    else:
-      raise newException(Exception, "Unexpected stride")
-
-  shader.bindAttrib(uniformName, buf.vbo, bufferKind, cGL_FLOAT)
 
 proc upload*(ctx: Context) =
   ## When buffers change, uploads them to GPU.
@@ -138,10 +103,6 @@ proc setVertColor(buf: VertBuffer, i: int, color: Color) =
   buf.data[i * 4 + 1] = color.g
   buf.data[i * 4 + 2] = color.b
   buf.data[i * 4 + 3] = color.a
-
-proc numVerts*(ctx: Context): int =
-  ## Return number of vertexes in the mesh.
-  return ctx.positions.len
 
 proc drawBasic*(ctx: Context, max: int) =
   ## Draw the basic mesh.
@@ -233,9 +194,9 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.positions = newVertBuffer(Position, maxQuads * 6)
-  ctx.uvs = newVertBuffer(Uv, maxQuads * 6)
-  ctx.colors = newVertBuffer(Color, maxQuads * 6)
+  ctx.positions = newVertBuffer(2, maxQuads * 6)
+  ctx.uvs = newVertBuffer(2, maxQuads * 6)
+  ctx.colors = newVertBuffer(4, maxQuads * 6)
   ctx.textures = newSeq[TexUniform]()
 
   ctx.activeShader = ctx.shader
@@ -245,9 +206,11 @@ proc newContext*(
   glGenVertexArrays(1, addr ctx.vao)
   ctx.upload()
   glBindVertexArray(ctx.vao)
-  ctx.positions.bindAttrib(ctx.activeShader)
-  ctx.colors.bindAttrib(ctx.activeShader)
-  ctx.uvs.bindAttrib(ctx.activeShader)
+
+  ctx.activeShader.bindAttrib("vertexPosition", ctx.positions.vbo, bkVEC2, cGL_FLOAT)
+  ctx.activeShader.bindAttrib("vertexColor", ctx.colors.vbo, bkVEC4, cGL_FLOAT)
+  ctx.activeShader.bindAttrib("vertexUv", ctx.uvs.vbo, bkVEC2, cGL_FLOAT)
+
   return ctx
 
 proc findEmptyRect*(ctx: Context, width, height: int): Rect =
