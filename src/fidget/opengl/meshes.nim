@@ -57,7 +57,7 @@ proc uploadBuf*(buf: VertBuffer) =
   if buf.len > 0:
     buf.uploadBuf(buf.len)
 
-proc bindBuf*(buf: VertBuffer, mesh: Mesh) =
+proc bindAttrib*(buf: VertBuffer, mesh: Mesh) =
   ## Binds the buffer to the mesh and shader
   let uniformName = "vertex" & $buf.kind
 
@@ -113,7 +113,7 @@ proc finalize*(mesh: Mesh) =
   mesh.upload()
   glBindVertexArray(mesh.vao)
   for buf in mesh.buffers:
-    buf.bindBuf(mesh)
+    buf.bindAttrib(mesh)
 
 proc getVert2*(buf: VertBuffer, i: int): Vec2 =
   ## Get a vertex from the buffer.
