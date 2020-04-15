@@ -40,12 +40,7 @@ proc translate*(ctx: Context, v: Vec2) =
 
 proc rotate*(ctx: Context, angle: float) =
   ## Rotates internal transform.
-  ctx.mat = ctx.mat * mat4(
-    cos(angle), sin(angle), 0, 0,
-    -sin(angle), cos(angle), 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 1
-  )
+  ctx.mat = ctx.mat * rotateZ(angle).mat4()
 
 proc scale*(ctx: Context, scale: float) =
   ## Scales the internal transform.
