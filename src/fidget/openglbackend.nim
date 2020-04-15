@@ -76,7 +76,7 @@ proc drawText(group: Group) =
         textBox.selectWord(mousePos)
         mouse.down = false
       elif multiClick == 2:
-        textBox.selectPeragraph(mousePos)
+        textBox.selectParagraph(mousePos)
         mouse.down = false
       elif multiClick == 3:
         textBox.selectAll()
