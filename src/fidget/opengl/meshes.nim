@@ -100,23 +100,6 @@ proc newMesh*(): Mesh =
   result.textures = newSeq[TexUniform]()
   glGenVertexArrays(1, addr result.vao)
 
-proc newBasicMesh*(): Mesh =
-  ## Create a basic mesh, with only the position buffers.
-  result = newMesh()
-  result.buffers.add newVertBuffer(Position)
-
-proc newColorMesh*(): Mesh =
-  ## Create a basic mesh, with position and color buffers.
-  result = newMesh()
-  result.buffers.add newVertBuffer(Position)
-  result.buffers.add newVertBuffer(Color)
-
-proc newUvMesh*(): Mesh =
-  ## Create a basic mesh, with position and uv buffers.
-  result = newMesh()
-  result.buffers.add newVertBuffer(Position)
-  result.buffers.add newVertBuffer(Uv)
-
 proc newUvColorMesh*(size: int = 0): Mesh =
   ## Create a basic mesh, with position, color and uv buffers.
   result = newMesh()
@@ -213,10 +196,7 @@ proc drawBasic*(mesh: Mesh, mat: Mat4, max: int) =
   # Bind the regular uniforms:
   if mesh.shader.hasUniform("windowFrame"):
     mesh.shader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
-  # mesh.shader.setUniform("model", mat)
-  # mesh.shader.setUniform("view", view)
   mesh.shader.setUniform("proj", proj)
-  # mesh.shader.setUniform("superTrans", proj * view *  mat)
 
   # Do the drawing
   glBindVertexArray(mesh.vao)
