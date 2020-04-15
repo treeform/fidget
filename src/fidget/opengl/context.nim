@@ -44,6 +44,9 @@ type
 
 proc upload*(ctx: Context) =
   ## When buffers change, uploads them to GPU.
+  ctx.positions.buffer.count = ctx.quadCount * 6
+  ctx.colors.buffer.count = ctx.quadCount * 6
+  ctx.uvs.buffer.count = ctx.quadCount * 6
   bindBufferData(ctx.positions.buffer.addr, ctx.positions.data[0].addr)
   bindBufferData(ctx.colors.buffer.addr, ctx.colors.data[0].addr)
   bindBufferData(ctx.uvs.buffer.addr, ctx.uvs.data[0].addr)
@@ -138,20 +141,17 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.positions.buffer.count = maxQuads * 6
   ctx.positions.buffer.componentType = cGL_FLOAT
   ctx.positions.buffer.kind = bkVEC2
   ctx.positions.buffer.target = GL_ARRAY_BUFFER
   ctx.positions.data = newSeq[float32](ctx.positions.buffer.kind.componentCount() * maxQuads * 6)
 
-  ctx.colors.buffer.count = maxQuads * 6
   ctx.colors.buffer.componentType = GL_UNSIGNED_BYTE
   ctx.colors.buffer.kind = bkVEC4
   ctx.colors.buffer.target = GL_ARRAY_BUFFER
   ctx.colors.buffer.normalized = true
   ctx.colors.data = newSeq[uint8](ctx.colors.buffer.kind.componentCount() * maxQuads * 6)
 
-  ctx.uvs.buffer.count = maxQuads * 6
   ctx.uvs.buffer.componentType = cGL_FLOAT
   ctx.uvs.buffer.kind = bkVEC2
   ctx.uvs.buffer.target = GL_ARRAY_BUFFER
