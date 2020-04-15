@@ -1,6 +1,13 @@
 import ../uibase, chroma, flippy, meshes, opengl, os, shaders, strformat,
     tables, textures, times, vmath
 
+const
+  dir = "../fidget/src/fidget/opengl"
+  atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
+  atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
+  maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
+  maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
+
 type
   Context* = ref object
     entries*: ref Table[string, Rect] ## Mapping of image name to UV position in the texture
@@ -41,11 +48,11 @@ proc rotate*(ctx: Context, angle: float) =
   )
 
 proc scale*(ctx: Context, scale: float) =
-  ## Rotates internal transform.
+  ## Scales the internal transform.
   ctx.mat = ctx.mat * scaleMat(scale)
 
 proc scale*(ctx: Context, scale: Vec2) =
-  ## Rotates internal transform.
+  ## Scales the internal transform.
   ctx.mat = ctx.mat * scaleMat(vec3(scale, 1))
 
 proc saveTransform*(ctx: Context) =
@@ -69,13 +76,6 @@ proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   ## Takes a point from current transform and translates it to screen.
   result = (ctx.mat * vec3(v, 1)).xy
   result.y = -result.y + windowFrame.y
-
-const
-  dir = "../fidget/src/fidget/opengl"
-  atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
-  atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
-  maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
-  maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 proc newContext*(
     size = 1024,
