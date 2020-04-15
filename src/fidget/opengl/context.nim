@@ -34,7 +34,7 @@ type
     activeShader*: Shader
 
     positions: tuple[buffer: Buffer, data: seq[float32]]
-    colors: tuple[buffer: Buffer, data: seq[float32]]
+    colors: tuple[buffer: Buffer, data: seq[uint8]]
     uvs: tuple[buffer: Buffer, data: seq[float32]]
 
   TexUniform = object
@@ -145,11 +145,11 @@ proc newContext*(
   ctx.positions.data = newSeq[float32](ctx.positions.buffer.kind.componentCount() * maxQuads * 6)
 
   ctx.colors.buffer.count = maxQuads * 6
-  ctx.colors.buffer.componentType = cGL_FLOAT
+  ctx.colors.buffer.componentType = GL_UNSIGNED_BYTE
   ctx.colors.buffer.kind = bkVEC4
   ctx.colors.buffer.target = GL_ARRAY_BUFFER
-  # ctx.colors.buffer.normalized = true
-  ctx.colors.data = newSeq[float32](ctx.colors.buffer.kind.componentCount() * maxQuads * 6)
+  ctx.colors.buffer.normalized = true
+  ctx.colors.data = newSeq[uint8](ctx.colors.buffer.kind.componentCount() * maxQuads * 6)
 
   ctx.uvs.buffer.count = maxQuads * 6
   ctx.uvs.buffer.componentType = cGL_FLOAT
@@ -254,7 +254,7 @@ proc setVert2(buf: var seq[float32], i: int, v: Vec2) =
   buf[i * 2 + 0] = v.x
   buf[i * 2 + 1] = v.y
 
-proc setVertColor(buf: var seq[float32], i: int, color: Color) =
+proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
   ## Set a color in the buffer.
   buf[i * 4 + 0] = color.r
   buf[i * 4 + 1] = color.g
@@ -305,12 +305,13 @@ proc drawUvRect*(
   ctx.uvs.data.setVert2(c+4, uvQuad[0])
   ctx.uvs.data.setVert2(c+5, uvQuad[3])
 
-  ctx.colors.data.setVertColor(c+0, color)
-  ctx.colors.data.setVertColor(c+1, color)
-  ctx.colors.data.setVertColor(c+2, color)
-  ctx.colors.data.setVertColor(c+3, color)
-  ctx.colors.data.setVertColor(c+4, color)
-  ctx.colors.data.setVertColor(c+5, color)
+  let rgba = color.rgba()
+  ctx.colors.data.setVertColor(c+0, rgba)
+  ctx.colors.data.setVertColor(c+1, rgba)
+  ctx.colors.data.setVertColor(c+2, rgba)
+  ctx.colors.data.setVertColor(c+3, rgba)
+  ctx.colors.data.setVertColor(c+4, rgba)
+  ctx.colors.data.setVertColor(c+5, rgba)
 
   inc ctx.quadCount
 
