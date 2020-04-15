@@ -5,9 +5,8 @@ type
     bkSCALAR, bkVEC2, bkVEC3, bkVEC4, bkMAT2, bkMAT3, bkMAT4
 
   Buffer* = object
-    data*: seq[uint8]
     count*: int
-    componentType*: GLenum
+    target*, componentType*: GLenum
     kind*: BufferKind
     normalized*: bool
     bufferId*: GLuint
@@ -38,25 +37,18 @@ func componentCount*(bufferKind: BufferKind): Positive =
     of bkMAT4:
       16
 
-proc bindBufferData*(buffer: ptr Buffer, target: GLenum) =
-  if buffer.bufferId != 0:
-    # This buffer has already been created
-    return
-
-  if len(buffer.data) == 0:
-    # Empty, skip
-    return
+proc bindBufferData*(buffer: ptr Buffer, data: pointer) =
+  if buffer.bufferId == 0:
+    glGenBuffers(1, buffer.bufferId.addr)
 
   let byteLength = buffer.count *
     buffer.kind.componentCount() *
     buffer.componentType.size()
 
-  glGenBuffers(1, buffer.bufferId.addr)
-  glBindBuffer(target, buffer.bufferId)
-
+  glBindBuffer(buffer.target, buffer.bufferId)
   glBufferData(
-    target,
+    buffer.target,
     byteLength,
-    buffer.data[0].addr,
+    data,
     GL_STATIC_DRAW
   )
