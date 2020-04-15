@@ -33,76 +33,20 @@ type
     textures*: seq[TexUniform]
     activeShader*: Shader
 
-    positions, colors, uvs: VertBuffer
-
-  VertBuffer = ref object
-    ## Buffer and data holder.
-    kind*: BufferKind
-    data*: seq[float32]
-    vbo*: GLuint
+    positions: tuple[buffer: Buffer, data: seq[float32]]
+    colors: tuple[buffer: Buffer, data: seq[float32]]
+    uvs: tuple[buffer: Buffer, data: seq[float32]]
 
   TexUniform = object
     ## Texture uniform
     name*: string
     textureId*: GLuint
 
-proc newVertBuffer(kind: BufferKind, size: int): VertBuffer =
-  ## Create a new vertex buffer.
-  result = VertBuffer()
-  result.kind = kind
-  result.data = newSeq[float32](result.kind.componentCount() * size)
-  glGenBuffers(1, addr result.vbo)
-
-proc len(buf: VertBuffer): int =
-  ## Get the length of the buffer.
-  buf.data.len div buf.kind.componentCount()
-
-proc uploadBuf(buf: VertBuffer, max: int) =
-  ## Upload only a part of the buffer up to the max.
-  ## Create for dynamic buffers that are sized bigger then the data hey hold.
-  var len = buf.kind.componentCount() * max * 4
-  glBindBuffer(GL_ARRAY_BUFFER, buf.vbo)
-  glBufferData(GL_ARRAY_BUFFER, len, addr buf.data[0], GL_STATIC_DRAW)
-
-proc uploadBuf(buf: VertBuffer) =
-  ## Upload a buffer to the GPU.
-  ## Needed if you have updated the buffer and want to send new changes.
-  if buf.len > 0:
-    buf.uploadBuf(buf.len)
-
 proc upload*(ctx: Context) =
   ## When buffers change, uploads them to GPU.
-  ctx.positions.uploadBuf()
-  ctx.colors.uploadBuf()
-  ctx.uvs.uploadBuf()
-
-proc getVert2(buf: VertBuffer, i: int): Vec2 =
-  ## Get a vertex from the buffer.
-  assert buf.kind.componentCount() == 2
-  result.x = buf.data[i * 2 + 0]
-  result.y = buf.data[i * 2 + 1]
-
-proc setVert2(buf: VertBuffer, i: int, v: Vec2) =
-  ## Set a vertex in the buffer.
-  assert buf.kind.componentCount() == 2
-  buf.data[i * 2 + 0] = v.x
-  buf.data[i * 2 + 1] = v.y
-
-proc getVertColor(buf: VertBuffer, i: int): Color =
-  ## Get a color from the buffer.
-  assert buf.kind.componentCount() == 4
-  result.r = buf.data[i * 4 + 0]
-  result.g = buf.data[i * 4 + 1]
-  result.b = buf.data[i * 4 + 2]
-  result.a = buf.data[i * 4 + 3]
-
-proc setVertColor(buf: VertBuffer, i: int, color: Color) =
-  ## Set a color in the buffer.
-  assert buf.kind.componentCount() == 4
-  buf.data[i * 4 + 0] = color.r
-  buf.data[i * 4 + 1] = color.g
-  buf.data[i * 4 + 2] = color.b
-  buf.data[i * 4 + 3] = color.a
+  bindBufferData(ctx.positions.buffer.addr, ctx.positions.data[0].addr)
+  bindBufferData(ctx.colors.buffer.addr, ctx.colors.data[0].addr)
+  bindBufferData(ctx.uvs.buffer.addr, ctx.uvs.data[0].addr)
 
 proc drawBasic*(ctx: Context, max: int) =
   ## Draw the basic mesh.
@@ -194,10 +138,24 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.positions = newVertBuffer(bkVEC2, maxQuads * 6)
-  ctx.uvs = newVertBuffer(bkVEC2, maxQuads * 6)
-  ctx.colors = newVertBuffer(bkVEC4, maxQuads * 6)
-  ctx.textures = newSeq[TexUniform]()
+  ctx.positions.buffer.count = maxQuads * 6
+  ctx.positions.buffer.componentType = cGL_FLOAT
+  ctx.positions.buffer.kind = bkVEC2
+  ctx.positions.buffer.target = GL_ARRAY_BUFFER
+  ctx.positions.data = newSeq[float32](ctx.positions.buffer.kind.componentCount() * maxQuads * 6)
+
+  ctx.colors.buffer.count = maxQuads * 6
+  ctx.colors.buffer.componentType = cGL_FLOAT
+  ctx.colors.buffer.kind = bkVEC4
+  ctx.colors.buffer.target = GL_ARRAY_BUFFER
+  # ctx.colors.buffer.normalized = true
+  ctx.colors.data = newSeq[float32](ctx.colors.buffer.kind.componentCount() * maxQuads * 6)
+
+  ctx.uvs.buffer.count = maxQuads * 6
+  ctx.uvs.buffer.componentType = cGL_FLOAT
+  ctx.uvs.buffer.kind = bkVEC2
+  ctx.uvs.buffer.target = GL_ARRAY_BUFFER
+  ctx.uvs.data = newSeq[float32](ctx.uvs.buffer.kind.componentCount() * maxQuads * 6)
 
   ctx.activeShader = ctx.shader
   ctx.textures.add(TexUniform(name: "rgbaTex", textureId: ctx.texture.textureId))
@@ -207,9 +165,9 @@ proc newContext*(
   ctx.upload()
   glBindVertexArray(ctx.vao)
 
-  ctx.activeShader.bindAttrib("vertexPosition", ctx.positions.vbo, bkVEC2, cGL_FLOAT)
-  ctx.activeShader.bindAttrib("vertexColor", ctx.colors.vbo, bkVEC4, cGL_FLOAT)
-  ctx.activeShader.bindAttrib("vertexUv", ctx.uvs.vbo, bkVEC2, cGL_FLOAT)
+  ctx.activeShader.bindAttrib("vertexPosition", ctx.positions.buffer)
+  ctx.activeShader.bindAttrib("vertexColor", ctx.colors.buffer)
+  ctx.activeShader.bindAttrib("vertexUv", ctx.uvs.buffer)
 
   return ctx
 
@@ -291,6 +249,18 @@ proc checkBatch*(ctx: Context) =
     # ctx is full dump the images in the ctx now and start a new batch
     ctx.drawMesh()
 
+proc setVert2(buf: var seq[float32], i: int, v: Vec2) =
+  ## Set a vertex in the buffer.
+  buf[i * 2 + 0] = v.x
+  buf[i * 2 + 1] = v.y
+
+proc setVertColor(buf: var seq[float32], i: int, color: Color) =
+  ## Set a color in the buffer.
+  buf[i * 4 + 0] = color.r
+  buf[i * 4 + 1] = color.g
+  buf[i * 4 + 2] = color.b
+  buf[i * 4 + 3] = color.a
+
 func `*`*(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v, 0.0)).xy
 
@@ -321,26 +291,26 @@ proc drawUvRect*(
   assert ctx.quadCount < ctx.maxQuads
 
   let c = ctx.quadCount * 6
-  ctx.positions.setVert2(c+0, posQuad[0])
-  ctx.positions.setVert2(c+1, posQuad[2])
-  ctx.positions.setVert2(c+2, posQuad[1])
-  ctx.positions.setVert2(c+3, posQuad[2])
-  ctx.positions.setVert2(c+4, posQuad[0])
-  ctx.positions.setVert2(c+5, posQuad[3])
+  ctx.positions.data.setVert2(c+0, posQuad[0])
+  ctx.positions.data.setVert2(c+1, posQuad[2])
+  ctx.positions.data.setVert2(c+2, posQuad[1])
+  ctx.positions.data.setVert2(c+3, posQuad[2])
+  ctx.positions.data.setVert2(c+4, posQuad[0])
+  ctx.positions.data.setVert2(c+5, posQuad[3])
 
-  ctx.uvs.setVert2(c+0, uvQuad[0])
-  ctx.uvs.setVert2(c+1, uvQuad[2])
-  ctx.uvs.setVert2(c+2, uvQuad[1])
-  ctx.uvs.setVert2(c+3, uvQuad[2])
-  ctx.uvs.setVert2(c+4, uvQuad[0])
-  ctx.uvs.setVert2(c+5, uvQuad[3])
+  ctx.uvs.data.setVert2(c+0, uvQuad[0])
+  ctx.uvs.data.setVert2(c+1, uvQuad[2])
+  ctx.uvs.data.setVert2(c+2, uvQuad[1])
+  ctx.uvs.data.setVert2(c+3, uvQuad[2])
+  ctx.uvs.data.setVert2(c+4, uvQuad[0])
+  ctx.uvs.data.setVert2(c+5, uvQuad[3])
 
-  ctx.colors.setVertColor(c+0, color)
-  ctx.colors.setVertColor(c+1, color)
-  ctx.colors.setVertColor(c+2, color)
-  ctx.colors.setVertColor(c+3, color)
-  ctx.colors.setVertColor(c+4, color)
-  ctx.colors.setVertColor(c+5, color)
+  ctx.colors.data.setVertColor(c+0, color)
+  ctx.colors.data.setVertColor(c+1, color)
+  ctx.colors.data.setVertColor(c+2, color)
+  ctx.colors.data.setVertColor(c+3, color)
+  ctx.colors.data.setVertColor(c+4, color)
+  ctx.colors.data.setVertColor(c+5, color)
 
   inc ctx.quadCount
 
