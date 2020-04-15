@@ -103,7 +103,7 @@ proc newContext*(
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
 
-  ctx.mesh = newUvColorMesh(size = maxQuads*2*3)
+  ctx.mesh = newMesh(size = maxQuads*2*3)
   ctx.mesh.shader = ctx.shader
   ctx.mesh.loadTexture("rgbaTex", ctx.texture.textureId)
   ctx.mesh.loadTexture("rgbaMask", ctx.maskTexture.textureId)
@@ -179,7 +179,7 @@ proc checkBatch*(ctx: Context) =
   if ctx.quadCount == ctx.maxQuads:
     # ctx is full dump the images in the ctx now and start a new batch
     ctx.mesh.upload(ctx.quadCount*6)
-    ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
+    ctx.mesh.drawBasic(ctx.quadCount*6)
     ctx.quadCount = 0
 
 proc drawUvRect*(
@@ -347,7 +347,7 @@ proc drawMesh*(ctx: Context) =
   ## Flips - draws current buffer and starts a new one.
   if ctx.quadCount > 0:
     ctx.mesh.upload(ctx.quadCount*6)
-    ctx.mesh.drawBasic(ctx.mesh.mat, ctx.quadCount*6)
+    ctx.mesh.drawBasic(ctx.quadCount*6)
     ctx.quadCount = 0
 
 proc clearMask*(ctx: Context) =

@@ -3,7 +3,7 @@ import ../uibase, buffers, base, chroma, math, opengl, shaders, vmath
 type
   VertBufferKind* = enum
     ## Type of a buffer - what data does it hold.
-    Position, Color, Uv, Normal, BiNormal
+    Position, Color, Uv
 
   VertBuffer* = ref object
     ## Buffer and data holder.
@@ -26,27 +26,17 @@ type
     # OpenGL data
     vao*: GLuint
 
-proc newVertBuffer*(
-    kind: VertBufferKind,
-    stride: int = 0,
-    size: int = 0): VertBuffer =
+proc newVertBuffer*(kind: VertBufferKind, size: int): VertBuffer =
   ## Create a new vertex buffer.
   result = VertBuffer()
   result.kind = kind
-  if stride == 0:
-    case kind:
-      of Position:
-        result.stride = 3
-      of Color:
-        result.stride = 4
-      of Uv:
-        result.stride = 2
-      of Normal:
-        result.stride = 3
-      of BiNormal:
-        result.stride = 3
-  else:
-    result.stride = stride
+  case kind:
+    of Position:
+      result.stride = 3
+    of Color:
+      result.stride = 4
+    of Uv:
+      result.stride = 2
   result.data = newSeq[float32](result.stride * size)
   glGenBuffers(1, addr result.vbo)
 
@@ -90,20 +80,16 @@ proc bindBuf*(buf: VertBuffer, mesh: Mesh) =
 
   mesh.shader.bindAttrib(uniformName, buf.vbo, bufferKind, cGL_FLOAT)
 
-proc newMesh*(): Mesh =
+proc newMesh*(size: int): Mesh =
   ## Creates a empty new mesh.
   ## New vert buffers need to be added.
   result = Mesh()
   result.buffers = newSeq[VertBuffer]()
+  result.buffers.add newVertBuffer(Position, size)
+  result.buffers.add newVertBuffer(Uv, size )
+  result.buffers.add newVertBuffer(Color, size)
   result.textures = newSeq[TexUniform]()
   glGenVertexArrays(1, addr result.vao)
-
-proc newUvColorMesh*(size: int = 0): Mesh =
-  ## Create a basic mesh, with position, color and uv buffers.
-  result = newMesh()
-  result.buffers.add newVertBuffer(Position, size = size)
-  result.buffers.add newVertBuffer(Uv, size = size)
-  result.buffers.add newVertBuffer(Color, size = size)
 
 proc loadTexture*(mesh: Mesh, name: string, textureId: GLuint) =
   ## Load the texture ad attach it to a uniform.
@@ -211,8 +197,3 @@ proc drawBasic*(mesh: Mesh, max: int) =
   # Unbind
   glBindVertexArray(0)
   glUseProgram(0)
-
-proc draw*(mesh: Mesh) =
-  ## Draw the mesh.
-  if mesh.numVerts > 0:
-    mesh.drawBasic(mesh.numVerts)
