@@ -175,12 +175,17 @@ proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
     x = x div 2
     y = y div 2
 
-proc checkBatch*(ctx: Context) =
-  if ctx.quadCount == ctx.maxQuads:
-    # ctx is full dump the images in the ctx now and start a new batch
+proc drawMesh*(ctx: Context) =
+  ## Flips - draws current buffer and starts a new one.
+  if ctx.quadCount > 0:
     ctx.mesh.upload(ctx.quadCount*6)
     ctx.mesh.drawBasic(ctx.quadCount*6)
     ctx.quadCount = 0
+
+proc checkBatch*(ctx: Context) =
+  if ctx.quadCount == ctx.maxQuads:
+    # ctx is full dump the images in the ctx now and start a new batch
+    ctx.drawMesh()
 
 proc drawUvRect*(
     ctx: Context,
@@ -342,13 +347,6 @@ proc strokeRoundedRect*(ctx: Context, rect: Rect, color: Color, weight: float,
   let wh = rect.wh * float32(ctx.size)
   ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy,
       uvRect.xy + uvRect.wh, color)
-
-proc drawMesh*(ctx: Context) =
-  ## Flips - draws current buffer and starts a new one.
-  if ctx.quadCount > 0:
-    ctx.mesh.upload(ctx.quadCount*6)
-    ctx.mesh.drawBasic(ctx.quadCount*6)
-    ctx.quadCount = 0
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
