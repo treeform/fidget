@@ -24,10 +24,10 @@ type
     mats: seq[Mat4]       ## Matrix stack
 
     # mask
-    maskImage*: Image     ## Mask image
     maskTexture*: Texture ## Mask texture
     maskFBO*: GLuint
     maskShader*: Shader
+
     vao*: GLuint
 
     textures*: seq[TexUniform]
@@ -226,9 +226,9 @@ proc newContext*(
   img.fill(rgba(255, 255, 255, 0))
   ctx.texture = img.initTexture()
 
-  ctx.maskImage = newImage("", 1024, 1024, 4)
-  ctx.maskImage.fill(rgba(255, 255, 255, 255))
-  ctx.maskTexture = ctx.maskImage.initTexture()
+  let maskImage = newImage("", 1024, 1024, 4)
+  maskImage.fill(rgba(255, 255, 255, 255))
+  ctx.maskTexture = maskImage.initTexture()
 
   ctx.shader = newShader(atlasVert, atlasFrag)
   ctx.maskShader = newShader(maskVert, maskFrag)
@@ -507,13 +507,12 @@ proc beginMask*(ctx: Context) =
     glGenFramebuffers(1, addr ctx.maskFBO)
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
 
-    ctx.maskImage = Image()
-    ctx.maskImage.width = (int windowFrame.x)
-    ctx.maskImage.height = (int windowFrame.y)
+    ctx.maskTexture.width = (int32 windowFrame.x)
+    ctx.maskTexture.height = (int32 windowFrame.y)
 
     glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width,
-        GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, ctx.maskTexture.width,
+      ctx.maskTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
@@ -555,13 +554,13 @@ proc endMask*(ctx: Context) =
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
-  if ctx.maskImage == nil or (ctx.maskImage.width != int screenSize.x) or
-    (ctx.maskImage.height != int screenSize.y):
-    ctx.maskImage.width = (int windowFrame.x)
-    ctx.maskImage.height = (int windowFrame.y)
+  if (ctx.maskTexture.width != int screenSize.x) or
+    (ctx.maskTexture.height != int screenSize.y):
+    ctx.maskTexture.width = (int32 windowFrame.x)
+    ctx.maskTexture.height = (int32 windowFrame.y)
     glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskImage.width,
-        GLsizei ctx.maskImage.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.maskTexture.width,
+        GLsizei ctx.maskTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     ctx.clearMask()
 
 proc endFrame*(ctx: Context) =
