@@ -35,7 +35,6 @@ type
 
     positions, colors, uvs: VertBuffer
 
-
   VertBufferKind = enum
     ## Type of a buffer - what data does it hold.
     Position, Color, Uv
@@ -58,7 +57,7 @@ proc newVertBuffer(kind: VertBufferKind, size: int): VertBuffer =
   result.kind = kind
   case kind:
     of Position:
-      result.stride = 3
+      result.stride = 2
     of Color:
       result.stride = 4
     of Uv:
@@ -123,20 +122,6 @@ proc setVert2(buf: VertBuffer, i: int, v: Vec2) =
   assert buf.stride == 2
   buf.data[i * 2 + 0] = v.x
   buf.data[i * 2 + 1] = v.y
-
-proc getVert3(buf: VertBuffer, i: int): Vec3 =
-  ## Get a vertex from the buffer.
-  assert buf.stride == 3
-  result.x = buf.data[i * 3 + 0]
-  result.y = buf.data[i * 3 + 1]
-  result.z = buf.data[i * 3 + 2]
-
-proc setVert3(buf: VertBuffer, i: int, v: Vec3) =
-  ## Set a vertex in the buffer.
-  assert buf.stride == 3
-  buf.data[i * 3 + 0] = v.x
-  buf.data[i * 3 + 1] = v.y
-  buf.data[i * 3 + 2] = v.z
 
 proc getVertColor(buf: VertBuffer, i: int): Color =
   ## Get a color from the buffer.
@@ -343,6 +328,9 @@ proc checkBatch*(ctx: Context) =
     # ctx is full dump the images in the ctx now and start a new batch
     ctx.drawMesh()
 
+func `*`*(m: Mat4, v: Vec2): Vec2 =
+  (m * vec3(v, 0.0)).xy
+
 proc drawUvRect*(
     ctx: Context,
     at: Vec2,
@@ -355,10 +343,10 @@ proc drawUvRect*(
   ctx.checkBatch()
   let
     posQuad = [
-      ctx.mat * vec3(at.x, to.y, 0.0),
-      ctx.mat * vec3(at.x, at.y, 0.0),
-      ctx.mat * vec3(to.x, at.y, 0.0),
-      ctx.mat * vec3(to.x, to.y, 0.0),
+      ctx.mat * vec2(at.x, to.y),
+      ctx.mat * vec2(at.x, at.y),
+      ctx.mat * vec2(to.x, at.y),
+      ctx.mat * vec2(to.x, to.y),
     ]
     uvQuad = [
       vec2(uvAt.x, uvTo.y),
@@ -370,12 +358,12 @@ proc drawUvRect*(
   assert ctx.quadCount < ctx.maxQuads
 
   let c = ctx.quadCount * 6
-  ctx.positions.setVert3(c+0, posQuad[0])
-  ctx.positions.setVert3(c+1, posQuad[2])
-  ctx.positions.setVert3(c+2, posQuad[1])
-  ctx.positions.setVert3(c+3, posQuad[2])
-  ctx.positions.setVert3(c+4, posQuad[0])
-  ctx.positions.setVert3(c+5, posQuad[3])
+  ctx.positions.setVert2(c+0, posQuad[0])
+  ctx.positions.setVert2(c+1, posQuad[2])
+  ctx.positions.setVert2(c+2, posQuad[1])
+  ctx.positions.setVert2(c+3, posQuad[2])
+  ctx.positions.setVert2(c+4, posQuad[0])
+  ctx.positions.setVert2(c+5, posQuad[3])
 
   ctx.uvs.setVert2(c+0, uvQuad[0])
   ctx.uvs.setVert2(c+1, uvQuad[2])
