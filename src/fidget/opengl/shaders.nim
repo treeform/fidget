@@ -406,30 +406,26 @@ proc bindUniforms*(shader: Shader) =
 proc bindAttrib*(
   shader: Shader,
   name: string,
-  bufferId: GLuint,
-  bufferKind: BufferKind,
-  componentType: GLenum,
-  target = GL_ARRAY_BUFFER,
-  normalized = false
+  buffer: Buffer
 ) =
-  glBindBuffer(target, bufferId)
+  glBindBuffer(buffer.target, buffer.bufferId)
 
   for attrib in shader.attribs:
     if name == attrib.name:
-      if normalized or bufferKind != bkSCALAR:
+      if buffer.normalized or buffer.kind != bkSCALAR:
         glVertexAttribPointer(
           attrib.location.GLuint,
-          bufferKind.componentCount().GLint,
-          componentType,
-          if normalized: GL_TRUE else: GL_FALSE,
+          buffer.kind.componentCount().GLint,
+          buffer.componentType,
+          if buffer.normalized: GL_TRUE else: GL_FALSE,
           0,
           nil
         )
       else:
         glVertexAttribIPointer(
           attrib.location.GLuint,
-          bufferKind.componentCount().GLint,
-          componentType,
+          buffer.kind.componentCount().GLint,
+          buffer.componentType,
           0,
           nil
         )
