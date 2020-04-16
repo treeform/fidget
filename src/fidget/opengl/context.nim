@@ -10,32 +10,21 @@ const
 
 type
   Context* = ref object
-    entries*: ref Table[string, Rect] ## Mapping of image name to UV position in the texture
-
-    quadCount: int        ## Number of quads drawn so far
-    maxQuads: int         ## Max quads to draw before issuing an OpenGL call and starting again
-
-    atlas*: Texture     ## Texture of the atlas
-    heights*: seq[uint16] ## Height map of the free space in the atlas
-    size*: int            ## Size x size dimensions of the atlas
-    margin*: int          ## Default margin between images
-    shader*: Shader
-    mat*: Mat4            ## Current matrix
-    mats: seq[Mat4]       ## Matrix stack
-
-    # mask
-    mask*: Texture ## Mask texture
-    maskFramebufferId*: GLuint
-    maskShader*: Shader
-
-    vertexArrayId*: GLuint
-
-    activeShader*: Shader
-
+    atlasShader, maskShader, activeShader: Shader
+    atlasTexture, maskTexture: Texture
     positions: tuple[buffer: Buffer, data: seq[float32]]
     colors: tuple[buffer: Buffer, data: seq[uint8]]
     uvs: tuple[buffer: Buffer, data: seq[float32]]
     indices: tuple[buffer: Buffer, data: seq[uint16]]
+    atlasSize: int   ## Size x size dimensions of the atlas
+    atlasMargin: int ## Default margin between images
+    quadCount: int   ## Number of quads drawn so far
+    maxQuads: int    ## Max quads to draw before issuing an OpenGL call
+    mat: Mat4        ## Current matrix
+    mats: seq[Mat4]  ## Matrix stack
+    entries*: Table[string, Rect] ## Mapping of image name to atlas UV position
+    heights: seq[uint16]          ## Height map of the free space in the atlas
+    vertexArrayId, maskFramebufferId: GLuint
 
 proc upload(ctx: Context) =
   ## When buffers change, uploads them to GPU.
@@ -48,8 +37,8 @@ proc upload(ctx: Context) =
   bindBufferData(ctx.uvs.buffer.addr, ctx.uvs.data[0].addr)
 
 proc newContext*(
-  size = 1024,
-  margin = 4,
+  atlasSize = 1024,
+  atlasMargin = 4,
   maxQuads = 1024,
 ): Context =
   ## Creates a new context.
@@ -57,23 +46,22 @@ proc newContext*(
     raise newException(ValueError, &"Quads cannot exceed {quadLimit}")
 
   result = Context()
-  result.entries = newTable[string, Rect]()
-  result.size = size
-  result.margin = margin
+  result.atlasSize = atlasSize
+  result.atlasMargin = atlasMargin
   result.maxQuads = maxQuads
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
 
-  result.heights = newSeq[uint16](size)
-  let img = newImage("", size, size, 4)
+  result.heights = newSeq[uint16](atlasSize)
+  let img = newImage("", atlasSize, atlasSize, 4)
   img.fill(rgba(255, 255, 255, 0))
-  result.atlas = img.initTexture()
+  result.atlasTexture = img.initTexture()
 
   let maskImage = newImage("", 1024, 1024, 4)
   maskImage.fill(rgba(255, 255, 255, 255))
-  result.mask = maskImage.initTexture()
+  result.maskTexture = maskImage.initTexture()
 
-  result.shader = newShader(atlasVert, atlasFrag)
+  result.atlasShader = newShader(atlasVert, atlasFrag)
   result.maskShader = newShader(atlasVert, maskFrag)
 
   result.positions.buffer.componentType = cGL_FLOAT
@@ -119,7 +107,7 @@ proc newContext*(
 
   result.upload()
 
-  result.activeShader = result.shader
+  result.activeShader = result.atlasShader
 
   glGenVertexArrays(1, result.vertexArrayId.addr)
   glBindVertexArray(result.vertexArrayId)
@@ -129,18 +117,18 @@ proc newContext*(
   result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
 
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
-  var imgWidth = width + ctx.margin * 2
-  var imgHeight = height + ctx.margin * 2
+  var imgWidth = width + ctx.atlasMargin * 2
+  var imgHeight = height + ctx.atlasMargin * 2
 
-  var lowest = ctx.size
+  var lowest = ctx.atlasSize
   var at = 0
-  for i in 0..ctx.size - 1:
+  for i in 0..ctx.atlasSize - 1:
     var v = int(ctx.heights[i])
     if v < lowest:
       # found low point, is it consecutive?
       var fit = true
       for j in 0 .. imgWidth:
-        if i + j >= ctx.size:
+        if i + j >= ctx.atlasSize:
           fit = false
           break
         if int(ctx.heights[i + j]) > v:
@@ -151,15 +139,15 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
         lowest = v
         at = i
 
-  if lowest + imgHeight > ctx.size:
+  if lowest + imgHeight > ctx.atlasSize:
     raise newException(Exception, "Context Atlas is full")
 
   for j in at..at + imgWidth - 1:
-    ctx.heights[j] = uint16(lowest + imgHeight + ctx.margin * 2)
+    ctx.heights[j] = uint16(lowest + imgHeight + ctx.atlasMargin * 2)
 
   var rect = rect(
-    float32(at + ctx.margin),
-    float32(lowest + ctx.margin),
+    float32(at + ctx.atlasMargin),
+    float32(lowest + ctx.atlasMargin),
     float32(width),
     float32(height),
   )
@@ -168,9 +156,9 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
 
 proc putImage*(ctx: Context, path: string, image: Image) =
   let rect = ctx.findEmptyRect(image.width, image.height)
-  ctx.entries[path] = rect / float(ctx.size)
+  ctx.entries[path] = rect / float(ctx.atlasSize)
   updateSubImage(
-    ctx.atlas,
+    ctx.atlasTexture,
     int(rect.x),
     int(rect.y),
     image
@@ -178,13 +166,13 @@ proc putImage*(ctx: Context, path: string, image: Image) =
 
 proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
   let rect = ctx.findEmptyRect(flippy.width, flippy.height)
-  ctx.entries[path] = rect / float(ctx.size)
+  ctx.entries[path] = rect / float(ctx.atlasSize)
   var
     x = int(rect.x)
     y = int(rect.y)
   for level, mip in flippy.mipmaps:
     updateSubImage(
-      ctx.atlas,
+      ctx.atlasTexture,
       x,
       y,
       mip,
@@ -208,12 +196,12 @@ proc draw(ctx: Context) =
   ctx.activeShader.setUniform("proj", proj)
 
   glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, ctx.atlas.textureId)
+  glBindTexture(GL_TEXTURE_2D, ctx.atlasTexture.textureId)
   ctx.activeShader.setUniform("atlasTex", 0)
 
   if ctx.activeShader.hasUniform("maskTex"):
     glActiveTexture(GL_TEXTURE1)
-    glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
     ctx.activeShader.setUniform("maskTex", 1)
 
   ctx.activeShader.bindUniforms()
@@ -333,28 +321,28 @@ proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
     color = color(1, 1, 1, 1)) =
   ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.size)
+  let wh = rect.wh * float32(ctx.atlasSize)
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
     size = vec2(0, 0), color = color(1, 1, 1, 1)) =
   ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.size)
+  let wh = rect.wh * float32(ctx.atlasSize)
   ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
 
 proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
     scale = 1.0, color = color(1, 1, 1, 1)) =
   ## Draws image the UI way - pos at top-left.
   let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.size) * scale
+  let wh = rect.wh * float32(ctx.atlasSize) * scale
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
 proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
     scale = 1.0, color = color(1, 1, 1, 1)) =
   ## Draws image the game way - pos at center.
   let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.size) * scale
+  let wh = rect.wh * float32(ctx.atlasSize) * scale
   ctx.drawUvRect(pos - wh/2, pos + wh/2, rect.xy, rect.xy + rect.wh, color)
 
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
@@ -364,7 +352,7 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
     image.fill(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
   let uvRect = ctx.entries[imgKey]
-  let wh = rect.wh * float32(ctx.size)
+  let wh = rect.wh * float32(ctx.atlasSize)
   ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy + uvRect.wh/2,
       uvRect.xy + uvRect.wh/2, color)
 
@@ -381,7 +369,7 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
         255, 255))
     ctx.putImage(imgKey, image)
   let uvRect = ctx.entries[imgKey]
-  let wh = rect.wh * float32(ctx.size)
+  let wh = rect.wh * float32(ctx.atlasSize)
   ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy,
       uvRect.xy + uvRect.wh, color)
 
@@ -399,7 +387,7 @@ proc strokeRoundedRect*(ctx: Context, rect: Rect, color: Color, weight: float,
         255, 255, 255, 255))
     ctx.putImage(imgKey, image)
   let uvRect = ctx.entries[imgKey]
-  let wh = rect.wh * float32(ctx.size)
+  let wh = rect.wh * float32(ctx.atlasSize)
   ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy,
       uvRect.xy + uvRect.wh, color)
 
@@ -423,17 +411,17 @@ proc beginMask*(ctx: Context) =
     glGenFramebuffers(1, ctx.maskFramebufferId.addr)
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
 
-    ctx.mask.width = (int32 windowFrame.x)
-    ctx.mask.height = (int32 windowFrame.y)
+    ctx.maskTexture.width = (int32 windowFrame.x)
+    ctx.maskTexture.height = (int32 windowFrame.y)
 
-    glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_R8, ctx.mask.width,
-      ctx.mask.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_R8, ctx.maskTexture.width,
+      ctx.maskTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-        ctx.mask.textureId, 0)
+        ctx.maskTexture.textureId, 0)
 
     if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
       quit("Some thing wrong with frame buffer. 2")
@@ -461,17 +449,17 @@ proc endMask*(ctx: Context) =
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
-  ctx.activeShader = ctx.shader
+  ctx.activeShader = ctx.atlasShader
 
 proc startFrame*(ctx: Context, screenSize: Vec2) =
   ## Starts a new frame.
-  if (ctx.mask.width != int screenSize.x) or
-    (ctx.mask.height != int screenSize.y):
-    ctx.mask.width = (int32 windowFrame.x)
-    ctx.mask.height = (int32 windowFrame.y)
-    glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_R8, GLsizei ctx.mask.width,
-        GLsizei ctx.mask.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
+  if (ctx.maskTexture.width != int screenSize.x) or
+    (ctx.maskTexture.height != int screenSize.y):
+    ctx.maskTexture.width = (int32 windowFrame.x)
+    ctx.maskTexture.height = (int32 windowFrame.y)
+    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_R8, GLsizei ctx.maskTexture.width,
+        GLsizei ctx.maskTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     ctx.clearMask()
 
 proc endFrame*(ctx: Context) =
