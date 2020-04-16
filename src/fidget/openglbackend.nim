@@ -1,5 +1,5 @@
-import chroma, internal, opengl/base, opengl/context, opengl/input, strformat, strutils,
-    tables, times, typography, typography/textboxes, uibase, vmath
+import chroma, internal, opengl/base, opengl/context, opengl/input, strformat,
+    strutils, tables, times, typography, typography/textboxes, uibase, vmath
 
 export input
 
