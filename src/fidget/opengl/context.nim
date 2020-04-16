@@ -2,6 +2,7 @@ import ../uibase, base, buffers, chroma, flippy, opengl, os, shaders, strformat,
     tables, textures, times, vmath
 
 const
+  quadLimit = 10_921
   dir = "../fidget/src/fidget/opengl"
   atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
   atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
@@ -34,12 +35,14 @@ type
     positions: tuple[buffer: Buffer, data: seq[float32]]
     colors: tuple[buffer: Buffer, data: seq[uint8]]
     uvs: tuple[buffer: Buffer, data: seq[float32]]
+    indices: tuple[buffer: Buffer, data: seq[uint16]]
 
-proc upload*(ctx: Context) =
+proc upload(ctx: Context) =
   ## When buffers change, uploads them to GPU.
-  ctx.positions.buffer.count = ctx.quadCount * 6
-  ctx.colors.buffer.count = ctx.quadCount * 6
-  ctx.uvs.buffer.count = ctx.quadCount * 6
+  ctx.positions.buffer.count = ctx.quadCount * 4
+  ctx.colors.buffer.count = ctx.quadCount * 4
+  ctx.uvs.buffer.count = ctx.quadCount * 4
+  ctx.indices.buffer.count = ctx.quadCount * 6
   bindBufferData(ctx.positions.buffer.addr, ctx.positions.data[0].addr)
   bindBufferData(ctx.colors.buffer.addr, ctx.colors.data[0].addr)
   bindBufferData(ctx.uvs.buffer.addr, ctx.uvs.data[0].addr)
@@ -50,6 +53,9 @@ proc newContext*(
   maxQuads = 1024,
 ): Context =
   ## Creates a new context.
+  if maxQuads > quadLimit:
+    raise newException(ValueError, &"Quads cannot exceed {quadLimit}")
+
   result = Context()
   result.entries = newTable[string, Rect]()
   result.size = size
@@ -74,7 +80,7 @@ proc newContext*(
   result.positions.buffer.kind = bkVEC2
   result.positions.buffer.target = GL_ARRAY_BUFFER
   result.positions.data = newSeq[float32](
-    result.positions.buffer.kind.componentCount() * maxQuads * 6
+    result.positions.buffer.kind.componentCount() * maxQuads * 4
   )
 
   result.colors.buffer.componentType = GL_UNSIGNED_BYTE
@@ -82,15 +88,34 @@ proc newContext*(
   result.colors.buffer.target = GL_ARRAY_BUFFER
   result.colors.buffer.normalized = true
   result.colors.data = newSeq[uint8](
-    result.colors.buffer.kind.componentCount() * maxQuads * 6
+    result.colors.buffer.kind.componentCount() * maxQuads * 4
   )
 
   result.uvs.buffer.componentType = cGL_FLOAT
   result.uvs.buffer.kind = bkVEC2
   result.uvs.buffer.target = GL_ARRAY_BUFFER
   result.uvs.data = newSeq[float32](
-    result.uvs.buffer.kind.componentCount() * maxQuads * 6
+    result.uvs.buffer.kind.componentCount() * maxQuads * 4
   )
+
+  result.indices.buffer.componentType = GL_UNSIGNED_SHORT
+  result.indices.buffer.kind = bkSCALAR
+  result.indices.buffer.target = GL_ELEMENT_ARRAY_BUFFER
+  result.indices.buffer.count = maxQuads * 6
+
+  for i in 0 ..< maxQuads:
+    let offset = i * 4
+    result.indices.data.add([
+      (offset + 3).uint16,
+      (offset + 0).uint16,
+      (offset + 1).uint16,
+      (offset + 2).uint16,
+      (offset + 3).uint16,
+      (offset + 1).uint16,
+    ])
+
+  # Indices are only uploaded once
+  bindBufferData(result.indices.buffer.addr, result.indices.data[0].addr)
 
   result.upload()
 
@@ -193,7 +218,16 @@ proc draw(ctx: Context) =
 
   ctx.activeShader.bindUniforms()
 
-  glDrawArrays(GL_TRIANGLES, 0, (ctx.quadCount * 6).GLint)
+  glBindBuffer(
+    GL_ELEMENT_ARRAY_BUFFER,
+    ctx.indices.buffer.bufferId
+  )
+  glDrawElements(
+    GL_TRIANGLES,
+    ctx.indices.buffer.count.GLint,
+    ctx.indices.buffer.componentType,
+    nil
+  )
 
   ctx.quadCount = 0
 
@@ -218,53 +252,48 @@ func `*`(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v, 0.0)).xy
 
 proc drawUvRect*(
-    ctx: Context,
-    at: Vec2,
-    to: Vec2,
-    uvAt: Vec2,
-    uvTo: Vec2,
-    color: Color
-  ) =
+  ctx: Context,
+  at: Vec2,
+  to: Vec2,
+  uvAt: Vec2,
+  uvTo: Vec2,
+  color: Color
+) =
   ## Adds an image rect with a path to an ctx
   ctx.checkBatch()
-  let
-    posQuad = [
-      ctx.mat * vec2(at.x, to.y),
-      ctx.mat * vec2(at.x, at.y),
-      ctx.mat * vec2(to.x, at.y),
-      ctx.mat * vec2(to.x, to.y),
-    ]
-    uvQuad = [
-      vec2(uvAt.x, uvTo.y),
-      vec2(uvAt.x, uvAt.y),
-      vec2(uvTo.x, uvAt.y),
-      vec2(uvTo.x, uvTo.y),
-    ]
 
   assert ctx.quadCount < ctx.maxQuads
 
-  let c = ctx.quadCount * 6
-  ctx.positions.data.setVert2(c+0, posQuad[0])
-  ctx.positions.data.setVert2(c+1, posQuad[2])
-  ctx.positions.data.setVert2(c+2, posQuad[1])
-  ctx.positions.data.setVert2(c+3, posQuad[2])
-  ctx.positions.data.setVert2(c+4, posQuad[0])
-  ctx.positions.data.setVert2(c+5, posQuad[3])
+  let
+    posQuad = [
+      ctx.mat * vec2(at.x, to.y),
+      ctx.mat * vec2(to.x, to.y),
+      ctx.mat * vec2(to.x, at.y),
+      ctx.mat * vec2(at.x, at.y),
+    ]
+    uvQuad = [
+      vec2(uvAt.x, uvTo.y),
+      vec2(uvTo.x, uvTo.y),
+      vec2(uvTo.x, uvAt.y),
+      vec2(uvAt.x, uvAt.y),
+    ]
 
-  ctx.uvs.data.setVert2(c+0, uvQuad[0])
-  ctx.uvs.data.setVert2(c+1, uvQuad[2])
-  ctx.uvs.data.setVert2(c+2, uvQuad[1])
-  ctx.uvs.data.setVert2(c+3, uvQuad[2])
-  ctx.uvs.data.setVert2(c+4, uvQuad[0])
-  ctx.uvs.data.setVert2(c+5, uvQuad[3])
+  let offset = ctx.quadCount * 4
+  ctx.positions.data.setVert2(offset + 0, posQuad[0])
+  ctx.positions.data.setVert2(offset + 1, posQuad[1])
+  ctx.positions.data.setVert2(offset + 2, posQuad[2])
+  ctx.positions.data.setVert2(offset + 3, posQuad[3])
+
+  ctx.uvs.data.setVert2(offset + 0, uvQuad[0])
+  ctx.uvs.data.setVert2(offset + 1, uvQuad[1])
+  ctx.uvs.data.setVert2(offset + 2, uvQuad[2])
+  ctx.uvs.data.setVert2(offset + 3, uvQuad[3])
 
   let rgba = color.rgba()
-  ctx.colors.data.setVertColor(c+0, rgba)
-  ctx.colors.data.setVertColor(c+1, rgba)
-  ctx.colors.data.setVertColor(c+2, rgba)
-  ctx.colors.data.setVertColor(c+3, rgba)
-  ctx.colors.data.setVertColor(c+4, rgba)
-  ctx.colors.data.setVertColor(c+5, rgba)
+  ctx.colors.data.setVertColor(offset + 0, rgba)
+  ctx.colors.data.setVertColor(offset + 1, rgba)
+  ctx.colors.data.setVertColor(offset + 2, rgba)
+  ctx.colors.data.setVertColor(offset + 3, rgba)
 
   inc ctx.quadCount
 
