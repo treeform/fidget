@@ -24,10 +24,10 @@ type
 
     # mask
     mask*: Texture ## Mask texture
-    maskFBO*: GLuint
+    maskFramebufferId*: GLuint
     maskShader*: Shader
 
-    vao*: GLuint
+    vertexArrayId*: GLuint
 
     activeShader*: Shader
 
@@ -92,11 +92,12 @@ proc newContext*(
     result.uvs.buffer.kind.componentCount() * maxQuads * 6
   )
 
+  result.upload()
+
   result.activeShader = result.shader
 
-  glGenVertexArrays(1, addr result.vao)
-  result.upload()
-  glBindVertexArray(result.vao)
+  glGenVertexArrays(1, result.vertexArrayId.addr)
+  glBindVertexArray(result.vertexArrayId)
 
   result.activeShader.bindAttrib("vertexPos", result.positions.buffer)
   result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
@@ -175,7 +176,7 @@ proc draw(ctx: Context) =
   ctx.upload()
 
   glUseProgram(ctx.activeShader.programId)
-  glBindVertexArray(ctx.vao)
+  glBindVertexArray(ctx.vertexArrayId)
 
   if ctx.activeShader.hasUniform("windowFrame"):
     ctx.activeShader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
@@ -377,8 +378,8 @@ proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
   ctx.draw()
 
-  if ctx.maskFBO != 0:
-    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+  if ctx.maskFramebufferId != 0:
+    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
 
     glClearColor(1, 1, 1, 1)
     glClear(GL_COLOR_BUFFER_BIT)
@@ -389,9 +390,9 @@ proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
   ctx.draw()
 
-  if ctx.maskFBO == 0:
-    glGenFramebuffers(1, addr ctx.maskFBO)
-    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+  if ctx.maskFramebufferId == 0:
+    glGenFramebuffers(1, ctx.maskFramebufferId.addr)
+    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
 
     ctx.mask.width = (int32 windowFrame.x)
     ctx.mask.height = (int32 windowFrame.y)
@@ -408,7 +409,7 @@ proc beginMask*(ctx: Context) =
     if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
       quit("Some thing wrong with frame buffer. 2")
 
-  glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
+  glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
   glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
 
   if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
