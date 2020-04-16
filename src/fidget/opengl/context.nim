@@ -471,6 +471,13 @@ proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
     bindTextureData(ctx.maskTexture.addr, nil)
     ctx.clearMask()
 
+proc beginFrame*(ctx: Context, frameSize: Vec2) =
+  beginFrame(
+    ctx,
+    frameSize,
+    ortho(0, frameSize.x, frameSize.y, 0, -100, 100)
+  )
+
 proc endFrame*(ctx: Context) =
   ## Ends a frame.
   ctx.draw()
