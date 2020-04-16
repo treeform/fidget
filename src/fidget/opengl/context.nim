@@ -437,7 +437,6 @@ proc beginMask*(ctx: Context) =
     )
 
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
-  glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
   if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
     quit("Something wrong with frame buffer.")
@@ -457,7 +456,6 @@ proc endMask*(ctx: Context) =
   # if true: quit()
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
-  glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
   ctx.activeShader = ctx.atlasShader
 
