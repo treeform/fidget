@@ -451,11 +451,6 @@ proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
   ctx.draw()
 
-  # var image = newImage("debug.png", int windowFrame.x, int windowFrame.y, 4)
-  # glReadPixels(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y, GL_RGBA, GL_UNSIGNED_BYTE, addr image.data[0])
-  # image.save()
-  # if true: quit()
-
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
   ctx.activeShader = ctx.atlasShader
