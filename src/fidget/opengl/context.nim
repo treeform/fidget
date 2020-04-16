@@ -1,4 +1,4 @@
-import ../uibase, base, buffers, chroma, flippy, opengl, os, shaders, strformat,
+import base, buffers, chroma, flippy, opengl, os, shaders, strformat,
     tables, textures, times, vmath
 
 const
@@ -24,6 +24,7 @@ type
     mats: seq[Mat4]  ## Matrix stack
     entries*: Table[string, Rect] ## Mapping of image name to atlas UV position
     heights: seq[uint16]          ## Height map of the free space in the atlas
+    frameSize: Vec2 ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
 
 proc upload(ctx: Context) =
@@ -192,7 +193,7 @@ proc draw(ctx: Context) =
   glBindVertexArray(ctx.vertexArrayId)
 
   if ctx.activeShader.hasUniform("windowFrame"):
-    ctx.activeShader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
+    ctx.activeShader.setUniform("windowFrame", ctx.frameSize.x, ctx.frameSize.y)
   ctx.activeShader.setUniform("proj", proj)
 
   glActiveTexture(GL_TEXTURE0)
@@ -417,9 +418,6 @@ proc beginMask*(ctx: Context) =
     glGenFramebuffers(1, ctx.maskFramebufferId.addr)
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
 
-    ctx.maskTexture.width = (int32 windowFrame.x)
-    ctx.maskTexture.height = (int32 windowFrame.y)
-
     glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
     glTexImage2D(
       GL_TEXTURE_2D,
@@ -444,7 +442,7 @@ proc beginMask*(ctx: Context) =
     )
 
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
-  glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
+  glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
   if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
     quit("Some thing wrong with frame buffer. 2")
@@ -464,16 +462,17 @@ proc endMask*(ctx: Context) =
   # if true: quit()
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
-  glViewport(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y)
+  glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
   ctx.activeShader = ctx.atlasShader
 
-proc startFrame*(ctx: Context, screenSize: Vec2) =
+proc startFrame*(ctx: Context, frameSize: Vec2) =
   ## Starts a new frame.
-  if (ctx.maskTexture.width != int screenSize.x) or
-    (ctx.maskTexture.height != int screenSize.y):
-    ctx.maskTexture.width = (int32 windowFrame.x)
-    ctx.maskTexture.height = (int32 windowFrame.y)
+  if ctx.maskTexture.width != frameSize.x.int32 or
+    ctx.maskTexture.height != frameSize.y.int32:
+    ctx.frameSize = frameSize
+    ctx.maskTexture.width = frameSize.x.int32
+    ctx.maskTexture.height = frameSize.y.int32
     glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
     glTexImage2D(
       GL_TEXTURE_2D,
