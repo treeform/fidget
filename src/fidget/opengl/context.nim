@@ -1,4 +1,4 @@
-import base, buffers, chroma, flippy, opengl, os, shaders, strformat,
+import buffers, chroma, flippy, opengl, os, shaders, strformat,
     tables, textures, times, vmath
 
 const
@@ -24,6 +24,7 @@ type
     mats: seq[Mat4]  ## Matrix stack
     entries*: Table[string, Rect] ## Mapping of image name to atlas UV position
     heights: seq[uint16]          ## Height map of the free space in the atlas
+    proj: Mat4
     frameSize: Vec2 ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
 
@@ -202,7 +203,7 @@ proc draw(ctx: Context) =
 
   if ctx.activeShader.hasUniform("windowFrame"):
     ctx.activeShader.setUniform("windowFrame", ctx.frameSize.x, ctx.frameSize.y)
-  ctx.activeShader.setUniform("proj", proj)
+  ctx.activeShader.setUniform("proj", ctx.proj)
 
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, ctx.atlasTexture.textureId)
@@ -459,8 +460,10 @@ proc endMask*(ctx: Context) =
 
   ctx.activeShader = ctx.atlasShader
 
-proc startFrame*(ctx: Context, frameSize: Vec2) =
+proc startFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
   ## Starts a new frame.
+  ctx.proj = proj
+
   if ctx.maskTexture.width != frameSize.x.int32 or
     ctx.maskTexture.height != frameSize.y.int32:
     ctx.frameSize = frameSize
