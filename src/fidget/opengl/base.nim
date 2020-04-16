@@ -40,8 +40,6 @@ var
   dt*, fps*, tps*, avgFrameTime*: float64
   frameCount*, tickCount*: int
   lastDraw, lastTick: int64
-  view*: Mat4
-  proj*: Mat4
 
 proc updateWindowSize() =
   requestedFrame = true
