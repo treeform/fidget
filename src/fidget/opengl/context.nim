@@ -183,12 +183,12 @@ proc draw(ctx: Context) =
 
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, ctx.atlas.textureId)
-  ctx.activeShader.setUniform("rgbaTex", 0)
+  ctx.activeShader.setUniform("atlasTex", 0)
 
-  if ctx.activeShader.hasUniform("rgbaMask"):
+  if ctx.activeShader.hasUniform("maskTex"):
     glActiveTexture(GL_TEXTURE1)
     glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
-    ctx.activeShader.setUniform("rgbaMask", 1)
+    ctx.activeShader.setUniform("maskTex", 1)
 
   ctx.activeShader.bindUniforms()
 
