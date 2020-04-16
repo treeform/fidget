@@ -166,7 +166,7 @@ proc newContext*(
   result.upload()
   glBindVertexArray(result.vao)
 
-  result.activeShader.bindAttrib("vertexPosition", result.positions.buffer)
+  result.activeShader.bindAttrib("vertexPos", result.positions.buffer)
   result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
   result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
 
