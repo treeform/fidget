@@ -427,7 +427,7 @@ proc beginMask*(ctx: Context) =
     ctx.mask.height = (int32 windowFrame.y)
 
     glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, ctx.mask.width,
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_R8, ctx.mask.width,
       ctx.mask.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -470,7 +470,7 @@ proc startFrame*(ctx: Context, screenSize: Vec2) =
     ctx.mask.width = (int32 windowFrame.x)
     ctx.mask.height = (int32 windowFrame.y)
     glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_RGBA, GLsizei ctx.mask.width,
+    glTexImage2D(GL_TEXTURE_2D, 0, GLint GL_R8, GLsizei ctx.mask.width,
         GLsizei ctx.mask.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil)
     ctx.clearMask()
 
