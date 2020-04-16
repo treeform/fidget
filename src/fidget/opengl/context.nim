@@ -70,47 +70,7 @@ proc drawBasic*(ctx: Context, max: int) =
   glBindVertexArray(0)
   glUseProgram(0)
 
-proc rect*(x, y, w, h: int): Rect =
-  ## Integer Rect to float Rect.
-  rect(float32 x, float32 y, float32 w, float32 h)
 
-proc translate*(ctx: Context, v: Vec2) =
-  ## Translate the internal transform.
-  ctx.mat = ctx.mat * translate(vec3(v))
-
-proc rotate*(ctx: Context, angle: float) =
-  ## Rotates internal transform.
-  ctx.mat = ctx.mat * rotateZ(angle).mat4()
-
-proc scale*(ctx: Context, scale: float) =
-  ## Scales the internal transform.
-  ctx.mat = ctx.mat * scaleMat(scale)
-
-proc scale*(ctx: Context, scale: Vec2) =
-  ## Scales the internal transform.
-  ctx.mat = ctx.mat * scaleMat(vec3(scale, 1))
-
-proc saveTransform*(ctx: Context) =
-  ## Pushes a transform onto the stack.
-  ctx.mats.add ctx.mat
-
-proc restoreTransform*(ctx: Context) =
-  ## Pops a transform off the stack.
-  ctx.mat = ctx.mats.pop()
-
-proc clearTransform*(ctx: Context) =
-  ## Clears transform and transform stack.
-  ctx.mat = mat4()
-  ctx.mats.setLen(0)
-
-proc fromScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
-  ## Takes a point from screen and translates it to point inside the current transform.
-  (ctx.mat.inverse() * vec3(v.x, windowFrame.y - v.y, 0)).xy
-
-proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
-  ## Takes a point from current transform and translates it to screen.
-  result = (ctx.mat * vec3(v, 1)).xy
-  result.y = -result.y + windowFrame.y
 
 proc newContext*(
   size = 1024,
@@ -494,3 +454,41 @@ proc startFrame*(ctx: Context, screenSize: Vec2) =
 proc endFrame*(ctx: Context) =
   ## Ends a frame.
   ctx.drawMesh()
+
+proc translate*(ctx: Context, v: Vec2) =
+  ## Translate the internal transform.
+  ctx.mat = ctx.mat * translate(vec3(v))
+
+proc rotate*(ctx: Context, angle: float) =
+  ## Rotates the internal transform.
+  ctx.mat = ctx.mat * rotateZ(angle).mat4()
+
+proc scale*(ctx: Context, scale: float) =
+  ## Scales the internal transform.
+  ctx.mat = ctx.mat * scaleMat(scale)
+
+proc scale*(ctx: Context, scale: Vec2) =
+  ## Scales the internal transform.
+  ctx.mat = ctx.mat * scaleMat(vec3(scale, 1))
+
+proc saveTransform*(ctx: Context) =
+  ## Pushes a transform onto the stack.
+  ctx.mats.add ctx.mat
+
+proc restoreTransform*(ctx: Context) =
+  ## Pops a transform off the stack.
+  ctx.mat = ctx.mats.pop()
+
+proc clearTransform*(ctx: Context) =
+  ## Clears transform and transform stack.
+  ctx.mat = mat4()
+  ctx.mats.setLen(0)
+
+proc fromScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
+  ## Takes a point from screen and translates it to point inside the current transform.
+  (ctx.mat.inverse() * vec3(v.x, windowFrame.y - v.y, 0)).xy
+
+proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
+  ## Takes a point from current transform and translates it to screen.
+  result = (ctx.mat * vec3(v, 1)).xy
+  result.y = -result.y + windowFrame.y
