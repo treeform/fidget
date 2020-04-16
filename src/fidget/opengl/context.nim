@@ -23,7 +23,7 @@ type
     proj: Mat4
     frameSize: Vec2 ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
-    frameBegun: bool
+    frameBegun, maskBegun: bool
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -476,6 +476,8 @@ proc strokeRoundedRect*(
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
+  assert ctx.frameBegun == true
+
   ctx.draw()
 
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
@@ -487,6 +489,10 @@ proc clearMask*(ctx: Context) =
 
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
+  assert ctx.frameBegun == true
+  assert ctx.maskBegun == false
+  ctx.maskBegun = true
+
   ctx.draw()
 
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
@@ -499,6 +505,9 @@ proc beginMask*(ctx: Context) =
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
+  assert ctx.maskBegun == true
+  ctx.maskBegun = false
+
   ctx.draw()
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
