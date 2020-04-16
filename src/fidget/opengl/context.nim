@@ -341,43 +341,65 @@ proc drawImage*(
   ctx: Context,
   imagePath: string,
   pos: Vec2 = vec2(0, 0),
-  size: Vec2 = vec2(0, 0),
-  scale = 1.0,
-  color = color(1, 1, 1, 1)
+  color = color(1, 1, 1, 1),
+  scale = 1.0
 ) =
   ## Draws image the UI way - pos at top-left.
   let
     rect = ctx.getOrLoadImageRect(imagePath)
     wh = rect.wh * ctx.atlasSize.float32 * scale
+  ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
-  if size == vec2(0, 0):
-    ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
-  else:
-    ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
+proc drawImage*(
+  ctx: Context,
+  imagePath: string,
+  pos: Vec2 = vec2(0, 0),
+  color = color(1, 1, 1, 1),
+  size: Vec2
+) =
+  ## Draws image the UI way - pos at top-left.
+  let
+    rect = ctx.getOrLoadImageRect(imagePath)
+    wh = rect.wh * float32(ctx.atlasSize)
+  ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
 
 proc drawSprite*(
   ctx: Context,
   imagePath: string,
   pos: Vec2 = vec2(0, 0),
-  size: Vec2 = vec2(0, 0),
-  scale = 1.0,
-  color = color(1, 1, 1, 1)
+  color = color(1, 1, 1, 1),
+  scale = 1.0
 ) =
   ## Draws image the game way - pos at center.
   let
     rect = ctx.getOrLoadImageRect(imagePath)
     wh = rect.wh * ctx.atlasSize.float32 * scale
+  ctx.drawUvRect(
+    pos - wh / 2,
+    pos + wh / 2,
+    rect.xy,
+    rect.xy + rect.wh,
+    color
+  )
 
-  if size == vec2(0, 0):
-    ctx.drawUvRect(pos - wh / 2, pos + wh / 2, rect.xy, rect.xy + rect.wh, color)
-  else:
-    ctx.drawUvRect(
-      pos - size / 2,
-      pos + size / 2,
-      rect.xy,
-      rect.xy + rect.wh,
-      color
-    )
+proc drawSprite*(
+  ctx: Context,
+  imagePath: string,
+  pos: Vec2 = vec2(0, 0),
+  color = color(1, 1, 1, 1),
+  size: Vec2
+) =
+  ## Draws image the game way - pos at center.
+  let
+    rect = ctx.getOrLoadImageRect(imagePath)
+    wh = rect.wh * ctx.atlasSize.float32
+  ctx.drawUvRect(
+    pos - size / 2,
+    pos + size / 2,
+    rect.xy,
+    rect.xy + rect.wh,
+    color
+  )
 
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   const imgKey = "rect"

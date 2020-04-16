@@ -137,7 +137,7 @@ proc drawText(group: Group) =
     let
       glyphOffset = glyphOffsets[charKey]
       charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
-    ctx.drawImage(charKey, pos = charPos, color = group.fill)
+    ctx.drawImage(charKey, charPos, group.fill)
 
   if editing:
     # draw cursor
@@ -193,7 +193,7 @@ proc draw*(group: Group) =
 
   if group.imageName != "":
     let path = &"data/{group.imageName}.png"
-    ctx.drawImage(path, vec2(0, 0), vec2(group.screenBox.w, group.screenBox.h))
+    ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
 
