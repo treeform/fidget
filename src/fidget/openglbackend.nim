@@ -137,7 +137,7 @@ proc drawText(group: Group) =
     let
       glyphOffset = glyphOffsets[charKey]
       charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
-    ctx.drawImage(charKey, charPos, group.fill)
+    ctx.drawImage(charKey, pos = charPos, color = group.fill)
 
   if editing:
     # draw cursor
@@ -213,11 +213,7 @@ proc setupFidget(
   base.start(openglVersion, msaa, mainLoopMode)
   setWindowTitle(windowTitle)
 
-  when defined(ios):
-    ctx = newContext(1024*4)
-  else:
-    # TODO: growing context texture
-    ctx = newContext(1024*1)
+  ctx = newContext()
 
   base.drawFrame = proc() =
     setupRoot()
