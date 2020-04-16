@@ -233,7 +233,7 @@ proc setupFidget(
     scrollBox.h = root.box.h
 
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
-    ctx.startFrame(windowFrame, ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100))
+    ctx.beginFrame(windowFrame, ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100))
     ctx.saveTransform()
     mouse.pos = mousePos / pixelRatio
 

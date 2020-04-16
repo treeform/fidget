@@ -61,17 +61,16 @@ proc newContext*(
   img.fill(rgba(255, 255, 255, 0))
   result.atlasTexture = img.initTexture()
 
-  let defaultMask = newImage("", 4, 4, 4)
-  defaultMask.fill(rgba(255, 255, 255, 255))
-
-  result.maskTexture.width = defaultMask.width.int32
-  result.maskTexture.height = defaultMask.height.int32
+  # Must be >0 for framebuffer creation below
+  # Set to real value in beginFrame
+  result.maskTexture.width = 1.int32
+  result.maskTexture.height = 1.int32
   result.maskTexture.componentType = GL_UNSIGNED_BYTE
   result.maskTexture.format = GL_RGBA
   result.maskTexture.internalFormat = GL_R8
   result.maskTexture.minFilter = minLinear
   result.maskTexture.magFilter = magLinear
-  bindTextureData(result.maskTexture.addr, defaultMask.data[0].addr)
+  bindTextureData(result.maskTexture.addr, nil)
 
   result.atlasShader = newShader(atlasVert, atlasFrag)
   result.maskShader = newShader(atlasVert, maskFrag)
@@ -127,6 +126,22 @@ proc newContext*(
   result.activeShader.bindAttrib("vertexPos", result.positions.buffer)
   result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
   result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
+
+  # Set up mask framebuffer
+  glGenFramebuffers(1, result.maskFramebufferId.addr)
+  glBindFramebuffer(GL_FRAMEBUFFER, result.maskFramebufferId)
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER,
+    GL_COLOR_ATTACHMENT0,
+    GL_TEXTURE_2D,
+    result.maskTexture.textureId,
+    0
+  )
+
+  if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
+    quit("Something wrong with mask framebuffer.")
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
   var imgWidth = width + ctx.atlasMargin * 2
@@ -413,36 +428,18 @@ proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
   ctx.draw()
 
-  if ctx.maskFramebufferId != 0:
-    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
+  glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
 
-    glClearColor(1, 1, 1, 1)
-    glClear(GL_COLOR_BUFFER_BIT)
+  glClearColor(1, 1, 1, 1)
+  glClear(GL_COLOR_BUFFER_BIT)
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+  glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
   ctx.draw()
 
-  if ctx.maskFramebufferId == 0:
-    glGenFramebuffers(1, ctx.maskFramebufferId.addr)
-    glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
-
-    bindTextureData(ctx.maskTexture.addr, nil)
-
-    glFramebufferTexture2D(
-      GL_FRAMEBUFFER,
-      GL_COLOR_ATTACHMENT0,
-      GL_TEXTURE_2D,
-      ctx.maskTexture.textureId,
-      0
-    )
-
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
-
-  if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-    quit("Something wrong with frame buffer.")
 
   glClearColor(0, 0, 0, 0.0)
   glClear(GL_COLOR_BUFFER_BIT)
@@ -462,7 +459,7 @@ proc endMask*(ctx: Context) =
 
   ctx.activeShader = ctx.atlasShader
 
-proc startFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
+proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
   ## Starts a new frame.
   ctx.proj = proj
 
