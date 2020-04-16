@@ -58,9 +58,17 @@ proc newContext*(
   img.fill(rgba(255, 255, 255, 0))
   result.atlasTexture = img.initTexture()
 
-  let maskImage = newImage("", 1024, 1024, 4)
-  maskImage.fill(rgba(255, 255, 255, 255))
-  result.maskTexture = maskImage.initTexture()
+  let defaultMask = newImage("", 4, 4, 4)
+  defaultMask.fill(rgba(255, 255, 255, 255))
+
+  result.maskTexture.width = defaultMask.width.int32
+  result.maskTexture.height = defaultMask.height.int32
+  result.maskTexture.componentType = GL_UNSIGNED_BYTE
+  result.maskTexture.format = GL_RGBA
+  result.maskTexture.internalFormat = GL_R8
+  result.maskTexture.minFilter = minLinear
+  result.maskTexture.magFilter = magLinear
+  bindTextureData(result.maskTexture.addr, defaultMask.data[0].addr)
 
   result.atlasShader = newShader(atlasVert, atlasFrag)
   result.maskShader = newShader(atlasVert, maskFrag)
@@ -418,20 +426,7 @@ proc beginMask*(ctx: Context) =
     glGenFramebuffers(1, ctx.maskFramebufferId.addr)
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
 
-    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
-    glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GLint GL_R8,
-      ctx.maskTexture.width,
-      ctx.maskTexture.height,
-      0,
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      nil
-    )
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    bindTextureData(ctx.maskTexture.addr, nil)
 
     glFramebufferTexture2D(
       GL_FRAMEBUFFER,
@@ -445,7 +440,7 @@ proc beginMask*(ctx: Context) =
   glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
   if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-    quit("Some thing wrong with frame buffer. 2")
+    quit("Something wrong with frame buffer.")
 
   glClearColor(0, 0, 0, 0.0)
   glClear(GL_COLOR_BUFFER_BIT)
@@ -473,18 +468,7 @@ proc startFrame*(ctx: Context, frameSize: Vec2) =
     ctx.frameSize = frameSize
     ctx.maskTexture.width = frameSize.x.int32
     ctx.maskTexture.height = frameSize.y.int32
-    glBindTexture(GL_TEXTURE_2D, ctx.maskTexture.textureId)
-    glTexImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GLint GL_R8,
-      GLsizei ctx.maskTexture.width,
-      GLsizei ctx.maskTexture.height,
-      0,
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      nil
-    )
+    bindTextureData(ctx.maskTexture.addr, nil)
     ctx.clearMask()
 
 proc endFrame*(ctx: Context) =
