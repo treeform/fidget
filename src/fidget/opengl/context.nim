@@ -5,7 +5,6 @@ const
   dir = "../fidget/src/fidget/opengl"
   atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
   atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
-  maskVert = (dir / "glsl/mask.vert", staticRead("glsl/mask.vert"))
   maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 type
@@ -137,7 +136,7 @@ proc newContext*(
   result.mask = maskImage.initTexture()
 
   result.shader = newShader(atlasVert, atlasFrag)
-  result.maskShader = newShader(maskVert, maskFrag)
+  result.maskShader = newShader(atlasVert, maskFrag)
 
   result.positions.buffer.componentType = cGL_FLOAT
   result.positions.buffer.kind = bkVEC2
