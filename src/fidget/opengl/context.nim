@@ -12,16 +12,16 @@ type
   Context* = ref object
     atlasShader, maskShader, activeShader: Shader
     atlasTexture, maskTexture: Texture
-    atlasSize: int   ## Size x size dimensions of the atlas
-    atlasMargin: int ## Default margin between images
-    quadCount: int   ## Number of quads drawn so far
-    maxQuads: int    ## Max quads to draw before issuing an OpenGL call
-    mat: Mat4        ## Current matrix
-    mats: seq[Mat4]  ## Matrix stack
+    atlasSize: int                ## Size x size dimensions of the atlas
+    atlasMargin: int              ## Default margin between images
+    quadCount: int                ## Number of quads drawn so far
+    maxQuads: int                 ## Max quads to draw before issuing an OpenGL call
+    mat: Mat4                     ## Current matrix
+    mats: seq[Mat4]               ## Matrix stack
     entries*: Table[string, Rect] ## Mapping of image name to atlas UV position
     heights: seq[uint16]          ## Height map of the free space in the atlas
     proj: Mat4
-    frameSize: Vec2 ## Dimensions of the window frame
+    frameSize: Vec2               ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
 
