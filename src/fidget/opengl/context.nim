@@ -12,10 +12,6 @@ type
   Context* = ref object
     atlasShader, maskShader, activeShader: Shader
     atlasTexture, maskTexture: Texture
-    positions: tuple[buffer: Buffer, data: seq[float32]]
-    colors: tuple[buffer: Buffer, data: seq[uint8]]
-    uvs: tuple[buffer: Buffer, data: seq[float32]]
-    indices: tuple[buffer: Buffer, data: seq[uint16]]
     atlasSize: int   ## Size x size dimensions of the atlas
     atlasMargin: int ## Default margin between images
     quadCount: int   ## Number of quads drawn so far
@@ -27,6 +23,12 @@ type
     proj: Mat4
     frameSize: Vec2 ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
+
+    # Buffer data for OpenGL
+    positions: tuple[buffer: Buffer, data: seq[float32]]
+    colors: tuple[buffer: Buffer, data: seq[uint8]]
+    uvs: tuple[buffer: Buffer, data: seq[float32]]
+    indices: tuple[buffer: Buffer, data: seq[uint16]]
 
 proc upload(ctx: Context) =
   ## When buffers change, uploads them to GPU.
