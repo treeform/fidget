@@ -87,6 +87,52 @@ tests.add(
     takeScreenshot(rect(0, 0, 100, 100)).save("sprite_basic.png")
 )
 
+tests.add(
+  proc() =
+    var passed: bool
+    try:
+      ctx.beginMask()
+    except:
+      passed = true
+
+    if not passed:
+      quit("Calling beginMask before beginFrame didn't fail as expected")
+)
+
+tests.add(
+  proc() =
+    var passed: bool
+    try:
+      ctx.beginFrame(vec2(100, 100))
+      ctx.beginMask()
+      ctx.beginMask()
+    except:
+      passed = true
+      ctx.endMask()
+      ctx.endFrame()
+
+    if not passed:
+      quit("Calling beginMask before endMask didn't fail as expected")
+)
+
+tests.add(
+  proc() =
+    try:
+      ctx.endMask()
+      quit("Calling endMask before beginMask didn't fail as expected")
+    except:
+      discard
+)
+
+tests.add(
+  proc() =
+    try:
+      ctx.clearMask()
+      quit("Calling clearMask before beginFrame didn't fail as expected")
+    except:
+      discard
+)
+
 var i: int
 proc draw() =
   if not loaded:
