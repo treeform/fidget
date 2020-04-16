@@ -44,34 +44,6 @@ proc upload*(ctx: Context) =
   bindBufferData(ctx.colors.buffer.addr, ctx.colors.data[0].addr)
   bindBufferData(ctx.uvs.buffer.addr, ctx.uvs.data[0].addr)
 
-proc drawBasic*(ctx: Context, max: int) =
-  ## Draw the basic mesh.
-  glUseProgram(ctx.activeShader.programId)
-
-  # Bind the regular uniforms:
-  if ctx.activeShader.hasUniform("windowFrame"):
-    ctx.activeShader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
-  ctx.activeShader.setUniform("proj", proj)
-
-  glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, ctx.atlas.textureId)
-  ctx.activeShader.setUniform("rgbaTex", 0)
-
-  if ctx.activeShader.hasUniform("rgbaMask"):
-    glActiveTexture(GL_TEXTURE1)
-    glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
-    ctx.activeShader.setUniform("rgbaMask", 1)
-
-  ctx.activeShader.bindUniforms()
-
-  glDrawArrays(GL_TRIANGLES, 0, GLsizei max)
-
-  # Unbind
-  glBindVertexArray(0)
-  glUseProgram(0)
-
-
-
 proc newContext*(
   size = 1024,
   margin = 4,
@@ -195,18 +167,39 @@ proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
     x = x div 2
     y = y div 2
 
-proc drawMesh*(ctx: Context) =
+proc draw(ctx: Context) =
   ## Flips - draws current buffer and starts a new one.
-  if ctx.quadCount > 0:
-    ctx.upload()
-    glBindVertexArray(ctx.vao)
-    ctx.drawBasic(ctx.quadCount*6)
-    ctx.quadCount = 0
+  if ctx.quadCount == 0:
+    return
+
+  ctx.upload()
+
+  glUseProgram(ctx.activeShader.programId)
+  glBindVertexArray(ctx.vao)
+
+  if ctx.activeShader.hasUniform("windowFrame"):
+    ctx.activeShader.setUniform("windowFrame", windowFrame.x, windowFrame.y)
+  ctx.activeShader.setUniform("proj", proj)
+
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, ctx.atlas.textureId)
+  ctx.activeShader.setUniform("rgbaTex", 0)
+
+  if ctx.activeShader.hasUniform("rgbaMask"):
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(GL_TEXTURE_2D, ctx.mask.textureId)
+    ctx.activeShader.setUniform("rgbaMask", 1)
+
+  ctx.activeShader.bindUniforms()
+
+  glDrawArrays(GL_TRIANGLES, 0, (ctx.quadCount * 6).GLint)
+
+  ctx.quadCount = 0
 
 proc checkBatch(ctx: Context) =
   if ctx.quadCount == ctx.maxQuads:
     # ctx is full dump the images in the ctx now and start a new batch
-    ctx.drawMesh()
+    ctx.draw()
 
 proc setVert2(buf: var seq[float32], i: int, v: Vec2) =
   ## Set a vertex in the buffer.
@@ -382,7 +375,7 @@ proc strokeRoundedRect*(ctx: Context, rect: Rect, color: Color, weight: float,
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
-  ctx.drawMesh()
+  ctx.draw()
 
   if ctx.maskFBO != 0:
     glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFBO)
@@ -394,7 +387,7 @@ proc clearMask*(ctx: Context) =
 
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
-  ctx.drawMesh()
+  ctx.draw()
 
   if ctx.maskFBO == 0:
     glGenFramebuffers(1, addr ctx.maskFBO)
@@ -428,7 +421,7 @@ proc beginMask*(ctx: Context) =
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
-  ctx.drawMesh()
+  ctx.draw()
 
   # var image = newImage("debug.png", int windowFrame.x, int windowFrame.y, 4)
   # glReadPixels(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y, GL_RGBA, GL_UNSIGNED_BYTE, addr image.data[0])
@@ -453,7 +446,7 @@ proc startFrame*(ctx: Context, screenSize: Vec2) =
 
 proc endFrame*(ctx: Context) =
   ## Ends a frame.
-  ctx.drawMesh()
+  ctx.draw()
 
 proc translate*(ctx: Context, v: Vec2) =
   ## Translate the internal transform.
