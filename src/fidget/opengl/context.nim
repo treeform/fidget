@@ -182,6 +182,7 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
   return rect
 
 proc putImage*(ctx: Context, path: string, image: Image) =
+  # Reminder: This does not set mipmaps (used for text, should it?)
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
   updateSubImage(
