@@ -1,5 +1,5 @@
 import ../internal, ../uibase, chroma, input, opengl, os, perf, staticglfw,
-    times, typography/textboxes, unicode, vmath
+    times, typography/textboxes, unicode, vmath, flippy
 
 when defined(glDebugMessageCallback):
   import strformat, strutils
@@ -372,3 +372,16 @@ proc releaseMouse*() =
 
 proc hideMouse*() =
   setInputMode(window, CURSOR, CURSOR_HIDDEN)
+
+proc takeScreenshot*(frame = rect(0, 0, windowFrame.x, windowFrame.y)): flippy.Image =
+  result = newImage("", frame.w.int, frame.h.int, 4)
+  glReadPixels(
+    frame.x.GLint,
+    frame.y.GLint,
+    frame.w.GLint,
+    frame.h.GLint,
+    GL_RGBA,
+    GL_UNSIGNED_BYTE,
+    result.data[0].addr
+  )
+  result = result.flipVertical()

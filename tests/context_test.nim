@@ -1,21 +1,8 @@
-import chroma, fidget, fidget/uibase, fidget/opengl/base, fidget/opengl/context, flippy, opengl, vmath
+import chroma, fidget, fidget/uibase, fidget/opengl/base, fidget/opengl/context, flippy, vmath
 
 var
   loaded: bool
   ctx: Context
-
-proc savePixels(rect: Rect, path: string) =
-  var img = newImage(path, rect.w.int, rect.h.int, 4)
-  glReadPixels(
-    rect.x.GLint,
-    rect.y.GLint,
-    rect.w.GLint,
-    rect.h.GLint,
-    GL_RGBA,
-    GL_UNSIGNED_BYTE,
-    img.data[0].addr
-  )
-  img.save()
 
 var tests: seq[proc()]
 
@@ -26,7 +13,7 @@ tests.add(
     ctx.fillRect(rect(0, 0, 50, 50), color(0, 1, 0, 1))
     ctx.endFrame()
 
-    savePixels(rect(0, 0, 100, 100), "translate.png")
+    takeScreenshot(rect(0, 0, 100, 100)).save("translate.png")
 )
 
 tests.add(
@@ -36,7 +23,7 @@ tests.add(
     ctx.fillRect(rect(0, 0, 50, 50), color(1, 1, 0, 1))
     ctx.endFrame()
 
-    savePixels(rect(0, 0, 100, 100), "scale.png")
+    takeScreenshot(rect(0, 0, 100, 100)).save("scale.png")
 )
 
 tests.add(
@@ -46,7 +33,7 @@ tests.add(
     ctx.strokeRoundedRect(rect(10, 10, 80, 80), color(0.5, 0.5, 0.5, 1), 2, 10)
     ctx.endFrame()
 
-    savePixels(rect(0, 0, 100, 100), "rounded.png")
+    takeScreenshot(rect(0, 0, 100, 100)).save("rounded.png")
 )
 
 tests.add(
@@ -79,7 +66,7 @@ tests.add(
     ctx.drawImage("bluestar.png", size = vec2(20, 20))
     ctx.endFrame()
 
-    savePixels(rect(0, 0, 100, 100), "image_basic.png")
+    takeScreenshot(rect(0, 0, 100, 100)).save("image_basic.png")
 )
 
 tests.add(
@@ -88,7 +75,7 @@ tests.add(
     ctx.drawImage("bluestar.png", scale = 0.5)
     ctx.endFrame()
 
-    savePixels(rect(0, 0, 100, 100), "image_scale.png")
+    takeScreenshot(rect(0, 0, 100, 100)).save("image_scale.png")
 )
 
 tests.add(
@@ -97,7 +84,7 @@ tests.add(
     ctx.drawSprite("bluestar.png", vec2(50, 50))
     ctx.endFrame()
 
-    savePixels(rect(0, 0, 100, 100), "sprite_basic.png")
+    takeScreenshot(rect(0, 0, 100, 100)).save("sprite_basic.png")
 )
 
 var i: int
