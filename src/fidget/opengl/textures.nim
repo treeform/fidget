@@ -45,13 +45,10 @@ proc bindTextureBufferData*(
   )
 
 proc bindTextureData*(texture: ptr Texture, data: pointer) =
-  if texture.textureId != 0:
-    # Texture already ready
-    return
+  if texture.textureId == 0:
+    glGenTextures(1, texture.textureId.addr)
 
-  glGenTextures(1, texture.textureId.addr)
   glBindTexture(GL_TEXTURE_2D, texture.textureId)
-
   glTexImage2D(
     target = GL_TEXTURE_2D,
     level = 0,
