@@ -92,8 +92,7 @@ tests.add(proc() =
     discard
 )
 
-tests.add(
-  proc() =
+tests.add(proc() =
   var passed: bool
   try:
     ctx.beginMask()
@@ -104,8 +103,7 @@ tests.add(
     quit("Calling beginMask before beginFrame didn't fail as expected")
 )
 
-tests.add(
-  proc() =
+tests.add(proc() =
   var passed: bool
   try:
     ctx.beginFrame(vec2(100, 100))
@@ -120,8 +118,7 @@ tests.add(
     quit("Calling beginMask before endMask didn't fail as expected")
 )
 
-tests.add(
-  proc() =
+tests.add(proc() =
   try:
     ctx.endMask()
     quit("Calling endMask before beginMask didn't fail as expected")
@@ -129,13 +126,26 @@ tests.add(
     discard
 )
 
-tests.add(
-  proc() =
+tests.add(proc() =
   try:
     ctx.clearMask()
     quit("Calling clearMask before beginFrame didn't fail as expected")
   except:
     discard
+)
+
+tests.add(proc() =
+  ctx.beginFrame(vec2(100, 100))
+  ctx.beginMask()
+  ctx.fillRect(rect(0, 0, 50, 50), color(0, 0, 0, 1))
+  ctx.endMask()
+  ctx.beginMask()
+  ctx.fillRect(rect(50, 50, 50, 50), color(0, 0, 0, 1))
+  ctx.endMask()
+  ctx.fillRect(rect(0, 0, 100, 100), color(0.5, 0.5, 0.5, 1))
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 100, 100)).save("multiple_masks.png")
 )
 
 var i: int
