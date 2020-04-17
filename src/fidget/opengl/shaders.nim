@@ -206,7 +206,6 @@ proc newShader*(computePath: string): Shader =
 template newShaderStatic*(computePath: string): Shader =
   ## Creates a new shader but also statically reads computePath
   ## So they are compiled into the binary.
-  ##
   const
     computeCode = staticRead(computePath)
     dir = currentSourcePath()
