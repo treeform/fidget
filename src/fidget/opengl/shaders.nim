@@ -202,9 +202,10 @@ proc newShader*(compute: (string, string)): Shader =
 
 proc newShader*(computePath: string): Shader =
   let
+    computeCode = readFile(computePath)
     dir = getCurrentDir()
     computePathFull = dir / computePath
-  newShader((computePathFull, readFile(computePath)))
+  newShader((computePathFull, computeCode))
 
 template newShaderStatic*(computePath: string): Shader =
   ## Creates a new shader but also statically reads computePath
