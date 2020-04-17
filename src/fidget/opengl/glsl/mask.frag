@@ -6,8 +6,8 @@ in vec4 color;
 
 uniform sampler2D atlasTex;
 
-out float fragColor;
+out vec4 fragColor;
 
 void main() {
-  fragColor = (texture(atlasTex, uv).rgba * color).a;
+  fragColor = vec4((texture(atlasTex, uv).rgba * color).a);
 }

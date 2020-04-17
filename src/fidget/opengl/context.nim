@@ -1,4 +1,4 @@
-import buffers, chroma, flippy, opengl, os, shaders, strformat,
+import buffers, chroma, flippy, opengl, os, shaders, strformat, strutils,
     tables, textures, times, vmath
 
 const
@@ -12,17 +12,18 @@ type
   Context* = ref object
     atlasShader, maskShader, activeShader: Shader
     atlasTexture, maskTexture: Texture
-    atlasSize: int   ## Size x size dimensions of the atlas
-    atlasMargin: int ## Default margin between images
-    quadCount: int   ## Number of quads drawn so far
-    maxQuads: int    ## Max quads to draw before issuing an OpenGL call
-    mat: Mat4        ## Current matrix
-    mats: seq[Mat4]  ## Matrix stack
+    atlasSize: int                ## Size x size dimensions of the atlas
+    atlasMargin: int              ## Default margin between images
+    quadCount: int                ## Number of quads drawn so far
+    maxQuads: int                 ## Max quads to draw before issuing an OpenGL call
+    mat: Mat4                     ## Current matrix
+    mats: seq[Mat4]               ## Matrix stack
     entries*: Table[string, Rect] ## Mapping of image name to atlas UV position
     heights: seq[uint16]          ## Height map of the free space in the atlas
     proj: Mat4
-    frameSize: Vec2 ## Dimensions of the window frame
+    frameSize: Vec2               ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
+    frameBegun, maskBegun: bool
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -127,7 +128,7 @@ proc newContext*(
   result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
   result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
 
-  # Set up mask framebuffer
+  # Create mask framebuffer
   glGenFramebuffers(1, result.maskFramebufferId.addr)
   glBindFramebuffer(GL_FRAMEBUFFER, result.maskFramebufferId)
   glFramebufferTexture2D(
@@ -138,8 +139,9 @@ proc newContext*(
     0
   )
 
-  if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-    quit("Something wrong with mask framebuffer.")
+  let status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+  if status != GL_FRAMEBUFFER_COMPLETE:
+    quit(&"Something wrong with mask framebuffer: {toHex(status.int32, 4)}")
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -182,6 +184,7 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
   return rect
 
 proc putImage*(ctx: Context, path: string, image: Image) =
+  # Reminder: This does not set mipmaps (used for text, should it?)
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
   updateSubImage(
@@ -252,12 +255,10 @@ proc checkBatch(ctx: Context) =
     ctx.draw()
 
 proc setVert2(buf: var seq[float32], i: int, v: Vec2) =
-  ## Set a vertex in the buffer.
   buf[i * 2 + 0] = v.x
   buf[i * 2 + 1] = v.y
 
 proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
-  ## Set a color in the buffer.
   buf[i * 4 + 0] = color.r
   buf[i * 4 + 1] = color.g
   buf[i * 4 + 2] = color.b
@@ -266,14 +267,7 @@ proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
 func `*`(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v, 0.0)).xy
 
-proc drawUvRect*(
-  ctx: Context,
-  at: Vec2,
-  to: Vec2,
-  uvAt: Vec2,
-  uvTo: Vec2,
-  color: Color
-) =
+proc drawUvRect(ctx: Context, at, to: Vec2, uvAt, uvTo: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
   ctx.checkBatch()
 
@@ -312,12 +306,7 @@ proc drawUvRect*(
 
   inc ctx.quadCount
 
-proc drawUvRect*(
-  ctx: Context,
-  rect: Rect,
-  uvRect: Rect,
-  color: Color
-) =
+proc drawUvRect(ctx: Context, rect, uvRect: Rect, color: Color) =
   ctx.drawUvRect(
     rect.xy,
     rect.xy + rect.wh,
@@ -328,11 +317,9 @@ proc drawUvRect*(
 
 proc getOrLoadImageRect(ctx: Context, imagePath: string): Rect =
   if imagePath notin ctx.entries:
-    # need to load imagePath
-    # check to see if approparte .flippy file is around
+    # Need to load imagePath, check to see if the .flippy file is around
     echo "[load] ", imagePath
     if not fileExists(imagePath):
-      #quit(&"Image '{imagePath}' not found")
       raise newException(Exception, &"Image '{imagePath}' not found")
     let
       flippyImagePath = imagePath.changeFileExt(".flippy")
@@ -350,82 +337,147 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string): Rect =
     ctx.putFlippy(imagePath, flippy)
   return ctx.entries[imagePath]
 
-proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
-    color = color(1, 1, 1, 1)) =
+proc drawImage*(
+  ctx: Context,
+  imagePath: string,
+  pos: Vec2 = vec2(0, 0),
+  color = color(1, 1, 1, 1),
+  scale = 1.0
+) =
   ## Draws image the UI way - pos at top-left.
-  let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.atlasSize)
+  let
+    rect = ctx.getOrLoadImageRect(imagePath)
+    wh = rect.wh * ctx.atlasSize.float32 * scale
   ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
 
-proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
-    size = vec2(0, 0), color = color(1, 1, 1, 1)) =
+proc drawImage*(
+  ctx: Context,
+  imagePath: string,
+  pos: Vec2 = vec2(0, 0),
+  color = color(1, 1, 1, 1),
+  size: Vec2
+) =
   ## Draws image the UI way - pos at top-left.
-  let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.atlasSize)
+  let
+    rect = ctx.getOrLoadImageRect(imagePath)
+    wh = rect.wh * float32(ctx.atlasSize)
   ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
 
-proc drawImage*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
-    scale = 1.0, color = color(1, 1, 1, 1)) =
-  ## Draws image the UI way - pos at top-left.
-  let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.atlasSize) * scale
-  ctx.drawUvRect(pos, pos + wh, rect.xy, rect.xy + rect.wh, color)
-
-proc drawSprite*(ctx: Context, imagePath: string, pos: Vec2 = vec2(0, 0),
-    scale = 1.0, color = color(1, 1, 1, 1)) =
+proc drawSprite*(
+  ctx: Context,
+  imagePath: string,
+  pos: Vec2 = vec2(0, 0),
+  color = color(1, 1, 1, 1),
+  scale = 1.0
+) =
   ## Draws image the game way - pos at center.
-  let rect = ctx.getOrLoadImageRect(imagePath)
-  let wh = rect.wh * float32(ctx.atlasSize) * scale
-  ctx.drawUvRect(pos - wh/2, pos + wh/2, rect.xy, rect.xy + rect.wh, color)
+  let
+    rect = ctx.getOrLoadImageRect(imagePath)
+    wh = rect.wh * ctx.atlasSize.float32 * scale
+  ctx.drawUvRect(
+    pos - wh / 2,
+    pos + wh / 2,
+    rect.xy,
+    rect.xy + rect.wh,
+    color
+  )
+
+proc drawSprite*(
+  ctx: Context,
+  imagePath: string,
+  pos: Vec2 = vec2(0, 0),
+  color = color(1, 1, 1, 1),
+  size: Vec2
+) =
+  ## Draws image the game way - pos at center.
+  let
+    rect = ctx.getOrLoadImageRect(imagePath)
+    wh = rect.wh * ctx.atlasSize.float32
+  ctx.drawUvRect(
+    pos - size / 2,
+    pos + size / 2,
+    rect.xy,
+    rect.xy + rect.wh,
+    color
+  )
 
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
-  let imgKey = "rect"
+  const imgKey = "rect"
   if imgKey notin ctx.entries:
     var image = newImage(4, 4, 4)
     image.fill(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
-  let uvRect = ctx.entries[imgKey]
-  let wh = rect.wh * float32(ctx.atlasSize)
-  ctx.drawUvRect(rect.xy, rect.xy + rect.wh, uvRect.xy + uvRect.wh/2,
-      uvRect.xy + uvRect.wh/2, color)
+
+  let
+    uvRect = ctx.entries[imgKey]
+    wh = rect.wh * float32(ctx.atlasSize)
+  ctx.drawUvRect(
+    rect.xy,
+    rect.xy + rect.wh,
+    uvRect.xy + uvRect.wh / 2,
+    uvRect.xy + uvRect.wh / 2, color
+  )
 
 proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
   # TODO: Make this a 9 patch
   let
-    imgKey = "roundedRect:" & $rect.wh & ":" & $radius
-    w = int ceil(rect.w)
-    h = int ceil(rect.h)
+    imgKey = &"roundedRect:{rect.wh}:{radius}"
+    w = ceil(rect.w).int
+    h = ceil(rect.h).int
   if imgKey notin ctx.entries:
     var image = newImage(w, h, 4)
     image.fill(rgba(255, 255, 255, 0))
-    image.fillRoundedRect(rect(0, 0, rect.w, rect.h), radius, rgba(255, 255,
-        255, 255))
+    image.fillRoundedRect(
+      rect(0, 0, rect.w, rect.h),
+      radius,
+      rgba(255, 255, 255, 255)
+    )
     ctx.putImage(imgKey, image)
-  let uvRect = ctx.entries[imgKey]
-  let wh = rect.wh * float32(ctx.atlasSize)
-  ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy,
-      uvRect.xy + uvRect.wh, color)
 
-proc strokeRoundedRect*(ctx: Context, rect: Rect, color: Color, weight: float,
-    radius: float) =
+  let
+    uvRect = ctx.entries[imgKey]
+    wh = rect.wh * ctx.atlasSize.float32
+  ctx.drawUvRect(
+    rect.xy,
+    rect.xy + vec2(w.float32, h.float32),
+    uvRect.xy,
+    uvRect.xy + uvRect.wh,
+    color
+  )
+
+proc strokeRoundedRect*(
+  ctx: Context, rect: Rect, color: Color, weight: float, radius: float
+) =
   # TODO: Make this a 9 patch
   let
-    imgKey = "roundedRect:" & $rect.wh & ":" & $radius & ":" & $weight
-    w = int ceil(rect.w)
-    h = int ceil(rect.h)
+    imgKey = &"roundedRect:{rect.wh}:{radius}:{weight}"
+    w = ceil(rect.w).int
+    h = ceil(rect.h).int
   if imgKey notin ctx.entries:
     var image = newImage(w, h, 4)
     image.fill(rgba(255, 255, 255, 0))
-    image.strokeRoundedRect(rect(0, 0, rect.w, rect.h), radius, weight, rgba(
-        255, 255, 255, 255))
+    image.strokeRoundedRect(
+      rect(0, 0, rect.w, rect.h),
+      radius,
+      weight,
+      rgba(255, 255, 255, 255)
+    )
     ctx.putImage(imgKey, image)
-  let uvRect = ctx.entries[imgKey]
-  let wh = rect.wh * float32(ctx.atlasSize)
-  ctx.drawUvRect(rect.xy, rect.xy + vec2(float32 w, float32 h), uvRect.xy,
-      uvRect.xy + uvRect.wh, color)
+  let
+    uvRect = ctx.entries[imgKey]
+    wh = rect.wh * ctx.atlasSize.float32
+  ctx.drawUvRect(
+    rect.xy,
+    rect.xy + vec2(w.float32, h.float32),
+    uvRect.xy,
+    uvRect.xy + uvRect.wh,
+    color
+  )
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
+  assert ctx.frameBegun == true
+
   ctx.draw()
 
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
@@ -437,9 +489,14 @@ proc clearMask*(ctx: Context) =
 
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
+  assert ctx.frameBegun == true
+  assert ctx.maskBegun == false
+  ctx.maskBegun = true
+
   ctx.draw()
 
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
+  glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
   glClearColor(0, 0, 0, 0.0)
   glClear(GL_COLOR_BUFFER_BIT)
@@ -448,12 +505,10 @@ proc beginMask*(ctx: Context) =
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
-  ctx.draw()
+  assert ctx.maskBegun == true
+  ctx.maskBegun = false
 
-  # var image = newImage("debug.png", int windowFrame.x, int windowFrame.y, 4)
-  # glReadPixels(0, 0, GLsizei windowFrame.x, GLsizei windowFrame.y, GL_RGBA, GL_UNSIGNED_BYTE, addr image.data[0])
-  # image.save()
-  # if true: quit()
+  ctx.draw()
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -461,6 +516,9 @@ proc endMask*(ctx: Context) =
 
 proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
   ## Starts a new frame.
+  assert ctx.frameBegun == false
+  ctx.frameBegun = true
+
   ctx.proj = proj
 
   if ctx.maskTexture.width != frameSize.x.int32 or
@@ -471,8 +529,20 @@ proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
     bindTextureData(ctx.maskTexture.addr, nil)
     ctx.clearMask()
 
+  glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
+
+proc beginFrame*(ctx: Context, frameSize: Vec2) =
+  beginFrame(
+    ctx,
+    frameSize,
+    ortho(0, frameSize.x, frameSize.y, 0, -100, 100)
+  )
+
 proc endFrame*(ctx: Context) =
   ## Ends a frame.
+  assert ctx.frameBegun == true
+  ctx.frameBegun = false
+
   ctx.draw()
 
 proc translate*(ctx: Context, v: Vec2) =
