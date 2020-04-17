@@ -212,7 +212,6 @@ template newShaderStatic*(computePath: string): Shader =
   const
     computeCode = staticRead(computePath)
     dir = currentSourcePath()
-  let
     computePathFull = dir.parentDir() / computePath
   newShader((computePathFull, computeCode))
 
@@ -238,7 +237,6 @@ template newShaderStatic*(vertPath, fragPath: string): Shader =
     vertCode = staticRead(vertPath)
     fragCode = staticRead(fragPath)
     dir = currentSourcePath()
-  let
     vertPathFull = dir.parentDir() / vertPath
     fragPathFull = dir.parentDir() / fragPath
   newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
