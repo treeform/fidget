@@ -201,7 +201,10 @@ proc newShader*(compute: (string, string)): Shader =
   result.readAttribsAndUniforms()
 
 proc newShader*(computePath: string): Shader =
-  newShader((computePath, readFile(computePath)))
+  let
+    dir = getCurrentDir()
+    computePathFull = dir / computePath
+  newShader((computePathFull, readFile(computePath)))
 
 template newShaderStatic*(computePath: string): Shader =
   ## Creates a new shader but also statically reads computePath
@@ -209,7 +212,7 @@ template newShaderStatic*(computePath: string): Shader =
   const
     computeCode = staticRead(computePath)
     dir = currentSourcePath()
-  var
+  let
     computePathFull = dir.parentDir() / computePath
   newShader((computePathFull, computeCode))
 
@@ -220,7 +223,13 @@ proc newShader*(vert, frag: (string, string)): Shader =
   result.readAttribsAndUniforms()
 
 proc newShader*(vertPath, fragPath: string): Shader =
-  newShader((vertPath, readFile(vertPath)), (fragPath, readFile(fragPath)))
+  let
+    vertCode = readFile(vertPath)
+    fragCode = readFile(fragPath)
+    dir = getCurrentDir()
+    vertPathFull = dir / vertPath
+    fragPathFull = dir / fragPath
+  newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
 
 template newShaderStatic*(vertPath, fragPath: string): Shader =
   ## Creates a new shader but also statically reads vertPath and fragPath
@@ -229,7 +238,7 @@ template newShaderStatic*(vertPath, fragPath: string): Shader =
     vertCode = staticRead(vertPath)
     fragCode = staticRead(fragPath)
     dir = currentSourcePath()
-  var
+  let
     vertPathFull = dir.parentDir() / vertPath
     fragPathFull = dir.parentDir() / fragPath
   newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
