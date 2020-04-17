@@ -7,6 +7,32 @@ var
 
 var tests: seq[proc()]
 
+
+tests.add(proc() =
+  ctx.beginFrame(vec2(100, 100))
+  ctx.drawImage("bluestar.png")
+  ctx.drawImage("bluestar.png", size = vec2(20, 20))
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 100, 100)).save("image_basic.png")
+)
+
+tests.add(proc() =
+  ctx.beginFrame(vec2(100, 100))
+  ctx.drawImage("bluestar.png", scale = 0.5)
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 100, 100)).save("image_scale.png")
+)
+
+tests.add(proc() =
+  ctx.beginFrame(vec2(100, 100))
+  ctx.drawSprite("bluestar.png", vec2(50, 50))
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 100, 100)).save("sprite_basic.png")
+)
+
 tests.add(proc() =
   ctx.beginFrame(vec2(100, 100))
   ctx.translate(vec2(25, 25))
@@ -35,6 +61,18 @@ tests.add(proc() =
 )
 
 tests.add(proc() =
+  ctx.beginFrame(vec2(100, 100))
+  ctx.drawImage("bluestar.png")
+  ctx.beginMask()
+  ctx.drawImage("bluestar.png")
+  ctx.endMask()
+  ctx.drawImage("bluestar.png", size = vec2(120, 120), color = color(1, 0, 0, 1))
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 100, 100)).save("image_masking.png")
+)
+
+tests.add(proc() =
   var passed: bool
   try:
     ctx.beginFrame(vec2(100, 100))
@@ -55,30 +93,6 @@ tests.add(proc() =
     discard
 )
 
-tests.add(proc() =
-  ctx.beginFrame(vec2(100, 100))
-  ctx.drawImage("bluestar.png")
-  ctx.drawImage("bluestar.png", size = vec2(20, 20))
-  ctx.endFrame()
-
-  takeScreenshot(rect(0, 0, 100, 100)).save("image_basic.png")
-)
-
-tests.add(proc() =
-  ctx.beginFrame(vec2(100, 100))
-  ctx.drawImage("bluestar.png", scale = 0.5)
-  ctx.endFrame()
-
-  takeScreenshot(rect(0, 0, 100, 100)).save("image_scale.png")
-)
-
-tests.add(proc() =
-  ctx.beginFrame(vec2(100, 100))
-  ctx.drawSprite("bluestar.png", vec2(50, 50))
-  ctx.endFrame()
-
-  takeScreenshot(rect(0, 0, 100, 100)).save("sprite_basic.png")
-)
 
 tests.add(
   proc() =
