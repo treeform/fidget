@@ -2,17 +2,13 @@ import fidget
 
 proc drawMain() =
   frame "main":
-    box 0, 0, 620, 300
+    box 0, 0, 620, 140
     for i in 0 .. 4:
       group "block":
         box 20+i*120, 20, 100, 100
         fill "#2B9FEA"
-    group "rotate":
-      rotation 45
-      box 20, 140, 100, 100
-      fill "#2B9FEA"
 
 when defined(js):
   startFidget(drawMain)
 else:
-  startFidget(drawMain, w = 620, h = 300)
+  startFidget(drawMain, w = 620, h = 140)

@@ -1,5 +1,5 @@
-import chroma, internal, opengl/base, opengl/context, opengl/input, strformat, strutils,
-    tables, times, typography, typography/textboxes, uibase, vmath
+import chroma, internal, opengl/base, opengl/context, opengl/input, strformat,
+    strutils, tables, times, typography, typography/textboxes, uibase, vmath
 
 export input
 
@@ -193,7 +193,7 @@ proc draw*(group: Group) =
 
   if group.imageName != "":
     let path = &"data/{group.imageName}.png"
-    ctx.drawImage(path, vec2(0, 0), vec2(group.screenBox.w, group.screenBox.h))
+    ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
 
@@ -213,11 +213,7 @@ proc setupFidget(
   base.start(openglVersion, msaa, mainLoopMode)
   setWindowTitle(windowTitle)
 
-  when defined(ios):
-    ctx = newContext(1024*4)
-  else:
-    # TODO: growing context texture
-    ctx = newContext(1024*1)
+  ctx = newContext()
 
   base.drawFrame = proc() =
     setupRoot()
@@ -233,7 +229,7 @@ proc setupFidget(
     scrollBox.h = root.box.h
 
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
-    ctx.beginFrame(windowFrame, ortho(0, windowFrame.x, windowFrame.y, 0, -100, 100))
+    ctx.beginFrame(windowFrame)
     ctx.saveTransform()
     mouse.pos = mousePos / pixelRatio
 
