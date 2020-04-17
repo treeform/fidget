@@ -1,11 +1,13 @@
-import chroma, internal, opengl/base, opengl/context, opengl/input, strformat,
-    strutils, tables, times, typography, typography/textboxes, uibase, vmath
+import chroma, hashes, internal, opengl/base, opengl/context, opengl/input,
+    strformat, strutils, tables, times, typography, typography/textboxes,
+    uibase, vmath
 
 export input
 
 var
   ctx: Context
-  fonts = newTable[string, Font]()
+  fonts: Table[string, Font]
+  glyphOffsets: Table[Hash, Vec2]
   windowTitle, windowUrl: string
 
   # Used for double-clicking
@@ -23,8 +25,6 @@ func vAlignMode(align: VAlign): VAlignMode =
     of vTop: Top
     of vCenter: Middle
     of vBottom: Bottom
-
-var glyphOffsets = newTable[string, Vec2]()
 
 proc drawText(group: Group) =
   if group.textStyle.fontFamily notin fonts:
@@ -120,9 +120,15 @@ proc drawText(group: Group) =
       font = pos.font
       subPixelShift = floor(pos.subPixelShift * 10) / 10
       fontFamily = group.textStyle.fontFamily
-      pattern = &"{fontFamily}.{pos.character}.{$font.size}.{$subPixelShift}"
-      charKey = &"tmp/{pattern}.png"
-    if charKey notin ctx.entries:
+
+    var hash: Hash
+    hash = hash !& hash(fontFamily)
+    hash = hash !& hash(pos.character)
+    hash = hash !& hash(font.size)
+    hash = hash !& hash(subPixelShift)
+    hash = !$hash
+
+    if hash notin ctx.entries:
       var
         glyph = font.glyphs[pos.character]
         glyphOffset: Vec2
@@ -131,13 +137,13 @@ proc drawText(group: Group) =
         glyphOffset,
         subPixelShift = subPixelShift
       )
-      ctx.putImage(charKey, img)
-      glyphOffsets[charKey] = glyphOffset
+      ctx.putImage(hash, img)
+      glyphOffsets[hash] = glyphOffset
 
     let
-      glyphOffset = glyphOffsets[charKey]
+      glyphOffset = glyphOffsets[hash]
       charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
-    ctx.drawImage(charKey, charPos, group.fill)
+    ctx.drawImage(hash, charPos, group.fill)
 
   if editing:
     # draw cursor
