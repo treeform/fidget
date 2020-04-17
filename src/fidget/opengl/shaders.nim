@@ -32,9 +32,8 @@ proc getErrorLog*(
   if log.startsWith("Compute info"):
     log = log[25..^1]
   let
-    fullPath = getCurrentDir() / path
-    clickable = &"{fullPath}({log[2..log.find(')')]}"
-  result = &"\e[1;1m{clickable}\e[0m: {log}"
+    clickable = &"{path}({log[2..log.find(')')]}"
+  result = &"{clickable}: {log}"
 
 proc compileComputeShader*(compute: (string, string)): GLuint =
   ## Compiles the compute shader and returns the program id.
@@ -204,6 +203,17 @@ proc newShader*(compute: (string, string)): Shader =
 proc newShader*(computePath: string): Shader =
   newShader((computePath, readFile(computePath)))
 
+template newShaderStatic*(computePath: string): Shader =
+  ## Creates a new shader but also statically reads computePath
+  ## So they are compiled into the binary.
+  ##
+  const
+    computeCode = staticRead(computePath)
+    dir = currentSourcePath()
+  var
+    computePathFull = dir.parentDir() / computePath
+  newShader((computePathFull, computeCode))
+
 proc newShader*(vert, frag: (string, string)): Shader =
   result = Shader()
   result.paths = @[vert[0], frag[0]]
@@ -212,6 +222,19 @@ proc newShader*(vert, frag: (string, string)): Shader =
 
 proc newShader*(vertPath, fragPath: string): Shader =
   newShader((vertPath, readFile(vertPath)), (fragPath, readFile(fragPath)))
+
+template newShaderStatic*(vertPath, fragPath: string): Shader =
+  ## Creates a new shader but also statically reads vertPath and fragPath
+  ## so they are compiled into the binary.
+  const
+    vertCode = staticRead(vertPath)
+    fragCode = staticRead(fragPath)
+    dir = currentSourcePath()
+  var
+    vertPathFull = dir.parentDir() / vertPath
+    fragPathFull = dir.parentDir() / fragPath
+  newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
+
 
 proc hasUniform*(shader: Shader, name: string): bool =
   for uniform in shader.uniforms:

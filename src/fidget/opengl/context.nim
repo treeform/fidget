@@ -3,10 +3,6 @@ import buffers, chroma, flippy, hashes, opengl, os, shaders, strformat,
 
 const
   quadLimit = 10_921
-  dir = "../fidget/src/fidget/opengl"
-  atlasVert = (dir / "glsl/atlas.vert", staticRead("glsl/atlas.vert"))
-  atlasFrag = (dir / "glsl/atlas.frag", staticRead("glsl/atlas.frag"))
-  maskFrag = (dir / "glsl/mask.frag", staticRead("glsl/mask.frag"))
 
 type
   Context* = ref object
@@ -73,8 +69,8 @@ proc newContext*(
   result.maskTexture.magFilter = magLinear
   bindTextureData(result.maskTexture.addr, nil)
 
-  result.atlasShader = newShader(atlasVert, atlasFrag)
-  result.maskShader = newShader(atlasVert, maskFrag)
+  result.atlasShader = newShaderStatic("glsl/atlas.vert", "glsl/atlas.frag")
+  result.maskShader = newShaderStatic("glsl/atlas.vert", "glsl/mask.frag")
 
   result.positions.buffer.componentType = cGL_FLOAT
   result.positions.buffer.kind = bkVEC2
