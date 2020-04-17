@@ -19,7 +19,7 @@ type
     proj: Mat4
     frameSize: Vec2             ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
-    frameBegun, maskBegun: bool
+    frameBegun, maskBegun, usingMask: bool
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -363,9 +363,7 @@ proc drawImage*(
   size: Vec2
 ) =
   ## Draws image the UI way - pos at top-left.
-  let
-    rect = ctx.getOrLoadImageRect(imagePath)
-    wh = rect.wh * float32(ctx.atlasSize)
+  let rect = ctx.getOrLoadImageRect(imagePath)
   ctx.drawUvRect(pos, pos + size, rect.xy, rect.xy + rect.wh, color)
 
 proc drawSprite*(
@@ -395,9 +393,7 @@ proc drawSprite*(
   size: Vec2
 ) =
   ## Draws image the game way - pos at center.
-  let
-    rect = ctx.getOrLoadImageRect(imagePath)
-    wh = rect.wh * ctx.atlasSize.float32
+  let rect = ctx.getOrLoadImageRect(imagePath)
   ctx.drawUvRect(
     pos - size / 2,
     pos + size / 2,
@@ -505,6 +501,8 @@ proc clearMask*(ctx: Context) =
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+  ctx.usingMask = false
+
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
   assert ctx.frameBegun == true
@@ -516,8 +514,10 @@ proc beginMask*(ctx: Context) =
   glBindFramebuffer(GL_FRAMEBUFFER, ctx.maskFramebufferId)
   glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
-  glClearColor(0, 0, 0, 0.0)
-  glClear(GL_COLOR_BUFFER_BIT)
+  if not ctx.usingMask:
+    ctx.usingMask = true
+    glClearColor(0, 0, 0, 0)
+    glClear(GL_COLOR_BUFFER_BIT)
 
   ctx.activeShader = ctx.maskShader
 
@@ -545,9 +545,11 @@ proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
     ctx.maskTexture.width = frameSize.x.int32
     ctx.maskTexture.height = frameSize.y.int32
     bindTextureData(ctx.maskTexture.addr, nil)
-    ctx.clearMask()
 
   glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
+
+  ctx.usingMask = false
+  ctx.clearMask()
 
 proc beginFrame*(ctx: Context, frameSize: Vec2) =
   beginFrame(
