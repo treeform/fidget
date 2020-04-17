@@ -1,7 +1,7 @@
 import fidget
 
-loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
-loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.svg")
+loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.ttf")
 
 var
   textInputVar = ""
