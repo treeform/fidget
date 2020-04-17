@@ -1,5 +1,5 @@
-import buffers, chroma, flippy, opengl, os, shaders, strformat, strutils,
-    tables, textures, times, vmath
+import buffers, chroma, flippy, hashes, opengl, os, shaders, strformat,
+    strutils, tables, textures, times, vmath
 
 const
   quadLimit = 10_921
@@ -12,16 +12,16 @@ type
   Context* = ref object
     atlasShader, maskShader, activeShader: Shader
     atlasTexture, maskTexture: Texture
-    atlasSize: int                ## Size x size dimensions of the atlas
-    atlasMargin: int              ## Default margin between images
-    quadCount: int                ## Number of quads drawn so far
-    maxQuads: int                 ## Max quads to draw before issuing an OpenGL call
-    mat: Mat4                     ## Current matrix
-    mats: seq[Mat4]               ## Matrix stack
-    entries*: Table[string, Rect] ## Mapping of image name to atlas UV position
-    heights: seq[uint16]          ## Height map of the free space in the atlas
+    atlasSize: int              ## Size x size dimensions of the atlas
+    atlasMargin: int            ## Default margin between images
+    quadCount: int              ## Number of quads drawn so far
+    maxQuads: int               ## Max quads to draw before issuing an OpenGL call
+    mat: Mat4                   ## Current matrix
+    mats: seq[Mat4]             ## Matrix stack
+    entries*: Table[Hash, Rect] ## Mapping of image name to atlas UV position
+    heights: seq[uint16]        ## Height map of the free space in the atlas
     proj: Mat4
-    frameSize: Vec2               ## Dimensions of the window frame
+    frameSize: Vec2             ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
 
@@ -145,6 +145,12 @@ proc newContext*(
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+func `[]=`(t: var Table[Hash, Rect], key: string, rect: Rect) =
+  t[hash(key)] = rect
+
+func `[]`(t: var Table[Hash, Rect], key: string): Rect =
+  t[hash(key)]
+
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
   var imgWidth = width + ctx.atlasMargin * 2
   var imgHeight = height + ctx.atlasMargin * 2
@@ -183,7 +189,7 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
 
   return rect
 
-proc putImage*(ctx: Context, path: string, image: Image) =
+proc putImage*(ctx: Context, path: string | Hash, image: Image) =
   # Reminder: This does not set mipmaps (used for text, should it?)
   let rect = ctx.findEmptyRect(image.width, image.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
@@ -194,7 +200,7 @@ proc putImage*(ctx: Context, path: string, image: Image) =
     image
   )
 
-proc putFlippy*(ctx: Context, path: string, flippy: Flippy) =
+proc putFlippy*(ctx: Context, path: string | Hash, flippy: Flippy) =
   let rect = ctx.findEmptyRect(flippy.width, flippy.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
   var
@@ -315,31 +321,34 @@ proc drawUvRect(ctx: Context, rect, uvRect: Rect, color: Color) =
     color
   )
 
-proc getOrLoadImageRect(ctx: Context, imagePath: string): Rect =
-  if imagePath notin ctx.entries:
+proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
+  if imagePath is Hash:
+    return ctx.entries[imagePath]
+
+  let filePath = cast[string](imagePath) # We know it is a string
+  if hash(filePath) notin ctx.entries:
     # Need to load imagePath, check to see if the .flippy file is around
-    echo "[load] ", imagePath
-    if not fileExists(imagePath):
-      raise newException(Exception, &"Image '{imagePath}' not found")
-    let
-      flippyImagePath = imagePath.changeFileExt(".flippy")
-    if not existsFile(flippyImagePath):
+    echo "[load] ", filePath
+    if not fileExists(filePath):
+      raise newException(Exception, &"Image '{filePath}' not found")
+    let flippyFilePath = filePath.changeFileExt(".flippy")
+    if not existsFile(flippyFilePath):
       # No Flippy file generate new one
-      pngToFlippy(imagePath, flippyImagePath)
+      pngToFlippy(filePath, flippyFilePath)
     else:
       let
-        mtFlippy = getLastModificationTime(flippyImagePath).toUnix
-        mtImage = getLastModificationTime(imagePath).toUnix
+        mtFlippy = getLastModificationTime(flippyFilePath).toUnix
+        mtImage = getLastModificationTime(filePath).toUnix
       if mtFlippy < mtImage:
         # Flippy file too old, regenerate
-        pngToFlippy(imagePath, flippyImagePath)
-    var flippy = loadFlippy(flippyImagePath)
-    ctx.putFlippy(imagePath, flippy)
-  return ctx.entries[imagePath]
+        pngToFlippy(filePath, flippyFilePath)
+    var flippy = loadFlippy(flippyFilePath)
+    ctx.putFlippy(filePath, flippy)
+  return ctx.entries[filePath]
 
 proc drawImage*(
   ctx: Context,
-  imagePath: string,
+  imagePath: string | Hash,
   pos: Vec2 = vec2(0, 0),
   color = color(1, 1, 1, 1),
   scale = 1.0
@@ -352,7 +361,7 @@ proc drawImage*(
 
 proc drawImage*(
   ctx: Context,
-  imagePath: string,
+  imagePath: string | Hash,
   pos: Vec2 = vec2(0, 0),
   color = color(1, 1, 1, 1),
   size: Vec2
@@ -365,7 +374,7 @@ proc drawImage*(
 
 proc drawSprite*(
   ctx: Context,
-  imagePath: string,
+  imagePath: string | Hash,
   pos: Vec2 = vec2(0, 0),
   color = color(1, 1, 1, 1),
   scale = 1.0
@@ -384,7 +393,7 @@ proc drawSprite*(
 
 proc drawSprite*(
   ctx: Context,
-  imagePath: string,
+  imagePath: string | Hash,
   pos: Vec2 = vec2(0, 0),
   color = color(1, 1, 1, 1),
   size: Vec2
@@ -402,7 +411,7 @@ proc drawSprite*(
   )
 
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
-  const imgKey = "rect"
+  const imgKey = hash("rect")
   if imgKey notin ctx.entries:
     var image = newImage(4, 4, 4)
     image.fill(rgba(255, 255, 255, 255))
@@ -420,11 +429,17 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
 
 proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
   # TODO: Make this a 9 patch
+  const base = hash("roundedRect")
+  var hash: Hash
+  hash = hash !& hash(base)
+  hash = hash !& hash(rect.wh)
+  hash = hash !& hash(radius)
+  hash = !$hash
+
   let
-    imgKey = &"roundedRect:{rect.wh}:{radius}"
     w = ceil(rect.w).int
     h = ceil(rect.h).int
-  if imgKey notin ctx.entries:
+  if hash notin ctx.entries:
     var image = newImage(w, h, 4)
     image.fill(rgba(255, 255, 255, 0))
     image.fillRoundedRect(
@@ -432,10 +447,10 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
       radius,
       rgba(255, 255, 255, 255)
     )
-    ctx.putImage(imgKey, image)
+    ctx.putImage(hash, image)
 
   let
-    uvRect = ctx.entries[imgKey]
+    uvRect = ctx.entries[hash]
     wh = rect.wh * ctx.atlasSize.float32
   ctx.drawUvRect(
     rect.xy,
@@ -449,11 +464,18 @@ proc strokeRoundedRect*(
   ctx: Context, rect: Rect, color: Color, weight: float, radius: float
 ) =
   # TODO: Make this a 9 patch
+  const base = hash("roundedRect")
+  var hash: Hash
+  hash = hash !& hash(base)
+  hash = hash !& hash(rect.wh)
+  hash = hash !& hash(radius)
+  hash = hash !& hash(weight)
+  hash = !$hash
+
   let
-    imgKey = &"roundedRect:{rect.wh}:{radius}:{weight}"
     w = ceil(rect.w).int
     h = ceil(rect.h).int
-  if imgKey notin ctx.entries:
+  if hash notin ctx.entries:
     var image = newImage(w, h, 4)
     image.fill(rgba(255, 255, 255, 0))
     image.strokeRoundedRect(
@@ -462,9 +484,9 @@ proc strokeRoundedRect*(
       weight,
       rgba(255, 255, 255, 255)
     )
-    ctx.putImage(imgKey, image)
+    ctx.putImage(hash, image)
   let
-    uvRect = ctx.entries[imgKey]
+    uvRect = ctx.entries[hash]
     wh = rect.wh * ctx.atlasSize.float32
   ctx.drawUvRect(
     rect.xy,
