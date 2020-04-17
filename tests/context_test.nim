@@ -7,7 +7,6 @@ var
 
 var tests: seq[proc()]
 
-
 tests.add(proc() =
   ctx.beginFrame(vec2(100, 100))
   ctx.drawImage("bluestar.png")
@@ -92,7 +91,6 @@ tests.add(proc() =
   except:
     discard
 )
-
 
 tests.add(
   proc() =
