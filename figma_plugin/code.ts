@@ -139,7 +139,7 @@ function visit(node) {
           h = "hRight";
       var v = "vCenter";
       if (node.textAlignVertical == "TOP")
-          v = "hTop";
+          v = "vTop";
       if (node.textAlignVertical == "BOTTOM")
           v = "hBottom";
       text += ind() + `font ${fontFamily}, ${node.fontSize}, ${fontWeight}, ${lineHeight}, ${h}, ${v}\n`;
