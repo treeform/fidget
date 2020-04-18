@@ -41,12 +41,14 @@ proc drawText(group: Group) =
   let mousePos = mouse.pos - group.screenBox.xy
 
   # draw masked region
+  # TODO: mask should not be a text property
   ctx.beginMask()
   ctx.fillRect(
     rect(0, 0, group.screenBox.w, group.screenBox.h),
     rgba(255, 0, 0, 255).color
   )
   ctx.endMask()
+  defer: ctx.popMask()
 
   if current.editableText and
       mouse.down and
@@ -198,7 +200,7 @@ proc draw*(group: Group) =
     ), group.stroke, group.strokeWeight, group.cornerRadius[0])
 
   if group.imageName != "":
-    let path = &"data/{group.imageName}.png"
+    let path = &"data/{group.imageName}"
     ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
