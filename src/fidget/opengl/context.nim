@@ -501,7 +501,7 @@ proc strokeRoundedRect*(
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
-  assert ctx.frameBegun == true
+  assert ctx.frameBegun == true, "ctx.beginFrame has not been called."
 
   ctx.draw()
 
@@ -514,8 +514,8 @@ proc clearMask*(ctx: Context) =
 
 proc beginMask*(ctx: Context) =
   ## Starts drawing into a mask.
-  assert ctx.frameBegun == true
-  assert ctx.maskBegun == false
+  assert ctx.frameBegun == true, "ctx.beginFrame has not been called."
+  assert ctx.maskBegun == false, "ctx.beginMask has already been called."
   ctx.maskBegun = true
 
   ctx.draw()
@@ -535,7 +535,7 @@ proc beginMask*(ctx: Context) =
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
-  assert ctx.maskBegun == true
+  assert ctx.maskBegun == true , "ctx.maskBegun has not been called."
   ctx.maskBegun = false
 
   ctx.draw()
@@ -554,7 +554,7 @@ proc popMask*(ctx: Context) =
 
 proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
   ## Starts a new frame.
-  assert ctx.frameBegun == false
+  assert ctx.frameBegun == false, "ctx.beginFrame has already been called."
   ctx.frameBegun = true
 
   ctx.proj = proj
@@ -583,7 +583,9 @@ proc beginFrame*(ctx: Context, frameSize: Vec2) =
 
 proc endFrame*(ctx: Context) =
   ## Ends a frame.
-  assert ctx.frameBegun == true
+  assert ctx.frameBegun == true, "ctx.beginFrame was not called first."
+  assert ctx.maskTextureRead == 0, "Not all masks have been popped."
+  assert ctx.maskTextureWrite == 0 , "Not all masks have been popped."
   ctx.frameBegun = false
 
   ctx.draw()
