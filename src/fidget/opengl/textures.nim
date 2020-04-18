@@ -27,6 +27,7 @@ type
     minFilter*: MinFilter
     magFilter*: MagFilter
     wrapS*, wrapT*: Wrap
+    genMipmap: bool
     textureId*: GLuint
 
 proc bindTextureBufferData*(
@@ -74,7 +75,8 @@ proc bindTextureData*(texture: ptr Texture, data: pointer) =
   if texture.wrapT != wDefault:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
 
-  glGenerateMipmap(GL_TEXTURE_2D)
+  if texture.genMipmap:
+    glGenerateMipmap(GL_TEXTURE_2D)
 
 func getFormat(image: Image): GLenum =
   if image.channels == 4:
@@ -93,6 +95,7 @@ proc initTexture*(image: Image): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
+  result.genMipmap = true
   result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
   bindTextureData(result.addr, image.data[0].addr)
