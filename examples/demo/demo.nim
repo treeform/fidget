@@ -140,7 +140,7 @@ proc basicControls() =
     instance "arrow":
       box 80, 0, 20, 20
       constraints cMin, cMin
-      image "arrow"
+      image "arrow.png"
     text "text":
       box 0, 0, 80, 20
       constraints cMin, cMin

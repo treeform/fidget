@@ -1,4 +1,5 @@
-import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables, uibase, vmath
+import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables, uibase, vmath,
+  internal
 
 type
   PerfCounter* = object
@@ -88,7 +89,7 @@ type
     ideographicBaseline*: float
 
 proc measureText(
-  ctx: CanvasRenderingContext2D
+  ctx: CanvasRenderingContext2D,
   text: cstring
 ): TextMetrics {.importcpp.}
 
