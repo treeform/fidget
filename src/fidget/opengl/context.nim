@@ -566,7 +566,9 @@ proc beginFrame*(ctx: Context, frameSize: Vec2, proj: Mat4) =
     for i in 0 ..< ctx.maskTextures.len:
       ctx.maskTextures[i].width = frameSize.x.int32
       ctx.maskTextures[i].height = frameSize.y.int32
-      bindTextureData(ctx.maskTextures[i].addr, nil)
+      if i > 0:
+        # Never resize the 0th mask because its just white.
+        bindTextureData(ctx.maskTextures[i].addr, nil)
 
   glViewport(0, 0, ctx.frameSize.x.GLint, ctx.frameSize.y.GLint)
 
