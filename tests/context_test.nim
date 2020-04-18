@@ -60,15 +60,72 @@ tests.add(proc() =
 )
 
 tests.add(proc() =
-  ctx.beginFrame(vec2(100, 100))
-  ctx.drawImage("bluestar.png")
+  ctx.beginFrame(vec2(501, 281))
+
+  ctx.drawImage("winFrame.png")
   ctx.beginMask()
-  ctx.drawImage("bluestar.png")
+  ctx.drawImage("winFrameMask.png")
   ctx.endMask()
-  ctx.drawImage("bluestar.png", size = vec2(120, 120), color = color(1, 0, 0, 1))
+  for x in 0 .. 5:
+    for y in 0 .. 3:
+      ctx.drawImage(
+        "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
   ctx.endFrame()
 
-  takeScreenshot(rect(0, 0, 100, 100)).save("image_masking.png")
+  takeScreenshot(rect(0, 0, 501, 281)).save("masking.png")
+)
+
+tests.add(proc() =
+  ctx.beginFrame(vec2(501, 281))
+
+  ctx.drawImage("winFrame.png")
+  ctx.beginMask()
+  ctx.drawImage("winFrameMask.png")
+  ctx.endMask()
+
+  ctx.drawImage("winFrame.png", pos = vec2(60, 60))
+  ctx.beginMask()
+  ctx.drawImage("winFrameMask.png", pos = vec2(60, 60))
+  ctx.endMask()
+
+  ctx.drawImage("winFrame.png", pos = vec2(120, 120))
+  ctx.beginMask()
+  ctx.drawImage("winFrameMask.png", pos = vec2(120, 120))
+  ctx.endMask()
+
+  for x in 0 .. 5:
+    for y in 0 .. 3:
+      ctx.drawImage(
+        "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 501, 281)).save("multi_masking.png")
+)
+
+tests.add(proc() =
+  ctx.beginFrame(vec2(501, 281))
+
+  ctx.drawImage("winFrame.png")
+  ctx.beginMask()
+  ctx.drawImage("winFrameMask.png")
+  ctx.endMask()
+
+  for x in 0 .. 5:
+    for y in 0 .. 3:
+      ctx.drawImage(
+        "orangeHex.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+
+  ctx.popMask()
+
+  for x in 0 .. 5:
+    for y in 0 .. 3:
+      ctx.drawImage(
+        "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+
+  ctx.endFrame()
+
+  takeScreenshot(rect(0, 0, 501, 281)).save("multi_masking_pop.png")
 )
 
 tests.add(proc() =
@@ -132,20 +189,6 @@ tests.add(proc() =
     quit("Calling clearMask before beginFrame didn't fail as expected")
   except:
     discard
-)
-
-tests.add(proc() =
-  ctx.beginFrame(vec2(100, 100))
-  ctx.beginMask()
-  ctx.fillRect(rect(0, 0, 50, 50), color(0, 0, 0, 1))
-  ctx.endMask()
-  ctx.beginMask()
-  ctx.fillRect(rect(50, 50, 50, 50), color(0, 0, 0, 1))
-  ctx.endMask()
-  ctx.fillRect(rect(0, 0, 100, 100), color(0.5, 0.5, 0.5, 1))
-  ctx.endFrame()
-
-  takeScreenshot(rect(0, 0, 100, 100)).save("multiple_masks.png")
 )
 
 var i: int
