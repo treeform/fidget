@@ -38,10 +38,10 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
         current.idPath.add "."
       current.idPath.add g.id
 
-  if pathChecker.hasKey(current.idPath):
-    raise newException(ValueError, &"Duplicate id path `{current.idPath}` found.")
-  else:
-    pathChecker[current.idPath] = true
+  # if pathChecker.hasKey(current.idPath):
+  #   raise newException(ValueError, &"Duplicate id path `{current.idPath}` found.")
+  # else:
+  #   pathChecker[current.idPath] = true
 
   block:
     inner

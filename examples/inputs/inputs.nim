@@ -18,7 +18,7 @@ proc drawMain() =
       fill "#000000"
       font "IBM Plex Sans Regular", 16.0, 400.0, 15, hLeft, vTop
       if beEdit:
-        placeholder "[Enabled, type here]"
+        #placeholder "[Enabled, type here]"
         binding textValue
       else:
         characters "[Please enabled]"
