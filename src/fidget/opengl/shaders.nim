@@ -287,11 +287,7 @@ proc raiseUniformKindException(name: string, kind: BufferKind) =
     &"Uniform \"{name}\" is of unexpected kind {kind}"
   )
 
-proc setUniform*(
-  shader: Shader,
-  name: string,
-  args: varargs[int32]
-) =
+proc setUniform*(shader: Shader, name: string, args: varargs[int32]) =
   var values: array[16, float32]
   for i in 0 ..< min(len(args), 16):
     values[i] = args[i].float32
@@ -311,11 +307,7 @@ proc setUniform*(
 
   shader.setUniform(name, cGL_INT, kind, values)
 
-proc setUniform*(
-  shader: Shader,
-  name: string,
-  args: varargs[float32]
-) =
+proc setUniform*(shader: Shader, name: string, args: varargs[float32]) =
   var values: array[16, float32]
   for i in 0 ..< min(len(args), 16):
     values[i] = args[i]
@@ -335,22 +327,14 @@ proc setUniform*(
 
   shader.setUniform(name, cGL_FLOAT, kind, values)
 
-proc setUniform*(
-  shader: Shader,
-  name: string,
-  v: Vec3
-) =
+proc setUniform*(shader: Shader, name: string, v: Vec3) =
   var values: array[16, float32]
   values[0] = v.x
   values[1] = v.y
   values[2] = v.z
   shader.setUniform(name, cGL_FLOAT, bkVEC3, values)
 
-proc setUniform*(
-  shader: Shader,
-  name: string,
-  v: Vec4
-) =
+proc setUniform*(shader: Shader, name: string, v: Vec4) =
   var values: array[16, float32]
   values[0] = v.x
   values[1] = v.y
@@ -358,12 +342,13 @@ proc setUniform*(
   values[3] = v.w
   shader.setUniform(name, cGL_FLOAT, bkVEC4, values)
 
-proc setUniform*(
-  shader: Shader,
-  name: string,
-  m: Mat4
-) =
+proc setUniform*(shader: Shader, name: string, m: Mat4) =
   shader.setUniform(name, cGL_FLOAT, bkMAT4, m)
+
+proc setUniform*(shader: Shader, name: string, b: bool) =
+  var values: array[16, float32]
+  values[0] = b.float32
+  shader.setUniform(name, cGL_INT, bkSCALAR, values)
 
 proc bindUniforms*(shader: Shader) =
   for uniform in shader.uniforms.mitems:
