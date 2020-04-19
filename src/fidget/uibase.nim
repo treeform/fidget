@@ -95,18 +95,17 @@ type
     NSResize
 
   Mouse* = ref object
-    state: KeyState
-    pos*: Vec2
-    button*: int                   # Mouse button number
-    click*: bool                   # Mouse button just got held down
-    rightClick*: bool              # Mouse right click
-    down*: bool                    # Mouse button is held down
+    #state*: KeyState
+    pos*, delta*, prevPos*: Vec2
+    wheelDelta*: float
+    click*: bool                   # Any mouse button just got held down
+    down*: bool                    # Any mouse button is held down
     cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
 
   Keyboard* = ref object
     state*: KeyState
-    keyCode*: int
-    scanCode*: int
+    # keyCode*: int
+    # scanCode*: int
     keyString*: string
     altKey*: bool
     ctrlKey*: bool
@@ -156,14 +155,14 @@ proc setupRoot*() =
 
 func consume*(keyboard: Keyboard) =
   ## Reset the keyboard state consuming any event information.
-  keyboard.state = Empty
-  keyboard.keyCode = 0
-  keyboard.scanCode = 0
-  keyboard.keyString = ""
-  keyboard.altKey = false
-  keyboard.ctrlKey = false
-  keyboard.shiftKey = false
-  keyboard.superKey = false
+  # keyboard.state = Empty
+  # keyboard.keyCode = 0
+  # keyboard.scanCode = 0
+  # keyboard.keyString = ""
+  # keyboard.altKey = false
+  # keyboard.ctrlKey = false
+  # keyboard.shiftKey = false
+  # keyboard.superKey = false
 
 func consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.

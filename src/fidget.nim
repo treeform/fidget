@@ -1,6 +1,7 @@
-import chroma, fidget/uibase, json, macros, strutils, tables, vmath
+import chroma, fidget/uibase, json, macros, strutils, tables, vmath,
+    fidget/input
 
-export chroma, uibase
+export chroma, uibase, input
 
 when defined(js):
   import fidget/htmlbackend
@@ -150,6 +151,7 @@ template onFocus*(inner: untyped) =
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an input element.
   if keyboard.inputFocusIdPath != current.idPath and
+      ## BUG? should be prevInputFocusIdPath?
       keyboard.inputFocusIdPath == current.idPath:
     inner
 
@@ -369,6 +371,10 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
   editableText true
+  # onClick:
+  #   keyboard.focus(current.idPath)
+  # onClickOutside:
+  #   keyboard.unFocus(current.idPath)
   onInput:
     stringVariable = keyboard.input
     refresh()

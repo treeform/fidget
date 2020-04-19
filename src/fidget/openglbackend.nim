@@ -1,4 +1,4 @@
-import chroma, hashes, internal, opengl/base, opengl/context, opengl/input,
+import chroma, hashes, internal, opengl/base, opengl/context, input,
     strformat, strutils, tables, times, typography, typography/textboxes,
     uibase, vmath
 
@@ -239,7 +239,7 @@ proc setupFidget(
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
     ctx.beginFrame(windowFrame)
     ctx.saveTransform()
-    mouse.pos = mousePos / pixelRatio
+    mouse.pos = mouse.pos / pixelRatio
 
     drawMain()
 

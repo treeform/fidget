@@ -1,5 +1,5 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables, uibase, vmath,
-  internal
+  internal, input, print
 
 type
   PerfCounter* = object
@@ -439,6 +439,7 @@ proc drawFinish() =
   keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
 
 proc hardRedraw() =
+  print "hardRedraw"
   if rootDomNode == nil: # check if we have loaded
     return
 
@@ -457,15 +458,15 @@ proc refresh*() =
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
 
-proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
-  keyboard.state = state
-  keyboard.keyCode = event.keyCode
-  var keyString: cstring
-  asm """`keyString` = `event`.key"""
-  keyboard.keyString = $keyString
-  keyboard.altKey = event.altKey
-  keyboard.ctrlKey = event.ctrlKey
-  keyboard.shiftKey = event.shiftKey
+# proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
+#   keyboard.state = state
+#   #keyboard.keyCode = event.keyCode
+#   var keyString: cstring
+#   asm """`keyString` = `event`.key"""
+#   keyboard.keyString = $keyString
+#   keyboard.altKey = event.altKey
+#   keyboard.ctrlKey = event.ctrlKey
+#   keyboard.shiftKey = event.shiftKey
 
 proc startFidget*(draw: proc()) =
   ## Start the HTML backend
@@ -492,18 +493,26 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
     let event = cast[MouseEvent](event)
-    mouse.button = event.button
+    let key = mouseButtonToButton[event.button]
+    buttonPress[key] = true
+    buttonDown[key] = true
     mouse.pos.x = float event.pageX
     mouse.pos.y = float event.pageY
     mouse.click = true
     mouse.down = true
+    # BUG? should this be refresh()
     hardRedraw()
     mouse.click = false
 
+
   dom.window.addEventListener "mouseup", proc(event: Event) =
     ## When mouse button is released
-    refresh()
+    let event = cast[MouseEvent](event)
+    let key = mouseButtonToButton[event.button]
+    buttonDown[key] = false
+    buttonRelease[key] = true
     mouse.down = false
+    refresh()
 
   dom.window.addEventListener "mousemove", proc(event: Event) =
     # When mouse moves
@@ -514,9 +523,14 @@ proc startFidget*(draw: proc()) =
 
   dom.window.addEventListener "keydown", proc(event: Event) =
     ## When keyboards key is pressed down
-    ## Used together with keyup for continuous things like scroll or games
+    ## Used together with key up for continuous things like scroll or games
     let event = cast[KeyboardEvent](event)
-    keyboard.set(Down, event)
+    #keyboard.set(Down, event)
+    keyboard.state = KeyState.Down
+    let key = keyCodeToButton[event.keyCode]
+    buttonToggle[key] = not buttonToggle[key]
+    buttonPress[key] = true
+    buttonDown[key] = true
     hardRedraw()
     if keyboard.state != Empty:
       keyboard.consume()
@@ -527,7 +541,10 @@ proc startFidget*(draw: proc()) =
     ## When keyboards key is pressed down
     ## Used together with keydown
     let event = cast[KeyboardEvent](event)
-    keyboard.set(Up, event)
+    let key = keyCodeToButton[event.keyCode]
+    buttonDown[key] = false
+    buttonRelease[key] = true
+    keyboard.state = KeyState.Up
     hardRedraw()
     if keyboard.state != Empty:
       keyboard.consume()
@@ -562,12 +579,18 @@ proc startFidget*(draw: proc()) =
     ## When INPUT element gets focus this is called, set the keyboard.input and
     ## the keyboard.inputFocusId
     ## Note: "focus" does not bubble, so its not used here.
+    print "focusin"
     if document.activeElement.isTextTag:
+      print "here"
       let activeTextElement = cast[TextAreaElement](document.activeElement)
       keyboard.input = $(activeTextElement.value)
       keyboard.inputFocusIdPath = $document.activeElement.id
       keyboard.textCursor = activeTextElement.selectionStart
       keyboard.selectionCursor = activeTextElement.selectionEnd
+      print keyboard.input
+      print keyboard.inputFocusIdPath
+      print keyboard.textCursor
+      print keyboard.selectionCursor
       refresh()
 
   dom.window.addEventListener "focusout", proc(event: Event) =
@@ -578,6 +601,7 @@ proc startFidget*(draw: proc()) =
     # redraw everything to sync up the bind(string)
     refresh()
 
+    print "ooop"
     keyboard.input = ""
     keyboard.inputFocusIdPath = ""
     refresh()
@@ -644,3 +668,24 @@ proc loadGoogleFontUrl*(url: string) =
   link.setAttribute("href", url)
   link.setAttribute("rel", "stylesheet")
   document.head.appendChild(link)
+
+# proc focus*(keyboard: Keyboard, idPath: string) =
+#   # keyboard.input = $(activeTextElement.value)
+#   # keyboard.inputFocusIdPath = $document.activeElement.id
+#   # keyboard.textCursor = activeTextElement.selectionStart
+#   # keyboard.selectionCursor = activeTextElement.selectionEnd
+
+#   discard # Focus is done through HTML events.
+#   # if keyboard.inputFocusIdPath != idPath:
+#   #   echo "set focus: ", idPath
+#   #   keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
+#   #   keyboard.inputFocusIdPath = idPath
+#   #   refresh()
+
+# proc unFocus*(keyboard: Keyboard, idPath: string) =
+#   discard # UnFocus is done through HTML events.
+#   # if keyboard.inputFocusIdPath == current.idPath:
+#   #   echo "loose focus: ", current.idPath
+#   #   keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
+#   #   keyboard.inputFocusIdPath = ""
+#   #   refresh()
