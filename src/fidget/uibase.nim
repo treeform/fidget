@@ -1,4 +1,4 @@
-import chroma, vmath
+import chroma, vmath, tables
 
 when not defined(js):
   import typography/textboxes
@@ -136,6 +136,9 @@ var
   windowSize*: Vec2    # Screen coordinates
   windowFrame*: Vec2   # Pixel coordinates
   pixelRatio*: float   # Multiplier to convert from screen coords to pixels
+
+  # Used to check for duplicate ID paths.
+  pathChecker*: Table[string, bool]
 
 when not defined(js):
   var textBox*: TextBox

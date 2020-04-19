@@ -226,6 +226,8 @@ proc setupFidget(
   base.drawFrame = proc() =
     setupRoot()
 
+    pathChecker.clear()
+
     root.box.x = float 0
     root.box.y = float 0
     root.box.w = windowSize.x

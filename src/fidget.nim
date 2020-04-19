@@ -1,5 +1,5 @@
 import chroma, fidget/uibase, json, macros, strutils, tables, vmath,
-    fidget/input
+    fidget/input, strformat
 
 export chroma, uibase, input
 
@@ -35,8 +35,13 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   for g in groupStack:
     if g.id != "":
       if current.idPath.len > 0:
-        current.idPath.add "-"
+        current.idPath.add "."
       current.idPath.add g.id
+
+  if pathChecker.hasKey(current.idPath):
+    raise newException(ValueError, &"Duplicate id path `{current.idPath}` found.")
+  else:
+    pathChecker[current.idPath] = true
 
   #TODO: figure out if function wrap is good?
   # function wrap is needed for JS, but bad for non JS?

@@ -18,11 +18,11 @@ proc drawMain() =
 
     box 0, 0, int root.box.w, max(int root.box.h, h)
 
-    group "bg":
+    group "bg1":
       box 0, 0, 200, 500
       fill "#F8F8F8"
 
-    group "bg":
+    group "bg2":
       box 300, 0, 200, 40
       fill "#F8F8F8"
     text "singleLineBox":
@@ -36,7 +36,7 @@ proc drawMain() =
       placeholder "This is an input"
       binding singleLineValue
 
-    group "bg":
+    group "bg3":
       box 300, 60, 200, 100
       fill "#F8F8F8"
     text "multiLineBox":
@@ -52,7 +52,7 @@ proc drawMain() =
       binding multiLineValue
 
 
-    group "bg":
+    group "bg4":
       box 300, 300, 400, 40
       fill "#F8E8E8"
     text "singleLineOut":
@@ -61,7 +61,7 @@ proc drawMain() =
       textAlign hLeft, vTop
       characters singleLineValue
 
-    group "bg":
+    group "bg5":
       box 300, 360, 400, 100
       fill "#F8E8E8"
     text "multiLineOut":
@@ -71,7 +71,7 @@ proc drawMain() =
       multiline true
       characters multiLineValue
 
-    group "bg":
+    group "bg6":
       box 300, 480, 400, 40
       fill "#F8E8E8"
     text "inputFocusIdPath":

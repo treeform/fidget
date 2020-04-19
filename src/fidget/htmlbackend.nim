@@ -18,6 +18,10 @@ var
 
   perf*: PerfCounter
 
+  var
+  # Used to check for duplicate ID paths.
+  pathChecker: Table[string, bool]
+
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -354,6 +358,7 @@ proc drawStart() =
   startTime = dom.window.performance.now()
   numGroups = 0
   perf.numLowLevelCalls = 0
+  pathChecker.clear()
 
   pixelRatio = dom.window.devicePixelRatio
   windowSize.x = float dom.window.innerWidth
