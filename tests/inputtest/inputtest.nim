@@ -53,23 +53,32 @@ proc drawMain() =
 
 
     group "bg":
-      box 300, 300, 200, 40
+      box 300, 300, 400, 40
       fill "#F8E8E8"
     text "singleLineOut":
-      box 300, 300, 200, 40
+      box 300, 300, 400, 40
       fill "#000000"
       textAlign hLeft, vTop
       characters singleLineValue
 
     group "bg":
-      box 300, 360, 200, 100
+      box 300, 360, 400, 100
       fill "#F8E8E8"
     text "multiLineOut":
-      box 300, 360, 200, 100
+      box 300, 360, 400, 100
       fill "#000000"
       textAlign hLeft, vTop
       multiline true
       characters multiLineValue
+
+    group "bg":
+      box 300, 480, 400, 40
+      fill "#F8E8E8"
+    text "inputFocusIdPath":
+      box 300, 480, 400, 40
+      fill "#000000"
+      textAlign hLeft, vTop
+      characters keyboard.inputFocusIdPath
 
     var y: int
     for button in Button:
