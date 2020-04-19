@@ -318,6 +318,8 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
 
   window.makeContextCurrent()
 
+  swapInterval(1)
+
   # Load OpenGL
   loadExtensions()
 
