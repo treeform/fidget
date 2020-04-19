@@ -151,7 +151,6 @@ proc `[]`*(buttons: seq[bool], button: Button): bool =
 proc `[]=`*(buttons: var seq[bool], button: Button, value: bool) =
   buttons[cast[int](button)] = value
 
-
 when defined(js):
   import tables
 

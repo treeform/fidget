@@ -43,11 +43,6 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
   else:
     pathChecker[current.idPath] = true
 
-  #TODO: figure out if function wrap is good?
-  # function wrap is needed for JS, but bad for non JS?
-  # var innerFn = proc() =
-  #   inner
-  # innerFn()
   block:
     inner
 
@@ -110,7 +105,7 @@ template onClickOutside*(inner: untyped) =
 
 template onRightClick*(inner: untyped) =
   ## OnClick event handler.
-  if mouse.rightClick and mouseOverlapLogic():
+  if buttonPress[MOUSE_RIGHT] and mouseOverlapLogic():
     inner
 
 template onKey*(inner: untyped) =
@@ -134,6 +129,8 @@ proc hasKeyboardFocus*(group: Group): bool =
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus.
+  if not current.bindingSet:
+    raise newException(ValueError, "Binding not set, must be called after.")
   if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
@@ -149,15 +146,18 @@ template onDown*(inner: untyped) =
 
 template onFocus*(inner: untyped) =
   ## On focusing an input element.
+  if not current.bindingSet:
+    raise newException(ValueError, "Binding not set, must be called after.")
   if keyboard.inputFocusIdPath == current.idPath and
       keyboard.prevInputFocusIdPath != current.idPath:
     inner
 
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an input element.
+  if not current.bindingSet:
+    raise newException(ValueError, "Binding not set, must be called after.")
   if keyboard.inputFocusIdPath != current.idPath and
-      ## BUG? should be prevInputFocusIdPath?
-      keyboard.inputFocusIdPath == current.idPath:
+      keyboard.prevInputFocusIdPath == current.idPath:
     inner
 
 proc id*(id: string) =
@@ -209,10 +209,6 @@ proc characters*(text: string) =
     current.text = text
   else:
     current.text &= text
-
-proc placeholder*(text: string) =
-  ## Adds placeholder text to the group.
-  current.placeholder = text
 
 proc image*(imageName: string) =
   ## Adds text to the group.
@@ -375,15 +371,20 @@ proc constraints*(vCon: Contraints, hCon: Contraints) =
 
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
+  if current.bindingSet:
+    raise newException(ValueError, "Binding already set.")
+  current.bindingSet = true
+
   editableText true
-  # onClick:
-  #   keyboard.focus(current.idPath)
-  # onClickOutside:
-  #   keyboard.unFocus(current.idPath)
-  onInput:
-    stringVariable = keyboard.input
-    refresh()
   characters stringVariable
+  onClick:
+    keyboard.focus(current)
+  onClickOutside:
+    keyboard.unFocus(current)
+  onInput:
+    if stringVariable != keyboard.input:
+      stringVariable = keyboard.input
+      refresh()
 
 template override*(name: string, inner: untyped) =
   template `name`(): untyped =

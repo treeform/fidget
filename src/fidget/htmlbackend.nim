@@ -18,16 +18,20 @@ var
 
   perf*: PerfCounter
 
-  var
-  # Used to check for duplicate ID paths.
-  pathChecker: Table[string, bool]
-
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
   if result == "":
     result = color.toHtmlRgba()
     colorCache[color] = result
+
+proc focus*(keyboard: Keyboard, group: Group) =
+  ## uses JS events
+  discard
+
+proc unFocus*(keyboard: Keyboard, group: Group) =
+  ## uses JS events
+  discard
 
 proc removeAllChildren(dom: Node) =
   while dom.firstChild != nil:
@@ -258,11 +262,6 @@ proc drawDiff(current: Group) =
     else:
       dom.style.backgroundImage = ""
 
-  # check placeholder (gray text that appears inside when no text)
-  if old.placeholder != current.placeholder:
-    old.placeholder = current.placeholder
-    dom.setAttribute("placeholder", current.placeholder)
-
   if current.textPadding != old.textPadding:
     old.textPadding = current.textPadding
     dom.style.padding = $current.textPadding & "px"
@@ -440,8 +439,7 @@ proc drawFinish() =
       of NSResize:
         rootDomNode.style.cursor = "ns-resize"
 
-  # Used for onFocus/onUnFocus.
-  keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
+  clearInputs()
 
 proc hardRedraw() =
   if rootDomNode == nil: # check if we have loaded
@@ -487,17 +485,11 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
     let event = cast[MouseEvent](event)
-    if keyboard.inputFocusIdPath == "":
-      let key = mouseButtonToButton[event.button]
-      buttonPress[key] = true
-      buttonDown[key] = true
-      mouse.pos.x = float event.pageX
-      mouse.pos.y = float event.pageY
-      mouse.click = true
-      mouse.down = true
-      # BUG? should this be refresh()
-      hardRedraw()
-      mouse.click = false
+    let key = mouseButtonToButton[event.button]
+    buttonPress[key] = true
+    buttonDown[key] = true
+    refresh()
+
 
 
   dom.window.addEventListener "mouseup", proc(event: Event) =
@@ -506,7 +498,6 @@ proc startFidget*(draw: proc()) =
     let key = mouseButtonToButton[event.button]
     buttonDown[key] = false
     buttonRelease[key] = true
-    mouse.down = false
     refresh()
 
   dom.window.addEventListener "mousemove", proc(event: Event) =

@@ -26,6 +26,27 @@ func vAlignMode(align: VAlign): VAlignMode =
     of vCenter: Middle
     of vBottom: Bottom
 
+proc refresh*() =
+  ## Request the screen be redrawn
+  requestedFrame = true
+
+proc focus*(keyboard: Keyboard, group: Group) =
+  if group.editableText and keyboard.inputFocusIdPath != group.idPath:
+    keyboard.inputFocusIdPath = group.idPath
+    keyboard.input = group.text
+    textBox = newTextBox(
+      fonts[group.textStyle.fontFamily],
+      int group.screenBox.w,
+      int group.screenBox.w,
+      group.text,
+      group.multiline
+    )
+    refresh()
+
+proc unFocus*(keyboard: Keyboard, group: Group) =
+  if keyboard.inputFocusIdPath == group.idPath:
+    keyboard.inputFocusIdPath = ""
+
 proc drawText(group: Group) =
   if group.textStyle.fontFamily notin fonts:
     quit &"font not found: {group.textStyle.fontFamily}"
@@ -36,7 +57,6 @@ proc drawText(group: Group) =
 
   if font.lineHeight == 0:
     font.lineHeight = font.size
-  #print group.textStyle.lineHeight
 
   let mousePos = mouse.pos - group.screenBox.xy
 
@@ -53,15 +73,6 @@ proc drawText(group: Group) =
   if current.editableText and
       mouse.down and
       mouse.pos.inside(current.screenBox):
-    if mouse.click and keyboard.inputFocusIdPath != group.idPath:
-      keyboard.inputFocusIdPath = group.idPath
-      textBox = newTextBox(
-        font,
-        int group.screenBox.w,
-        int group.screenBox.w,
-        group.text,
-        current.multiline
-      )
     # mouse actions click, drag, double clicking
     if mouse.click:
       if epochTime() - lastClickTime < 0.5:
@@ -71,13 +82,13 @@ proc drawText(group: Group) =
       lastClickTime = epochTime()
       if multiClick == 1:
         textBox.selectWord(mousePos)
-        mouse.down = false
+        buttonDown[MOUSE_LEFT] = false
       elif multiClick == 2:
         textBox.selectParagraph(mousePos)
-        mouse.down = false
+        buttonDown[MOUSE_LEFT] = false
       elif multiClick == 3:
         textBox.selectAll()
-        mouse.down = false
+        buttonDown[MOUSE_LEFT] = false
       else:
         textBox.mouseAction(mousePos, click = true, keyboard.shiftKey)
 
@@ -85,7 +96,7 @@ proc drawText(group: Group) =
       mouse.down and
       not mouse.click and
       keyboard.inputFocusIdPath == group.idPath:
-    # draggin the mouse
+    # Dragging the mouse:
     textBox.mouseAction(mousePos, click = false, keyboard.shiftKey)
 
   let editing = keyboard.inputFocusIdPath == group.idPath
@@ -97,24 +108,19 @@ proc drawText(group: Group) =
     layout = textBox.layout
     ctx.saveTransform()
     ctx.translate(-textBox.scroll)
-
     for rect in textBox.selectionRegions():
       ctx.fillRect(rect, group.highlightColor)
-
-  if layout.len == 0:
-    var text = group.text
-    if text == "" and group.placeholder.len > 0:
-      text = group.placeholder
+  else:
     layout = font.typeset(
-      text,
-      pos = vec2(0, -1), #group.screenBox.xy,
+      group.text,
+      pos = vec2(0, 0),
       size = group.screenBox.wh,
       hAlignMode(group.textStyle.textAlignHorizontal),
       vAlignMode(group.textStyle.textAlignVertical)
     )
 
   # draw characters
-  for glphyIdx, pos in layout:
+  for glyphIdx, pos in layout:
     if pos.character notin font.glyphs:
       continue
 
@@ -204,10 +210,6 @@ proc draw*(group: Group) =
     ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
-
-proc refresh*() =
-  ## Request the screen be redrawn
-  requestedFrame = true
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser

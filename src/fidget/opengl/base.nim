@@ -78,14 +78,7 @@ proc preTick() =
   mouse.prevPos = mouse.pos
 
 proc postTick() =
-  mouse.wheelDelta = 0
-  mouse.click = false
-  #mouse.rightClick = false
-
-  # Reset key and mouse press to default state
-  for i in 0..<buttonPress.len:
-    buttonPress[i] = false
-    buttonRelease[i] = false
+  clearInputs()
 
   tpsTimeSeries.addTime()
   tps = float64(tpsTimeSeries.num())
@@ -126,12 +119,13 @@ proc updateLoop*(poll = true) =
         # Only repaint when necessary
         sleep(16)
         return
+      requestedFrame = false
       preTick()
       if tickMain != nil:
         tickMain()
       drawAndSwap()
       postTick()
-      requestedFrame = false
+
 
     of RepaintOnFrame:
       if poll:
@@ -267,11 +261,6 @@ proc onMouseButton(
   let
     setKey = action != 0
     button = button + 1 # Fidget mouse buttons are +1 from staticglfw
-  mouse.down = setKey
-  if button == 1 and setKey:
-    mouse.click = true
-  #if button == 2 and setKey:
-  #  mouse.rightClick = true
   if button < buttonDown.len:
     if buttonDown[button] == false and setKey == true:
       buttonPress[button] = true
