@@ -109,7 +109,7 @@ proc drawMain() =
           constraints cScale, cScale
           fill "#000000", 0.20000000298023224
           font "IBM Plex Sans Regular", 16, 200, 0, hCenter, vCenter
-          placeholder "add new item..."
+          #placeholder "add new item..."
           binding newItem
 
 startFidget(drawMain)

@@ -5,9 +5,9 @@ var
   lineH = 14.0
 
 when defined(js):
-  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
 else:
-  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
+  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.svg")
 
 proc drawMain() =
 
