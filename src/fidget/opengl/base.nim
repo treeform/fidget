@@ -1,4 +1,4 @@
-import ../internal, ../uibase, chroma, flippy, input, opengl, os, perf,
+import ../internal, ../uibase, chroma, flippy, ../input, opengl, os, perf,
     staticglfw, times, typography/textboxes, unicode, vmath
 
 when defined(glDebugMessageCallback):
@@ -28,7 +28,7 @@ const
 
 var
   window: staticglfw.Window
-  loopMode: MainLoopMode
+  loopMode*: MainLoopMode
   dpi*: float32
   drawFrame*: proc()
   running*, focused*, minimized*: bool
@@ -72,20 +72,13 @@ proc preTick() =
   ## Does input and output operations.
   var x, y: float64
   window.getCursorPos(addr x, addr y)
-  mousePos = vec2(x, y)
-  mousePos *= pixelRatio
-  mouseDelta = mousePos - mousePosPrev
-  mousePosPrev = mousePos
+  mouse.pos = vec2(x, y)
+  mouse.pos *= pixelRatio
+  mouse.delta = mouse.pos - mouse.prevPos
+  mouse.prevPos = mouse.pos
 
 proc postTick() =
-  mouseWheelDelta = 0
-  mouse.click = false
-  mouse.rightClick = false
-
-  # Reset key and mouse press to default state
-  for i in 0..<buttonPress.len:
-    buttonPress[i] = false
-    buttonRelease[i] = false
+  clearInputs()
 
   tpsTimeSeries.addTime()
   tps = float64(tpsTimeSeries.num())
@@ -126,12 +119,13 @@ proc updateLoop*(poll = true) =
         # Only repaint when necessary
         sleep(16)
         return
+      requestedFrame = false
       preTick()
       if tickMain != nil:
         tickMain()
       drawAndSwap()
       postTick()
-      requestedFrame = false
+
 
     of RepaintOnFrame:
       if poll:
@@ -187,6 +181,7 @@ proc onSetKey(
 ) {.cdecl.} =
   requestedFrame = true
   let setKey = action != RELEASE
+
   keyboard.altKey = setKey and ((modifiers and MOD_ALT) != 0)
   keyboard.ctrlKey = setKey and
     ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
@@ -257,7 +252,7 @@ proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
   if keyboard.inputFocusIdPath != "":
     textBox.scrollBy(-yoffset * 50)
   else:
-    mouseWheelDelta += yoffset
+    mouse.wheelDelta += yoffset
 
 proc onMouseButton(
   window: staticglfw.Window, button, action, modifiers: cint
@@ -266,11 +261,6 @@ proc onMouseButton(
   let
     setKey = action != 0
     button = button + 1 # Fidget mouse buttons are +1 from staticglfw
-  mouse.down = setKey
-  if button == 1 and setKey:
-    mouse.click = true
-  if button == 2 and setKey:
-    mouse.rightClick = true
   if button < buttonDown.len:
     if buttonDown[button] == false and setKey == true:
       buttonPress[button] = true

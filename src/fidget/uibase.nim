@@ -1,4 +1,4 @@
-import chroma, vmath
+import chroma, vmath, tables, input
 
 when not defined(js):
   import typography/textboxes
@@ -54,7 +54,6 @@ type
     idPath*: string
     kind*: string
     text*: string
-    placeholder*: string
     code*: string
     kids*: seq[Group]
     box*: Rect
@@ -76,6 +75,7 @@ type
     wasDrawn*: bool # Was group drawn or still needs to be drawn
     editableText*: bool
     multiline*: bool
+    bindingSet*: bool
     drawable*: bool
     cursorColor*: Color
     highlightColor*: Color
@@ -95,18 +95,15 @@ type
     NSResize
 
   Mouse* = ref object
-    state: KeyState
-    pos*: Vec2
-    button*: int                   # Mouse button number
-    click*: bool                   # Mouse button just got held down
-    rightClick*: bool              # Mouse right click
-    down*: bool                    # Mouse button is held down
+    #state*: KeyState
+    pos*, delta*, prevPos*: Vec2
+    wheelDelta*: float
     cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
 
   Keyboard* = ref object
     state*: KeyState
-    keyCode*: int
-    scanCode*: int
+    # keyCode*: int
+    # scanCode*: int
     keyString*: string
     altKey*: bool
     ctrlKey*: bool
@@ -138,6 +135,9 @@ var
   windowFrame*: Vec2   # Pixel coordinates
   pixelRatio*: float   # Multiplier to convert from screen coords to pixels
 
+  # Used to check for duplicate ID paths.
+  pathChecker*: Table[string, bool]
+
 when not defined(js):
   var textBox*: TextBox
 
@@ -154,17 +154,32 @@ proc setupRoot*() =
   root.highlightColor = rgba(0, 0, 0, 20).color
   root.cursorColor = rgba(0, 0, 0, 255).color
 
-func consume*(keyboard: Keyboard) =
+proc clearInputs*() =
+  # Used for onFocus/onUnFocus.
+  keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
+
+  mouse.wheelDelta = 0
+
+  # Reset key and mouse press to default state
+  for i in 0 ..< buttonPress.len:
+    buttonPress[i] = false
+    buttonRelease[i] = false
+
+proc click*(mouse: Mouse): bool =
+  buttonPress[MOUSE_LEFT]
+
+proc down*(mouse: Mouse): bool =
+  buttonDown[MOUSE_LEFT]
+
+proc consume*(keyboard: Keyboard) =
   ## Reset the keyboard state consuming any event information.
   keyboard.state = Empty
-  keyboard.keyCode = 0
-  keyboard.scanCode = 0
   keyboard.keyString = ""
   keyboard.altKey = false
   keyboard.ctrlKey = false
   keyboard.shiftKey = false
   keyboard.superKey = false
 
-func consume*(mouse: Mouse) =
+proc consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.
-  mouse.click = false
+  buttonPress[MOUSE_LEFT] = false

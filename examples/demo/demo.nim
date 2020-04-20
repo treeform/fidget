@@ -327,14 +327,19 @@ proc basicControls() =
       box 9, 8, 232, 15
       constraints cMin, cMin
       highlightColor "#E5F7FE"
-      if textInputVar.len == 0:
-        fill "#72bdd0", 0.5
-      else:
-        fill "#46607e"
+      fill "#46607e"
       strokeWeight 1
       font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
-      placeholder "Start typing here"
       binding textInputVar
+    text "textPlaceholder":
+      box 9, 8, 232, 15
+      constraints cMin, cMin
+      highlightColor "#E5F7FE"
+      fill "#72bdd0", 0.5
+      strokeWeight 1
+      font "IBM Plex Sans Regular", 12, 200, 0, hLeft, vCenter
+      if textInputVar == "":
+        characters "Start typing here"
   group "label":
     box 150, 15, 100, 30
     text "Text field:":
