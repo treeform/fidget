@@ -112,15 +112,6 @@ proc drawMain() =
                 if editingArea == area:
                   editingArea = nil
 
-              onKey:
-                if editingArea == area:
-                  if keyboard.keyCode == 13:
-                    area.queryCode.add "\n"
-                  else:
-                    area.queryCode.add keyboard.keyString
-                  print area.queryCode
-                  keyboard.consume()
-
           group "resultsOutput":
             box 0, innerAtY, width, area.heightOuput
             rectangle "#FFFFFF"

@@ -5,9 +5,9 @@ var
   lineH = 14.0
 
 when defined(js):
-  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
+  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
 else:
-  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
+  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.svg")
 
 proc drawMain() =
 
@@ -18,17 +18,17 @@ proc drawMain() =
   let h = 1000
   frame "main":
 
-    onKeyDown:
-      if keyboard.keyCode == 39:
-        fontS += 1.0
-      if keyboard.keyCode == 37:
-        fontS -= 1.0
+    # onKeyDown:
+    #   if keyboard.keyCode == 39:
+    #     fontS += 1.0
+    #   if keyboard.keyCode == 37:
+    #     fontS -= 1.0
 
-      if keyboard.keyCode == 86:
-        lineH += 1.0
-      if keyboard.keyCode == 67:
-        lineH -= 1.0
-      print fontS, keyboard.keyCode
+    #   if keyboard.keyCode == 86:
+    #     lineH += 1.0
+    #   if keyboard.keyCode == 67:
+    #     lineH -= 1.0
+    #   print fontS, keyboard.keyCode
 
     box 0, 0, int root.box.w, max(int root.box.h, h)
 

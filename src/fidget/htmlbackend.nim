@@ -1,5 +1,5 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables, uibase, vmath,
-  internal
+  internal, input
 
 type
   PerfCounter* = object
@@ -24,6 +24,14 @@ proc toHtmlRgbaCached(color: Color): string =
   if result == "":
     result = color.toHtmlRgba()
     colorCache[color] = result
+
+proc focus*(keyboard: Keyboard, group: Group) =
+  ## uses JS events
+  discard
+
+proc unFocus*(keyboard: Keyboard, group: Group) =
+  ## uses JS events
+  discard
 
 proc removeAllChildren(dom: Node) =
   while dom.firstChild != nil:
@@ -254,11 +262,6 @@ proc drawDiff(current: Group) =
     else:
       dom.style.backgroundImage = ""
 
-  # check placeholder (gray text that appears inside when no text)
-  if old.placeholder != current.placeholder:
-    old.placeholder = current.placeholder
-    dom.setAttribute("placeholder", current.placeholder)
-
   if current.textPadding != old.textPadding:
     old.textPadding = current.textPadding
     dom.style.padding = $current.textPadding & "px"
@@ -354,6 +357,7 @@ proc drawStart() =
   startTime = dom.window.performance.now()
   numGroups = 0
   perf.numLowLevelCalls = 0
+  pathChecker.clear()
 
   pixelRatio = dom.window.devicePixelRatio
   windowSize.x = float dom.window.innerWidth
@@ -435,8 +439,7 @@ proc drawFinish() =
       of NSResize:
         rootDomNode.style.cursor = "ns-resize"
 
-  # Used for onFocus/onUnFocus.
-  keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
+  clearInputs()
 
 proc hardRedraw() =
   if rootDomNode == nil: # check if we have loaded
@@ -456,16 +459,6 @@ proc refresh*() =
   if not requestedFrame:
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
-
-proc set*(keyboard: Keyboard, state: KeyState, event: KeyboardEvent) =
-  keyboard.state = state
-  keyboard.keyCode = event.keyCode
-  var keyString: cstring
-  asm """`keyString` = `event`.key"""
-  keyboard.keyString = $keyString
-  keyboard.altKey = event.altKey
-  keyboard.ctrlKey = event.ctrlKey
-  keyboard.shiftKey = event.shiftKey
 
 proc startFidget*(draw: proc()) =
   ## Start the HTML backend
@@ -492,18 +485,20 @@ proc startFidget*(draw: proc()) =
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
     let event = cast[MouseEvent](event)
-    mouse.button = event.button
-    mouse.pos.x = float event.pageX
-    mouse.pos.y = float event.pageY
-    mouse.click = true
-    mouse.down = true
-    hardRedraw()
-    mouse.click = false
+    let key = mouseButtonToButton[event.button]
+    buttonPress[key] = true
+    buttonDown[key] = true
+    refresh()
+
+
 
   dom.window.addEventListener "mouseup", proc(event: Event) =
     ## When mouse button is released
+    let event = cast[MouseEvent](event)
+    let key = mouseButtonToButton[event.button]
+    buttonDown[key] = false
+    buttonRelease[key] = true
     refresh()
-    mouse.down = false
 
   dom.window.addEventListener "mousemove", proc(event: Event) =
     # When mouse moves
@@ -514,35 +509,34 @@ proc startFidget*(draw: proc()) =
 
   dom.window.addEventListener "keydown", proc(event: Event) =
     ## When keyboards key is pressed down
-    ## Used together with keyup for continuous things like scroll or games
+    ## Used together with key up for continuous things like scroll or games
     let event = cast[KeyboardEvent](event)
-    keyboard.set(Down, event)
-    hardRedraw()
-    if keyboard.state != Empty:
-      keyboard.consume()
-    else:
-      event.preventDefault()
+    #keyboard.set(Down, event)
+    keyboard.state = KeyState.Down
+    let key = keyCodeToButton[event.keyCode]
+    if keyboard.inputFocusIdPath == "":
+      buttonToggle[key] = not buttonToggle[key]
+      buttonPress[key] = true
+      buttonDown[key] = true
+      hardRedraw()
+      if keyboard.state != Empty:
+        keyboard.consume()
+      else:
+        event.preventDefault()
 
   dom.window.addEventListener "keyup", proc(event: Event) =
     ## When keyboards key is pressed down
     ## Used together with keydown
     let event = cast[KeyboardEvent](event)
-    keyboard.set(Up, event)
+    let key = keyCodeToButton[event.keyCode]
+    buttonDown[key] = false
+    buttonRelease[key] = true
+    keyboard.state = KeyState.Up
     hardRedraw()
     if keyboard.state != Empty:
       keyboard.consume()
     else:
       event.preventDefault()
-
-  # dom.window.addEventListener "keypress", proc(event: Event) =
-  #   ## When keyboards key is pressed
-  #   ## Used for typing because of key repeats
-  #   keyboard.set(Press, event)
-  #   hardRedraw()
-  #   if keyboard.state != Empty:
-  #     keyboard.use()
-  #   else:
-  #     event.preventDefault()
 
   proc isTextTag(node: Node): bool =
     node.nodeName == "TEXTAREA" or node.nodeName == "INPUT"
@@ -574,10 +568,8 @@ proc startFidget*(draw: proc()) =
     ## When INPUT element looses focus this is called, clear keyboard.input and
     ## the keyboard.inputFocusId
     ## Note: "blur" does not bubble, so its not used here.
-
     # redraw everything to sync up the bind(string)
     refresh()
-
     keyboard.input = ""
     keyboard.inputFocusIdPath = ""
     refresh()
