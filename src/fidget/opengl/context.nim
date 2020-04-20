@@ -244,7 +244,10 @@ proc draw(ctx: Context) =
 
   if ctx.activeShader.hasUniform("maskTex"):
     glActiveTexture(GL_TEXTURE1)
-    glBindTexture(GL_TEXTURE_2D, ctx.maskTextures[ctx.maskTextureRead].textureId)
+    glBindTexture(
+      GL_TEXTURE_2D,
+      ctx.maskTextures[ctx.maskTextureRead].textureId
+    )
     ctx.activeShader.setUniform("maskTex", 1)
 
   ctx.activeShader.bindUniforms()
@@ -535,7 +538,7 @@ proc beginMask*(ctx: Context) =
 
 proc endMask*(ctx: Context) =
   ## Stops drawing into the mask.
-  assert ctx.maskBegun == true , "ctx.maskBegun has not been called."
+  assert ctx.maskBegun == true, "ctx.maskBegun has not been called."
   ctx.maskBegun = false
 
   ctx.draw()
@@ -585,7 +588,7 @@ proc endFrame*(ctx: Context) =
   ## Ends a frame.
   assert ctx.frameBegun == true, "ctx.beginFrame was not called first."
   assert ctx.maskTextureRead == 0, "Not all masks have been popped."
-  assert ctx.maskTextureWrite == 0 , "Not all masks have been popped."
+  assert ctx.maskTextureWrite == 0, "Not all masks have been popped."
   ctx.frameBegun = false
 
   ctx.draw()
