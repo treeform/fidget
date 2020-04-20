@@ -242,7 +242,6 @@ template newShaderStatic*(vertPath, fragPath: string): Shader =
     fragPathFull = dir.parentDir() / fragPath
   newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
 
-
 proc hasUniform*(shader: Shader, name: string): bool =
   for uniform in shader.uniforms:
     if uniform.name == name:
