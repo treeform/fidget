@@ -68,10 +68,10 @@ type
     BACKSPACE = 259
     INSERT = 260
     DELETE = 261
-    RIGHT = 262
-    LEFT = 263
-    DOWN = 264
-    UP = 265
+    RIGHT_ARROW = 262
+    LEFT_ARROW = 263
+    DOWN_ARROW = 264
+    UP_ARROW = 265
     PAGE_UP = 266
     PAGE_DOWN = 267
     HOME = 268
@@ -154,7 +154,7 @@ proc `[]=`*(buttons: var seq[bool], button: Button, value: bool) =
 when defined(js):
   import tables
 
-  const mouseButtonToButton* = {
+  let mouseButtonToButton* = {
     0: MOUSE_LEFT,
     2: MOUSE_RIGHT,
     1: MOUSE_MIDDLE,
@@ -162,7 +162,7 @@ when defined(js):
     4: MOUSE_FORWARD,
   }.toTable()
 
-  const keyCodeToButton* = {
+  let keyCodeToButton* = {
     32: SPACE,
     222: APOSTROPHE,
     188: COMMA,
@@ -221,10 +221,10 @@ when defined(js):
     8: BACKSPACE,
     45: INSERT,
     46: DELETE,
-    39: RIGHT,
-    37: LEFT,
-    40: DOWN,
-    38: UP,
+    39: RIGHT_ARROW,
+    37: LEFT_ARROW,
+    40: DOWN_ARROW,
+    38: UP_ARROW,
     33: PAGE_UP,
     34: PAGE_DOWN,
     36: HOME,
@@ -272,5 +272,7 @@ when defined(js):
     0: RIGHT_CONTROL,
     0: RIGHT_ALT,
     92: RIGHT_SUPER,
+
+    93: LEFT_SUPER
 
   }.toTable()

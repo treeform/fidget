@@ -41,14 +41,14 @@ proc removeTextSelection*() {.exportc.} =
   echo dom.window.document.getSelection()
   dom.window.document.getSelection().removeAllRanges()
 
-var computeTextBoxCache = newTable[string, (float, float)]()
+var computeTextBoxCache = newTable[string, Vec2]()
 proc computeTextBox*(
   text: string,
   width: float,
   fontName: string,
   fontSize: float,
   fontWeight: float,
-): (float, float) =
+): Vec2 =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
   let key = text & $width & fontName & $fontSize
@@ -64,8 +64,8 @@ proc computeTextBox*(
   tempDiv.style.top = "-1000"
   tempDiv.style.maxWidth = $width & "px"
   tempDiv.innerHTML = text
-  result[0] = float tempDiv.clientWidth
-  result[1] = float tempDiv.clientHeight
+  result.x = float tempDiv.clientWidth
+  result.y = float tempDiv.clientHeight
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
 
@@ -78,8 +78,8 @@ proc computeTextHeight*(
 ): float =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
-  let (_, h) = computeTextBox(text, width, fontName, fontSize, fontWeight)
-  return h
+  let box = computeTextBox(text, width, fontName, fontSize, fontWeight)
+  return box.y
 
 type
   TextMetrics* {.importc.} = ref object
