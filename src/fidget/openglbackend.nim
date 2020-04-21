@@ -1,11 +1,11 @@
 import chroma, hashes, internal, opengl/base, opengl/context, input,
     strformat, strutils, tables, times, typography, typography/textboxes,
-    uibase, vmath
+    uibase, vmath, flippy
 
 export input
 
 var
-  ctx: Context
+  ctx*: Context
   fonts: Table[string, Font]
   glyphOffsets: Table[Hash, Vec2]
   windowTitle, windowUrl: string
@@ -62,13 +62,13 @@ proc drawText(group: Group) =
 
   # draw masked region
   # TODO: mask should not be a text property
-  ctx.beginMask()
-  ctx.fillRect(
-    rect(0, 0, group.screenBox.w, group.screenBox.h),
-    rgba(255, 0, 0, 255).color
-  )
-  ctx.endMask()
-  defer: ctx.popMask()
+  # ctx.beginMask()
+  # ctx.fillRect(
+  #   rect(0, 0, group.screenBox.w, group.screenBox.h),
+  #   rgba(255, 0, 0, 255).color
+  # )
+  # ctx.endMask()
+  # defer: ctx.popMask()
 
   if current.editableText and
       mouse.down and
@@ -129,29 +129,62 @@ proc drawText(group: Group) =
       subPixelShift = floor(pos.subPixelShift * 10) / 10
       fontFamily = group.textStyle.fontFamily
 
-    var hash: Hash
-    hash = hash !& hash(fontFamily)
-    hash = hash !& hash(pos.character)
-    hash = hash !& hash(font.size)
-    hash = hash !& hash(subPixelShift)
-    hash = !$hash
+    var
+      hashFill = hash((
+        fontFamily,
+        pos.character,
+        font.size,
+        subPixelShift,
+        0
+      ))
+      hashStorke: Hash
 
-    if hash notin ctx.entries:
+    if group.strokeWeight > 0:
+      hashStorke = hash((
+        fontFamily,
+        pos.character,
+        font.size,
+        subPixelShift,
+        group.strokeWeight
+      ))
+
+    if hashFill notin ctx.entries:
       var
         glyph = font.glyphs[pos.character]
         glyphOffset: Vec2
-      let img = font.getGlyphImage(
+      let glyphFill = font.getGlyphImage(
         glyph,
         glyphOffset,
         subPixelShift = subPixelShift
       )
-      ctx.putImage(hash, img)
-      glyphOffsets[hash] = glyphOffset
+      ctx.putImage(hashFill, glyphFill)
+      glyphOffsets[hashFill] = glyphOffset
+
+
+    if group.strokeWeight > 0 and hashStorke notin ctx.entries:
+      var
+        glyph = font.glyphs[pos.character]
+        glyphOffset: Vec2
+      let glyphFill = font.getGlyphImage(
+        glyph,
+        glyphOffset,
+        subPixelShift = subPixelShift
+      )
+      let glyphStroke = glyphFill.outlineBorder(group.strokeWeight.int)
+      ctx.putImage(hashStorke, glyphStroke)
 
     let
-      glyphOffset = glyphOffsets[hash]
+      glyphOffset = glyphOffsets[hashFill]
       charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
-    ctx.drawImage(hash, charPos, group.fill)
+
+    if group.strokeWeight > 0 and group.stroke.a > 0:
+      ctx.drawImage(
+        hashStorke,
+        charPos - vec2(group.strokeWeight, group.strokeWeight),
+        group.stroke
+      )
+
+    ctx.drawImage(hashFill, charPos, group.fill)
 
   if editing:
     # draw cursor
@@ -163,7 +196,7 @@ proc drawText(group: Group) =
 
     keyboard.input = textBox.text
 
-  ctx.clearMask()
+  #ctx.clearMask()
 
 proc capture*(mouse: Mouse) =
   captureMouse()
@@ -183,10 +216,10 @@ proc draw*(group: Group) =
     ctx.rotate(group.rotation/180*PI)
     ctx.translate(-group.screenBox.wh/2)
 
-  if group.fill.a > 0:
-    if group.kind == "text":
-      drawText(group)
-    else:
+  if group.kind == "text":
+    drawText(group)
+  else:
+    if group.fill.a > 0:
       if group.imageName == "":
         if group.cornerRadius[0] != 0:
           ctx.fillRoundedRect(rect(
@@ -199,15 +232,15 @@ proc draw*(group: Group) =
             group.screenBox.w, group.screenBox.h
           ), group.fill)
 
-  if group.stroke.a > 0 and group.strokeWeight > 0 and group.kind != "text":
-    ctx.strokeRoundedRect(rect(
-      0, 0,
-      group.screenBox.w, group.screenBox.h
-    ), group.stroke, group.strokeWeight, group.cornerRadius[0])
+    if group.stroke.a > 0 and group.strokeWeight > 0 and group.kind != "text":
+      ctx.strokeRoundedRect(rect(
+        0, 0,
+        group.screenBox.w, group.screenBox.h
+      ), group.stroke, group.strokeWeight, group.cornerRadius[0])
 
-  if group.imageName != "":
-    let path = &"data/{group.imageName}"
-    ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
+    if group.imageName != "":
+      let path = &"data/{group.imageName}"
+      ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
 
