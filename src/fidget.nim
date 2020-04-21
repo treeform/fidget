@@ -90,7 +90,7 @@ template rectangle*(color: string|Color) =
     box 0, 0, parent.box.w, parent.box.h
     fill color
 
-proc mouseOverlapLogic(): bool =
+proc mouseOverlapLogic*(): bool =
   (not popupActive or inPopup) and mouse.pos.inside(current.screenBox)
 
 template onClick*(inner: untyped) =
@@ -130,7 +130,7 @@ proc hasKeyboardFocus*(group: Group): bool =
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus.
   if not current.bindingSet:
-    raise newException(ValueError, "Binding not set, must be called after.")
+    raise newException(ValueError, "onInput: Binding not set, must be called after.")
   if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
@@ -147,7 +147,7 @@ template onDown*(inner: untyped) =
 template onFocus*(inner: untyped) =
   ## On focusing an input element.
   if not current.bindingSet:
-    raise newException(ValueError, "Binding not set, must be called after.")
+    raise newException(ValueError, "onFocus: Binding not set, must be called after.")
   if keyboard.inputFocusIdPath == current.idPath and
       keyboard.prevInputFocusIdPath != current.idPath:
     inner
@@ -155,7 +155,7 @@ template onFocus*(inner: untyped) =
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an input element.
   if not current.bindingSet:
-    raise newException(ValueError, "Binding not set, must be called after.")
+    raise newException(ValueError, "onUnFocus: Binding not set, must be called after.")
   if keyboard.inputFocusIdPath != current.idPath and
       keyboard.prevInputFocusIdPath == current.idPath:
     inner
