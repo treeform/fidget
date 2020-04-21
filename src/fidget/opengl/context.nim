@@ -15,11 +15,11 @@ type
     atlasMargin: int            ## Default margin between images
     quadCount: int              ## Number of quads drawn so far
     maxQuads: int               ## Max quads to draw before issuing an OpenGL call
-    mat: Mat4                   ## Current matrix
+    mat*: Mat4                  ## Current matrix
     mats: seq[Mat4]             ## Matrix stack
     entries*: Table[Hash, Rect] ## Mapping of image name to atlas UV position
     heights: seq[uint16]        ## Height map of the free space in the atlas
-    proj: Mat4
+    proj*: Mat4
     frameSize: Vec2             ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
@@ -581,7 +581,7 @@ proc beginFrame*(ctx: Context, frameSize: Vec2) =
   beginFrame(
     ctx,
     frameSize,
-    ortho(0, frameSize.x, frameSize.y, 0, -100, 100)
+    ortho(0, frameSize.x, frameSize.y, 0, -1000, 1000)
   )
 
 proc endFrame*(ctx: Context) =
