@@ -196,19 +196,19 @@ proc onSetKey(
       ctrl = keyboard.ctrlKey
       shift = keyboard.shiftKey
     case cast[Button](key):
-      of LEFT:
+      of ARROW_LEFT:
         if ctrl:
           textBox.leftWord(shift)
         else:
           textBox.left(shift)
-      of RIGHT:
+      of ARROW_RIGHT:
         if ctrl:
           textBox.rightWord(shift)
         else:
           textBox.right(shift)
-      of Button.UP:
+      of ARROW_UP:
         textBox.up(shift)
-      of Button.DOWN:
+      of ARROW_DOWN:
         textBox.down(shift)
       of Button.HOME:
         textBox.startOfLine(shift)
