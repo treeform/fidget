@@ -156,6 +156,7 @@ proc useDepthBuffer*(on: bool) =
   if on:
     glDepthMask(GL_TRUE)
     glEnable(GL_DEPTH_TEST)
+    glDepthFunc(GL_LEQUAL)
   else:
     glDepthMask(GL_FALSE)
     glDisable(GL_DEPTH_TEST)
