@@ -11,6 +11,7 @@ type
     kind: BufferKind
     values: array[16, float32]
     location: GLint
+    changed: bool # Flag for if this uniform has changed since last bound.
 
   Shader* = ref object
     paths: seq[string]
@@ -257,9 +258,13 @@ proc setUniform(
 ) =
   for uniform in shader.uniforms.mitems:
     if uniform.name == name:
-      uniform.componentType = componentType
-      uniform.kind = kind
-      uniform.values = values
+      if uniform.componentType != componentType or
+        uniform.kind != kind or
+        uniform.values != values:
+        uniform.componentType = componentType
+        uniform.kind = kind
+        uniform.values = values
+        uniform.changed = true
       return
 
   echo &"Ignoring setUniform for \"{name}\", not active"
@@ -357,6 +362,9 @@ proc bindUniforms*(shader: Shader) =
     if uniform.componentType != cGL_INT and uniform.componentType != cGL_FLOAT:
       raiseUniformComponentTypeException(uniform.name, uniform.componentType)
 
+    if not uniform.changed:
+      continue
+
     case uniform.kind:
       of bkSCALAR:
         if uniform.componentType == cGL_INT:
@@ -416,6 +424,8 @@ proc bindUniforms*(shader: Shader) =
         )
       else:
         raiseUniformKindException(uniform.name, uniform.kind)
+
+    uniform.changed = false
 
 proc bindAttrib*(
   shader: Shader,
