@@ -188,11 +188,9 @@ proc onSetKey(
     ((modifiers and MOD_CONTROL) != 0 or (modifiers and MOD_SUPER) != 0)
   keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
 
-  if keyboard.inputFocusIdPath != "":
+  # Do the text box commands.
+  if keyboard.inputFocusIdPath != "" and setKey:
     keyboard.state = KeyState.Press
-    if not setKey:
-      return
-
     let
       ctrl = keyboard.ctrlKey
       shift = keyboard.shiftKey
@@ -240,7 +238,9 @@ proc onSetKey(
           textBox.selectAll()
       else:
         discard
-  elif key < buttonDown.len and key >= 0:
+
+  # Now do the buttons.
+  if key < buttonDown.len and key >= 0:
     if buttonDown[key] == false and setKey:
       buttonToggle[key] = not buttonToggle[key]
       buttonPress[key] = true

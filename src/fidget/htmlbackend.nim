@@ -514,15 +514,14 @@ proc startFidget*(draw: proc()) =
     #keyboard.set(Down, event)
     keyboard.state = KeyState.Down
     let key = keyCodeToButton[event.keyCode]
-    if keyboard.inputFocusIdPath == "":
-      buttonToggle[key] = not buttonToggle[key]
-      buttonPress[key] = true
-      buttonDown[key] = true
-      hardRedraw()
-      if keyboard.state != Empty:
-        keyboard.consume()
-      else:
-        event.preventDefault()
+    buttonToggle[key] = not buttonToggle[key]
+    buttonPress[key] = true
+    buttonDown[key] = true
+    hardRedraw()
+    if keyboard.state != Empty:
+      keyboard.consume()
+    else:
+      event.preventDefault()
 
   dom.window.addEventListener "keyup", proc(event: Event) =
     ## When keyboards key is pressed down
