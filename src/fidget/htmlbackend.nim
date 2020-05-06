@@ -490,8 +490,6 @@ proc startFidget*(draw: proc()) =
     buttonDown[key] = true
     refresh()
 
-
-
   dom.window.addEventListener "mouseup", proc(event: Event) =
     ## When mouse button is released
     let event = cast[MouseEvent](event)
@@ -512,16 +510,17 @@ proc startFidget*(draw: proc()) =
     ## Used together with key up for continuous things like scroll or games
     let event = cast[KeyboardEvent](event)
     #keyboard.set(Down, event)
-    keyboard.state = KeyState.Down
+    keyboard.state = KeyState.Press
     let key = keyCodeToButton[event.keyCode]
     buttonToggle[key] = not buttonToggle[key]
     buttonPress[key] = true
     buttonDown[key] = true
     hardRedraw()
-    if keyboard.state != Empty:
-      keyboard.consume()
-    else:
+    if keyboard.consumed:
+      echo "preventDefault"
       event.preventDefault()
+      keyboard.consumed = false
+
 
   dom.window.addEventListener "keyup", proc(event: Event) =
     ## When keyboards key is pressed down
@@ -532,10 +531,6 @@ proc startFidget*(draw: proc()) =
     buttonRelease[key] = true
     keyboard.state = KeyState.Up
     hardRedraw()
-    if keyboard.state != Empty:
-      keyboard.consume()
-    else:
-      event.preventDefault()
 
   proc isTextTag(node: Node): bool =
     node.nodeName == "TEXTAREA" or node.nodeName == "INPUT"
