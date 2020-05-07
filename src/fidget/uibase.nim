@@ -104,6 +104,7 @@ type
     state*: KeyState
     # keyCode*: int
     # scanCode*: int
+    consumed*: bool       ## Consumed - need to prevent default action.
     keyString*: string
     altKey*: bool
     ctrlKey*: bool
@@ -165,6 +166,11 @@ proc clearInputs*() =
     buttonPress[i] = false
     buttonRelease[i] = false
 
+  if any(buttonDown):
+    keyboard.state = KeyState.Down
+  else:
+    keyboard.state = KeyState.Empty
+
 proc click*(mouse: Mouse): bool =
   buttonPress[MOUSE_LEFT]
 
@@ -179,6 +185,7 @@ proc consume*(keyboard: Keyboard) =
   keyboard.ctrlKey = false
   keyboard.shiftKey = false
   keyboard.superKey = false
+  keyboard.consumed = true
 
 proc consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.

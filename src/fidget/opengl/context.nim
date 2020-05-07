@@ -435,12 +435,7 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
 
 proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
   # TODO: Make this a 9 patch
-  const base = hash("roundedRect")
-  var hash: Hash
-  hash = hash !& hash(base)
-  hash = hash !& hash(rect.wh)
-  hash = hash !& hash(radius)
-  hash = !$hash
+  let hash = hash(("roundedRect", rect.w, rect.h, radius))
 
   let
     w = ceil(rect.w).int
@@ -469,14 +464,8 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
 proc strokeRoundedRect*(
   ctx: Context, rect: Rect, color: Color, weight: float, radius: float
 ) =
-  # TODO: Make this a 9 patch
-  const base = hash("roundedRect")
-  var hash: Hash
-  hash = hash !& hash(base)
-  hash = hash !& hash(rect.wh)
-  hash = hash !& hash(radius)
-  hash = hash !& hash(weight)
-  hash = !$hash
+  # # TODO: Make this a 9 patch
+  let hash = hash(("roundedRect", rect.w, rect.h, radius))
 
   let
     w = ceil(rect.w).int
