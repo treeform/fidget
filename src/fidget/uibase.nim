@@ -1,4 +1,4 @@
-import chroma, vmath, tables, input
+import chroma, vmath, tables, input, sequtils
 
 when not defined(js):
   import typography/textboxes
@@ -166,7 +166,7 @@ proc clearInputs*() =
     buttonPress[i] = false
     buttonRelease[i] = false
 
-  if any(buttonDown):
+  if any(buttonDown, proc(b: bool): bool = b):
     keyboard.state = KeyState.Down
   else:
     keyboard.state = KeyState.Empty
