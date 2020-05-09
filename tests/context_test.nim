@@ -1,5 +1,7 @@
 import chroma, fidget, fidget/opengl/base, fidget/opengl/context, fidget/uibase,
-    flippy, vmath
+    flippy, vmath, osproc, os
+
+setCurrentDir(getCurrentDir() / "tests")
 
 var
   loaded: bool
@@ -208,6 +210,11 @@ proc draw() =
   inc(i)
 
   if i == len(tests):
-    running = false
+    base.running = false
 
 startFidget(draw, mainLoopMode = RepaintOnFrame)
+
+let (outp, _) = execCmdEx("git diff tests/*.png")
+if len(outp) != 0:
+  echo outp
+  quit("Output does not match")

@@ -27,7 +27,7 @@ type
     minFilter*: MinFilter
     magFilter*: MagFilter
     wrapS*, wrapT*: Wrap
-    genMipmap: bool
+    genMipmap*: bool
     textureId*: GLuint
 
 proc bindTextureBufferData*(

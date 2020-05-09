@@ -52,6 +52,17 @@ proc setUpMaskFramebuffer(ctx: Context) =
     0
   )
 
+proc createAtlasTexture(size: int): Texture =
+  result.width = size.GLint
+  result.height = size.GLint
+  result.componentType = GL_UNSIGNED_BYTE
+  result.format = GL_RGBA
+  result.internalFormat = GL_RGBA8
+  result.genMipmap = true
+  result.minFilter = minLinearMipmapLinear
+  result.magFilter = magLinear
+  bindTextureData(result.addr, nil)
+
 proc addMaskTexture(ctx: Context, frameSize = vec2(1, 1)) =
   # Must be >0 for framebuffer creation below
   # Set to real value in beginFrame
@@ -83,9 +94,7 @@ proc newContext*(
   result.mats = newSeq[Mat4]()
 
   result.heights = newSeq[uint16](atlasSize)
-  let img = newImage("", atlasSize, atlasSize, 4)
-  img.fill(rgba(255, 255, 255, 0))
-  result.atlasTexture = img.initTexture()
+  result.atlasTexture = createAtlasTexture(atlasSize)
 
   result.addMaskTexture()
 
@@ -164,9 +173,7 @@ proc grow(ctx: Context) =
   ctx.draw()
   ctx.atlasSize = ctx.atlasSize * 2
   ctx.heights.setLen(ctx.atlasSize)
-  let img = newImage("", ctx.atlasSize, ctx.atlasSize, 4)
-  img.fill(rgba(255, 255, 255, 0))
-  ctx.atlasTexture = img.initTexture()
+  ctx.atlasTexture = createAtlasTexture(ctx.atlasSize)
   ctx.entries.clear()
 
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
