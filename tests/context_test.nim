@@ -70,6 +70,7 @@ tests.add(proc() =
     for y in 0 .. 3:
       ctx.drawImage(
         "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+  ctx.popMask()
   ctx.endFrame()
 
   takeScreenshot(rect(0, 0, 501, 281)).save("masking.png")
@@ -97,6 +98,10 @@ tests.add(proc() =
     for y in 0 .. 3:
       ctx.drawImage(
         "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+
+  ctx.popMask()
+  ctx.popMask()
+  ctx.popMask()
 
   ctx.endFrame()
 
@@ -169,6 +174,7 @@ tests.add(proc() =
   except:
     passed = true
     ctx.endMask()
+    ctx.popMask()
     ctx.endFrame()
 
   if not passed:
