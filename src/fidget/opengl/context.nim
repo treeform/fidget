@@ -30,6 +30,8 @@ type
     uvs: tuple[buffer: Buffer, data: seq[float32]]
     indices: tuple[buffer: Buffer, data: seq[uint16]]
 
+proc draw(ctx: Context)
+
 proc upload(ctx: Context) =
   ## When buffers change, uploads them to GPU.
   ctx.positions.buffer.count = ctx.quadCount * 4
@@ -158,6 +160,15 @@ func `[]=`(t: var Table[Hash, Rect], key: string, rect: Rect) =
 func `[]`(t: var Table[Hash, Rect], key: string): Rect =
   t[hash(key)]
 
+proc grow(ctx: Context) =
+  ctx.draw()
+  ctx.atlasSize = ctx.atlasSize * 2
+  ctx.heights.setLen(ctx.atlasSize)
+  let img = newImage("", ctx.atlasSize, ctx.atlasSize, 4)
+  img.fill(rgba(255, 255, 255, 0))
+  ctx.atlasTexture = img.initTexture()
+  ctx.entries.clear()
+
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
   var imgWidth = width + ctx.atlasMargin * 2
   var imgHeight = height + ctx.atlasMargin * 2
@@ -182,7 +193,9 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
         at = i
 
   if lowest + imgHeight > ctx.atlasSize:
-    raise newException(Exception, "Context Atlas is full")
+    #raise newException(Exception, "Context Atlas is full")
+    ctx.grow()
+    return ctx.findEmptyRect(width, height)
 
   for j in at..at + imgWidth - 1:
     ctx.heights[j] = uint16(lowest + imgHeight + ctx.atlasMargin * 2)
