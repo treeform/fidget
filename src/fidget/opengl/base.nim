@@ -68,8 +68,7 @@ proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
 
-proc preTick() =
-  ## Does input and output operations.
+proc preInput() =
   var x, y: float64
   window.getCursorPos(addr x, addr y)
   mouse.pos = vec2(x, y)
@@ -77,9 +76,13 @@ proc preTick() =
   mouse.delta = mouse.pos - mouse.prevPos
   mouse.prevPos = mouse.pos
 
-proc postTick() =
+proc postInput() =
   clearInputs()
 
+proc preTick() =
+  discard
+
+proc postTick() =
   tpsTimeSeries.addTime()
   tps = float64(tpsTimeSeries.num())
 
@@ -120,30 +123,35 @@ proc updateLoop*(poll = true) =
         sleep(16)
         return
       requestedFrame = false
-      preTick()
+      preInput()
       if tickMain != nil:
-        tickMain()
-      drawAndSwap()
-      postTick()
-
-
-    of RepaintOnFrame:
-      if poll:
-        pollEvents()
-      preTick()
-      if tickMain != nil:
-        tickMain()
-      drawAndSwap()
-      postTick()
-
-    of RepaintSplitUpdate:
-      while lastTick < getTicks():
-        if poll:
-          pollEvents()
         preTick()
         tickMain()
         postTick()
       drawAndSwap()
+      postInput()
+
+    of RepaintOnFrame:
+      if poll:
+        pollEvents()
+      preInput()
+      if tickMain != nil:
+        preTick()
+        tickMain()
+        postTick()
+      drawAndSwap()
+      postInput()
+
+    of RepaintSplitUpdate:
+      if poll:
+        pollEvents()
+      preInput()
+      while lastTick < getTicks():
+        preTick()
+        tickMain()
+        postTick()
+      drawAndSwap()
+      postInput()
 
 proc clearDepthBuffer*() =
   glClear(GL_DEPTH_BUFFER_BIT)
