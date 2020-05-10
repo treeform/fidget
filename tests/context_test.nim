@@ -1,5 +1,7 @@
 import chroma, fidget, fidget/opengl/base, fidget/opengl/context, fidget/uibase,
-    flippy, vmath
+    flippy, vmath, osproc, os
+
+setCurrentDir(getCurrentDir() / "tests")
 
 var
   loaded: bool
@@ -70,6 +72,7 @@ tests.add(proc() =
     for y in 0 .. 3:
       ctx.drawImage(
         "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+  ctx.popMask()
   ctx.endFrame()
 
   takeScreenshot(rect(0, 0, 501, 281)).save("masking.png")
@@ -97,6 +100,10 @@ tests.add(proc() =
     for y in 0 .. 3:
       ctx.drawImage(
         "bluestar.png", pos = vec2(x.float32 * 100, y.float32 * 100))
+
+  ctx.popMask()
+  ctx.popMask()
+  ctx.popMask()
 
   ctx.endFrame()
 
@@ -169,6 +176,7 @@ tests.add(proc() =
   except:
     passed = true
     ctx.endMask()
+    ctx.popMask()
     ctx.endFrame()
 
   if not passed:
@@ -202,6 +210,11 @@ proc draw() =
   inc(i)
 
   if i == len(tests):
-    running = false
+    base.running = false
 
 startFidget(draw, mainLoopMode = RepaintOnFrame)
+
+let (outp, _) = execCmdEx("git diff tests/*.png")
+if len(outp) != 0:
+  echo outp
+  quit("Output does not match")
