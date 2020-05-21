@@ -1,5 +1,7 @@
 import fidget
 
+# based on https://medium.com/javascript-in-plain-english/i-created-the-exact-same-app-in-react-and-vue-part-2-angular-39b1aa289878
+
 loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
 loadFont("IBM Plex Sans Bold", "../data/IBMPlexSans-Bold.ttf")
 
