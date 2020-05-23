@@ -80,6 +80,7 @@ type
     cursorColor*: Color
     highlightColor*: Color
     shadows*: seq[Shadow]
+    clipContent*: bool
 
   KeyState* = enum
     Empty
