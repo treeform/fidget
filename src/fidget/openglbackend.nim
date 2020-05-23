@@ -60,16 +60,6 @@ proc drawText(group: Group) =
 
   let mousePos = mouse.pos - group.screenBox.xy
 
-  # draw masked region
-  # TODO: mask should not be a text property
-  # ctx.beginMask()
-  # ctx.fillRect(
-  #   rect(0, 0, group.screenBox.w, group.screenBox.h),
-  #   rgba(255, 0, 0, 255).color
-  # )
-  # ctx.endMask()
-  # defer: ctx.popMask()
-
   if current.editableText and
       mouse.down and
       mouse.pos.inside(current.screenBox):
@@ -216,6 +206,14 @@ proc draw*(group: Group) =
     ctx.rotate(group.rotation/180*PI)
     ctx.translate(-group.screenBox.wh/2)
 
+  if group.clipContent:
+    ctx.beginMask()
+    ctx.fillRect(
+      rect(0, 0, group.screenBox.w, group.screenBox.h),
+      rgba(255, 0, 0, 255).color
+    )
+    ctx.endMask()
+
   if group.kind == "text":
     drawText(group)
   else:
@@ -243,6 +241,10 @@ proc draw*(group: Group) =
       ctx.drawImage(path, size = vec2(group.screenBox.w, group.screenBox.h))
 
   ctx.restoreTransform()
+
+proc postDrawChildren*(group: Group) =
+  if group.clipContent:
+    ctx.popMask()
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser

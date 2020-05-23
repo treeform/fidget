@@ -18,6 +18,8 @@ var
 
   perf*: PerfCounter
 
+  clippingStack: seq[Rect]
+
 var colorCache = newTable[chroma.Color, string]()
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -145,6 +147,10 @@ proc insertChildAtIndex(parent: Element, index: int, child: Element) =
   parent.insertBefore(child, parent.children[index])
 
 proc drawDiff(current: Group) =
+
+  if current.clipContent:
+    # TODO: merge with prev clipping stack
+    clippingStack.add current.screenBox
 
   if groupCache.len == numGroups:
     inc perf.numLowLevelCalls
@@ -345,10 +351,22 @@ proc drawDiff(current: Group) =
     dom.style.width = $current.screenBox.w & "px"
     dom.style.height = $current.screenBox.h & "px"
 
+  # Set clipping mask.
+  if clippingStack.len > 0:
+    let clipMask = clippingStack[^1]
+    let a = clipMask.xy - current.screenBox.xy
+    let b = clipMask.xy + clipMask.wh - current.screenBox.xy
+    let clipPath = &"polygon({a.x}px {a.y}px, {a.x}px {b.y}px, {b.x}px {b.y}px, {b.x}px {a.y}px)"
+    dom.style.clipPath = clipPath
+
   inc numGroups
 
 proc draw*(group: Group) =
   drawDiff(group)
+
+proc postDrawChildren*(group: Group) =
+  if current.clipContent:
+    discard clippingStack.pop()
 
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
