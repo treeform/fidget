@@ -1,5 +1,5 @@
-import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables, uibase, vmath,
-  internal, input
+import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
+    uibase, vmath, internal, input
 
 type
   PerfCounter* = object
@@ -18,9 +18,10 @@ var
 
   perf*: PerfCounter
 
-  clippingStack: seq[Rect]
+  clipStack: seq[Rect]
+  clipCache: Table[int, Rect]
 
-var colorCache = newTable[chroma.Color, string]()
+var colorCache: Table[chroma.Color, string]
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
   if result == "":
@@ -150,7 +151,7 @@ proc drawDiff(current: Group) =
 
   if current.clipContent:
     # TODO: merge with prev clipping stack
-    clippingStack.add current.screenBox
+    clipStack.add current.screenBox
 
   if groupCache.len == numGroups:
     inc perf.numLowLevelCalls
@@ -352,12 +353,20 @@ proc drawDiff(current: Group) =
     dom.style.height = $current.screenBox.h & "px"
 
   # Set clipping mask.
-  if clippingStack.len > 0:
-    let clipMask = clippingStack[^1]
-    let a = clipMask.xy - current.screenBox.xy
-    let b = clipMask.xy + clipMask.wh - current.screenBox.xy
-    let clipPath = &"polygon({a.x}px {a.y}px, {a.x}px {b.y}px, {b.x}px {b.y}px, {b.x}px {a.y}px)"
-    dom.style.clipPath = clipPath
+  if clipStack.len > 0:
+    let clipMask = clipStack[^1]
+    if numGroups notin clipCache or clipCache[numGroups] != clipMask:
+      clipCache[numGroups] = clipMask
+      let a = clipMask.xy - current.screenBox.xy
+      let b = clipMask.xy + clipMask.wh - current.screenBox.xy
+      let clipPath = &"polygon({a.x}px {a.y}px, {a.x}px {b.y}px, {b.x}px {b.y}px, {b.x}px {a.y}px)"
+      dom.style.clipPath = clipPath
+      inc perf.numLowLevelCalls
+  else:
+    if numGroups in clipCache:
+      dom.style.clipPath = ""
+      inc perf.numLowLevelCalls
+      clipCache.del(numGroups)
 
   inc numGroups
 
@@ -366,7 +375,7 @@ proc draw*(group: Group) =
 
 proc postDrawChildren*(group: Group) =
   if current.clipContent:
-    discard clippingStack.pop()
+    discard clipStack.pop()
 
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
