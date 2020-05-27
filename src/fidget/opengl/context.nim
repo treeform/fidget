@@ -30,6 +30,8 @@ type
     uvs: tuple[buffer: Buffer, data: seq[float32]]
     indices: tuple[buffer: Buffer, data: seq[uint16]]
 
+proc draw(ctx: Context)
+
 proc upload(ctx: Context) =
   ## When buffers change, uploads them to GPU.
   ctx.positions.buffer.count = ctx.quadCount * 4
@@ -49,6 +51,17 @@ proc setUpMaskFramebuffer(ctx: Context) =
     ctx.maskTextures[ctx.maskTextureWrite].textureId,
     0
   )
+
+proc createAtlasTexture(size: int): Texture =
+  result.width = size.GLint
+  result.height = size.GLint
+  result.componentType = GL_UNSIGNED_BYTE
+  result.format = GL_RGBA
+  result.internalFormat = GL_RGBA8
+  result.genMipmap = true
+  result.minFilter = minLinearMipmapLinear
+  result.magFilter = magLinear
+  bindTextureData(result.addr, nil)
 
 proc addMaskTexture(ctx: Context, frameSize = vec2(1, 1)) =
   # Must be >0 for framebuffer creation below
@@ -81,9 +94,7 @@ proc newContext*(
   result.mats = newSeq[Mat4]()
 
   result.heights = newSeq[uint16](atlasSize)
-  let img = newImage("", atlasSize, atlasSize, 4)
-  img.fill(rgba(255, 255, 255, 0))
-  result.atlasTexture = img.initTexture()
+  result.atlasTexture = createAtlasTexture(atlasSize)
 
   result.addMaskTexture()
 
@@ -158,6 +169,13 @@ func `[]=`(t: var Table[Hash, Rect], key: string, rect: Rect) =
 func `[]`(t: var Table[Hash, Rect], key: string): Rect =
   t[hash(key)]
 
+proc grow(ctx: Context) =
+  ctx.draw()
+  ctx.atlasSize = ctx.atlasSize * 2
+  ctx.heights.setLen(ctx.atlasSize)
+  ctx.atlasTexture = createAtlasTexture(ctx.atlasSize)
+  ctx.entries.clear()
+
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
   var imgWidth = width + ctx.atlasMargin * 2
   var imgHeight = height + ctx.atlasMargin * 2
@@ -182,7 +200,9 @@ proc findEmptyRect(ctx: Context, width, height: int): Rect =
         at = i
 
   if lowest + imgHeight > ctx.atlasSize:
-    raise newException(Exception, "Context Atlas is full")
+    #raise newException(Exception, "Context Atlas is full")
+    ctx.grow()
+    return ctx.findEmptyRect(width, height)
 
   for j in at..at + imgWidth - 1:
     ctx.heights[j] = uint16(lowest + imgHeight + ctx.atlasMargin * 2)

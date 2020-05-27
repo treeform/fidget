@@ -1,1 +1,1 @@
-switch("path", "$projectDir/../src")
+--path:"../src"

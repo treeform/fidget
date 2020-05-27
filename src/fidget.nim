@@ -50,6 +50,8 @@ template node(kindStr: string, name: string, inner: untyped): untyped =
     current.draw()
     current.wasDrawn = true
 
+  current.postDrawChildren()
+
   discard groupStack.pop()
   if groupStack.len > 1:
     current = groupStack[^1]
@@ -294,6 +296,10 @@ proc editableText*(editableText: bool) =
 proc multiline*(multiline: bool) =
   ## Sets if editable text is multiline (textarea) or single line.
   current.multiline = multiline
+
+proc clipContent*(clipContent: bool) =
+  ## Causes the parent to clip the children.
+  current.clipContent = clipContent
 
 proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.
