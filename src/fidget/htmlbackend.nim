@@ -1,5 +1,5 @@
-import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables, uibase, vmath,
-  internal, input
+import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
+  uibase, vmath, internal, input
 
 type
   PerfCounter* = object
@@ -14,7 +14,7 @@ var
   canvasNode*: Element
   ctx*: CanvasRenderingContext2D
 
-  forceTextRelayout*: bool
+  forceTextReLayout*: bool
 
   perf*: PerfCounter
 
@@ -270,15 +270,13 @@ proc drawDiff(current: Group) =
   if old.screenBox.wh == current.box.wh:
     current.textOffset = old.textOffset
 
-  forceTextRelayout = true
-
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
         if document.activeElement != dom:
           cast[TextAreaElement](dom).value = current.text
     else:
-      if forceTextRelayout or (old.text != current.text):
+      if forceTextReLayout or (old.text != current.text):
         inc perf.numLowLevelCalls
         old.text = current.text
 
@@ -416,9 +414,9 @@ proc drawFinish() =
 
   perf.drawMain = dom.window.performance.now() - startTime
 
-  #echo perf.drawMain
-  #echo numGroups
-  #echo perf.numLowLevelCalls
+  # echo perf.drawMain
+  # echo numGroups
+  # echo perf.numLowLevelCalls
 
   # remove left over nodes
   while rootDomNode.childNodes.len > numGroups:
@@ -574,9 +572,9 @@ proc startFidget*(draw: proc()) =
 
   document.fonts.onloadingdone = proc(event: Event) =
     computeTextBoxCache.clear()
-    forceTextRelayout = true
+    forceTextReLayout = true
     hardRedraw()
-    forceTextRelayout = false
+    forceTextReLayout = false
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
