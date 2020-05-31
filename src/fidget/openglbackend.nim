@@ -121,20 +121,22 @@ proc drawText(group: Group) =
 
     var
       hashFill = hash((
+        2344,
         fontFamily,
         pos.character,
-        font.size,
-        subPixelShift,
+        (font.size*100).int,
+        (subPixelShift*100).int,
         0
       ))
       hashStorke: Hash
 
     if group.strokeWeight > 0:
       hashStorke = hash((
+        9812,
         fontFamily,
         pos.character,
-        font.size,
-        subPixelShift,
+        (font.size*100).int,
+        (subPixelShift*100).int,
         group.strokeWeight
       ))
 
