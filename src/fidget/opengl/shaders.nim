@@ -30,11 +30,14 @@ proc getErrorLog*(
   lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
   var log = newString(length.int)
   strProc(id, length, nil, log)
-  if log.startsWith("Compute info"):
-    log = log[25..^1]
-  let
-    clickable = &"{path}({log[2..log.find(')')]}"
-  result = &"{clickable}: {log}"
+  when defined(emscripten):
+    result = log
+  else:
+    if log.startsWith("Compute info"):
+      log = log[25..^1]
+    let
+      clickable = &"{path}({log[2..log.find(')')]}"
+    result = &"{clickable}: {log}"
 
 proc compileComputeShader*(compute: (string, string)): GLuint =
   ## Compiles the compute shader and returns the program id.

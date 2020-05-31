@@ -183,7 +183,7 @@ proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
   updateLoop(poll = false)
 
 proc onFocus(window: staticglfw.Window, state: cint) {.cdecl.} =
-  focused = state == FOCUSED
+  focused = state == 1
 
 proc onSetKey(
   window: staticglfw.Window, key, scancode, action, modifiers: cint
@@ -317,10 +317,10 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
 
   window.makeContextCurrent()
 
-  swapInterval(1)
-
-  # Load OpenGL
-  loadExtensions()
+  when not defined(emscripten):
+    swapInterval(1)
+    # Load OpenGL
+    loadExtensions()
 
   when defined(glDebugMessageCallback):
     let flags = glGetInteger(GL_CONTEXT_FLAGS)
@@ -357,12 +357,19 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   discard window.setCharCallback(onSetCharCallback)
 
   glEnable(GL_BLEND)
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  glBlendFuncSeparate(
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_ONE,
+    GL_ONE_MINUS_SRC_ALPHA
+  )
 
   lastDraw = getTicks()
   lastTick = lastDraw
 
   onFocus(window, FOCUSED)
+  focused = true
   updateWindowSize()
 
 proc captureMouse*() =

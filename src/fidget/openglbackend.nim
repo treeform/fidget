@@ -6,7 +6,7 @@ export input
 
 var
   ctx*: Context
-  fonts: Table[string, Font]
+  fonts*: Table[string, Font]
   glyphOffsets: Table[Hash, Vec2]
   windowTitle, windowUrl: string
 
@@ -297,9 +297,16 @@ proc runFidget(
   drawMain = draw
   tickMain = tick
   setupFidget(openglVersion, msaa, mainLoopMode)
-  while running:
-    updateLoop()
-  exit()
+  when defined(emscripten):
+    # Emscripten can't block so it will call this callback instead.
+    proc emscripten_set_main_loop(f: proc() {.cdecl.}, a: cint, b: bool) {.importc.}
+    proc mainLoop() {.cdecl.} =
+      updateLoop()
+    emscripten_set_main_loop(main_loop, 0, true);
+  else:
+    while running:
+      updateLoop()
+    exit()
 
 proc startFidget*(
     draw: proc(),
