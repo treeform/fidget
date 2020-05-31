@@ -120,7 +120,8 @@ proc updateLoop*(poll = true) =
         pollEvents()
       if not requestedFrame or minimized:
         # Only repaint when necessary
-        sleep(16)
+        when not defined(emscripten):
+          sleep(16)
         return
       requestedFrame = false
       preInput()
