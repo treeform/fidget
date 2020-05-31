@@ -460,17 +460,15 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
     uvRect.xy + uvRect.wh / 2,
     uvRect.xy + uvRect.wh / 2, color
   )
-import hashes
+
 proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
   # TODO: Make this a 9 patch
-
-  var h1: Hash = 0
-  h1 = h1 !& 0xF3
-  h1 = h1 !& rect.w.int
-  h1 = h1 !& rect.h.int
-  h1 = h1 !& radius.int
-  let hash = !$h1
-  #echo "hash: ", $hash, " ", (rect.w, rect.h, radius)
+  let hash = hash((
+    6118,
+    rect.w.int,
+    rect.h.int,
+    (radius*100).int
+  ))
 
   let
     w = ceil(rect.w).int
@@ -499,14 +497,13 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
 proc strokeRoundedRect*(
   ctx: Context, rect: Rect, color: Color, weight: float, radius: float
 ) =
-  # # TODO: Make this a 9 patch
-  #let hash = hash(("roundedRect", rect.w, rect.h, radius))
-  var h1: Hash = 0
-  h1 = h1 !& 0xCF
-  h1 = h1 !& rect.w.int
-  h1 = h1 !& rect.h.int
-  h1 = h1 !& radius.int
-  let hash = !$h1
+  # TODO: Make this a 9 patch
+  let hash = hash((
+    8349,
+    rect.w.int,
+    rect.h.int,
+    (radius*100).int
+  ))
 
   let
     w = ceil(rect.w).int
