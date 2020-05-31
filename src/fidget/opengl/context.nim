@@ -71,7 +71,10 @@ proc addMaskTexture(ctx: Context, frameSize = vec2(1, 1)) =
   maskTexture.height = frameSize.y.int32
   maskTexture.componentType = GL_UNSIGNED_BYTE
   maskTexture.format = GL_RGBA
-  maskTexture.internalFormat = GL_R8
+  when defined(emscripten):
+    maskTexture.internalFormat = GL_RGBA8
+  else:
+    maskTexture.internalFormat = GL_R8
   maskTexture.minFilter = minLinear
   maskTexture.magFilter = magLinear
   bindTextureData(maskTexture.addr, nil)
@@ -98,8 +101,12 @@ proc newContext*(
 
   result.addMaskTexture()
 
-  result.atlasShader = newShaderStatic("glsl/atlas.vert", "glsl/atlas.frag")
-  result.maskShader = newShaderStatic("glsl/atlas.vert", "glsl/mask.frag")
+  when defined(emscripten):
+    result.atlasShader = newShaderStatic("glsl/emscripten/atlas.vert", "glsl/emscripten/atlas.frag")
+    result.maskShader = newShaderStatic("glsl/emscripten/atlas.vert", "glsl/emscripten/mask.frag")
+  else:
+    result.atlasShader = newShaderStatic("glsl/atlas.vert", "glsl/atlas.frag")
+    result.maskShader = newShaderStatic("glsl/atlas.vert", "glsl/mask.frag")
 
   result.positions.buffer.componentType = cGL_FLOAT
   result.positions.buffer.kind = bkVEC2
@@ -172,6 +179,7 @@ func `[]`(t: var Table[Hash, Rect], key: string): Rect =
 proc grow(ctx: Context) =
   ctx.draw()
   ctx.atlasSize = ctx.atlasSize * 2
+  echo "grow atlasSize ", ctx.atlasSize
   ctx.heights.setLen(ctx.atlasSize)
   ctx.atlasTexture = createAtlasTexture(ctx.atlasSize)
   ctx.entries.clear()
@@ -452,10 +460,17 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
     uvRect.xy + uvRect.wh / 2,
     uvRect.xy + uvRect.wh / 2, color
   )
-
+import hashes
 proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
   # TODO: Make this a 9 patch
-  let hash = hash(("roundedRect", rect.w, rect.h, radius))
+
+  var h1: Hash = 0
+  h1 = h1 !& 0xF3
+  h1 = h1 !& rect.w.int
+  h1 = h1 !& rect.h.int
+  h1 = h1 !& radius.int
+  let hash = !$h1
+  #echo "hash: ", $hash, " ", (rect.w, rect.h, radius)
 
   let
     w = ceil(rect.w).int
@@ -485,7 +500,13 @@ proc strokeRoundedRect*(
   ctx: Context, rect: Rect, color: Color, weight: float, radius: float
 ) =
   # # TODO: Make this a 9 patch
-  let hash = hash(("roundedRect", rect.w, rect.h, radius))
+  #let hash = hash(("roundedRect", rect.w, rect.h, radius))
+  var h1: Hash = 0
+  h1 = h1 !& 0xCF
+  h1 = h1 !& rect.w.int
+  h1 = h1 !& rect.h.int
+  h1 = h1 !& radius.int
+  let hash = !$h1
 
   let
     w = ceil(rect.w).int
