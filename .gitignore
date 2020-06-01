@@ -13,3 +13,4 @@ cairo
 *.dll
 ios_bars
 android_bars
+tmp

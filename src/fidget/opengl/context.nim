@@ -461,8 +461,9 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
     uvRect.xy + uvRect.wh / 2, color
   )
 
-proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
+proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
   # TODO: Make this a 9 patch
+  let radius = min(radius, min(rect.w/2, rect.h/2))
   let hash = hash((
     6118,
     rect.w.int,
@@ -495,8 +496,9 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float) =
   )
 
 proc strokeRoundedRect*(
-  ctx: Context, rect: Rect, color: Color, weight: float, radius: float
+  ctx: Context, rect: Rect, color: Color, weight: float32, radius: float32
 ) =
+  let radius = min(radius, min(rect.w/2, rect.h/2))
   # TODO: Make this a 9 patch
   let hash = hash((
     8349,
