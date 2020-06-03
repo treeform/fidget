@@ -1,6 +1,6 @@
 import chroma, hashes, internal, opengl/base, opengl/context, input,
     strformat, strutils, tables, times, typography, typography/textboxes,
-    common, vmath, flippy
+    common, vmath, flippy, unicode
 
 export input
 
@@ -31,16 +31,20 @@ proc refresh*() =
   requestedFrame = true
 
 proc focus*(keyboard: Keyboard, group: Group) =
-  if group.editableText and keyboard.inputFocusIdPath != group.idPath:
+  if keyboard.inputFocusIdPath != group.idPath:
     keyboard.inputFocusIdPath = group.idPath
     keyboard.input = group.text
     textBox = newTextBox(
       fonts[group.textStyle.fontFamily],
       int group.screenBox.w,
-      int group.screenBox.w,
+      int group.screenBox.h,
       group.text,
-      group.multiline
+      hAlignMode(group.textStyle.textAlignHorizontal),
+      vAlignMode(group.textStyle.textAlignVertical),
+      group.multiline,
+      worldWrap = true,
     )
+    textBox.scrollable = false
     refresh()
 
 proc unFocus*(keyboard: Keyboard, group: Group) =
@@ -60,10 +64,9 @@ proc drawText(group: Group) =
 
   let mousePos = mouse.pos - group.screenBox.xy
 
-  if current.editableText and
-      mouse.down and
-      mouse.pos.inside(current.screenBox):
+  if mouse.down and mouse.pos.inside(current.screenBox):
     # mouse actions click, drag, double clicking
+    keyboard.focus(current)
     if mouse.click:
       if epochTime() - lastClickTime < 0.5:
         inc multiClick
@@ -106,12 +109,16 @@ proc drawText(group: Group) =
       pos = vec2(0, 0),
       size = group.screenBox.wh,
       hAlignMode(group.textStyle.textAlignHorizontal),
-      vAlignMode(group.textStyle.textAlignVertical)
+      vAlignMode(group.textStyle.textAlignVertical),
+      clip = false,
     )
 
   # draw characters
   for glyphIdx, pos in layout:
     if pos.character notin font.glyphs:
+      continue
+    if pos.rune == Rune(32):
+      # Don't draw space, even if font has a char for it.
       continue
 
     let
@@ -179,8 +186,9 @@ proc drawText(group: Group) =
     ctx.drawImage(hashFill, charPos, group.fill)
 
   if editing:
-    # draw cursor
-    ctx.fillRect(textBox.cursorRect, group.cursorColor)
+    if textBox.cursor == textBox.selector:
+      # draw cursor
+      ctx.fillRect(textBox.cursorRect, group.cursorColor)
     # debug
     # ctx.fillRect(textBox.selectorRect, rgba(0, 0, 0, 255).color)
     # ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
