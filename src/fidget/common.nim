@@ -153,7 +153,7 @@ proc setupRoot*() =
   current = root
   root.kind = "group"
   root.id = "root"
-  root.highlightColor = rgba(0, 0, 0, 20).color
+  root.highlightColor = rgba(0, 0, 0, 60).color
   root.cursorColor = rgba(0, 0, 0, 255).color
 
 proc clearInputs*() =
