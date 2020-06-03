@@ -1,7 +1,7 @@
-import chroma, fidget/uibase, json, macros, strutils, tables, vmath,
+import chroma, fidget/common, json, macros, strutils, tables, vmath,
     fidget/input, strformat
 
-export chroma, uibase, input
+export chroma, common, input
 
 when defined(js):
   import fidget/htmlbackend

@@ -1,6 +1,6 @@
 import chroma, hashes, internal, opengl/base, opengl/context, input,
     strformat, strutils, tables, times, typography, typography/textboxes,
-    uibase, vmath, flippy
+    common, vmath, flippy
 
 export input
 
@@ -321,7 +321,7 @@ proc startFidget*(
     mainLoopMode: MainLoopMode = RepaintOnEvent
 ) =
   ## Starts Fidget UI library
-  uibase.fullscreen = fullscreen
+  common.fullscreen = fullscreen
   if not fullscreen:
     windowSize = vec2(w.float32, h.float32)
   runFidget(draw, tick, openglVersion, msaa, mainLoopMode)
