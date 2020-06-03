@@ -1,7 +1,7 @@
 ## Backend null is a dummy backend used for testing / dec gen
 ## Not a real backend will not draw anything
 
-import internal, tables, times, uibase
+import internal, tables, times, common
 
 var
   windowTitle, windowUrl: string

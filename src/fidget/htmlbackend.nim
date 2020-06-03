@@ -1,5 +1,5 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
-    uibase, vmath, internal, input
+    common, vmath, internal, input
 
 type
   PerfCounter* = object

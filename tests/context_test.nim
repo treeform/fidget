@@ -1,4 +1,4 @@
-import chroma, fidget, fidget/opengl/base, fidget/opengl/context, fidget/uibase,
+import chroma, fidget, fidget/opengl/base, fidget/opengl/context, fidget/common,
     flippy, vmath, osproc, os
 
 setCurrentDir(getCurrentDir() / "tests")

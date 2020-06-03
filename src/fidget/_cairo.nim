@@ -1,7 +1,7 @@
 ## Cairo backend uses Cairo and glfw3 libarires to provide graphics and input
 
 import chroma, glfw3 as glfw, math, opengl, os, print, quickcairo, random,
-    times, uibase, unicode, vmath
+    times, common, unicode, vmath
 
 when defined(Windows):
   import windows
@@ -247,12 +247,12 @@ proc onMouseMove(window: glfw.Window, x: cdouble, y: cdouble) {.cdecl.} =
   mouse.pos = vec2(x, y) * dpi
   redraw()
 
-proc `title=`*(win: uibase.Window, title: string) =
+proc `title=`*(win: common.Window, title: string) =
   if win.innerTitle != title:
     win.innerTitle = title
     window.SetWindowTitle(title)
 
-proc `title`*(win: uibase.Window): string =
+proc `title`*(win: common.Window): string =
   win.innerTitle
 
 proc startFidget*(draw: proc()) =
@@ -276,7 +276,7 @@ proc startFidget*(draw: proc()) =
   discard SetMouseButtonCallback(window, onMouseButton)
   discard SetFramebufferSizeCallback(window, onResize)
   proc onCharCallback(window: glfw.Window, character: cuint) {.cdecl.} =
-    keyboard.state = uibase.Press
+    keyboard.state = common.Press
     keyboard.keyString = $Rune(character)
     echo "keyboard.keyString", repr(keyboard.keyString)
     keyboard.input.add keyboard.keyString
@@ -296,7 +296,7 @@ proc startFidget*(draw: proc()) =
     #echo keyboard.input
     if keyboard.inputFocusId != "" and action != 0:
       if key == KEY_BACKSPACE:
-        keyboard.state = uibase.Press
+        keyboard.state = common.Press
         keyboard.keyString = ""
         if keyboard.input.len > 0:
           keyboard.input.setLen(keyboard.input.len - 1)

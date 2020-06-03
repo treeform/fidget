@@ -1,7 +1,7 @@
 ## Flippy backend uses Flippy and glfw3 libarires to provide graphics and input
 
 import chroma, flippy, glfw3 as glfw, math, opengl, os, print, tables, times,
-    typography, uibase, unicode, vmath
+    typography, common, unicode, vmath
 
 const GlfwLib = "libglfw.so.3"
 
@@ -301,12 +301,12 @@ proc onMouseMove(window: glfw.Window, x, y: cdouble) {.cdecl.} =
   mouse.pos = vec2(x, y) * dpi
   redraw()
 
-proc `title=`*(win: uibase.Window, title: string) =
+proc `title=`*(win: common.Window, title: string) =
   if win.innerTitle != title:
     win.innerTitle = title
     window.SetWindowTitle(title)
 
-proc `title`*(win: uibase.Window): string =
+proc `title`*(win: common.Window): string =
   win.innerTitle
 
 proc startFidget*(draw: proc()) =
@@ -332,7 +332,7 @@ proc startFidget*(draw: proc()) =
   discard SetMouseButtonCallback(window, onMouseButton)
   discard SetFramebufferSizeCallback(window, onResize)
   proc onCharCallback(window: glfw.Window, character: cuint) {.cdecl.} =
-    keyboard.state = uibase.Press
+    keyboard.state = common.Press
     keyboard.keyString = $Rune(character)
 
     if keyboard.inputFocusId != "":
@@ -347,11 +347,11 @@ proc startFidget*(draw: proc()) =
     key, scancode, action, modifiers: cint
   ) {.cdecl.} =
     if action == 1:
-      keyboard.state = uibase.Down
+      keyboard.state = common.Down
     elif action == 0:
-      keyboard.state = uibase.Up
+      keyboard.state = common.Up
     elif action == 2:
-      keyboard.state = uibase.Repeat
+      keyboard.state = common.Repeat
     else:
       return
     keyboard.keyCode = key
@@ -362,7 +362,7 @@ proc startFidget*(draw: proc()) =
     keyboard.superKey = (modifiers and glfw.MOD_SUPER) != 0
 
     if keyboard.inputFocusId != "":
-      if keyboard.state in {uibase.Down, uibase.Repeat}:
+      if keyboard.state in {common.Down, common.Repeat}:
         let key = keyboard.keyCode
         if key == KEY_BACKSPACE:
           if keyboard.textCursor != 0:
