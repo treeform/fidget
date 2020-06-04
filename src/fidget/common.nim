@@ -26,6 +26,11 @@ type
     vCenter
     vBottom
 
+  TextAutoResize* = enum
+    tNone
+    tWidthAndHeight
+    tHeight
+
   TextStyle* = object
     fontFamily*: string
     fontSize*: float
@@ -33,6 +38,7 @@ type
     lineHeight*: float
     textAlignHorizontal*: HAlign
     textAlignVertical*: VAlign
+    autoResize*: TextAutoResize
 
   BorderStyle* = object
     color*: Color

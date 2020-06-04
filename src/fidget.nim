@@ -205,6 +205,9 @@ proc textPadding*(textPadding: int) =
   ## Sets the text padding on editable multiline text areas.
   current.textPadding = textPadding
 
+proc textAutoResize*(textAutoResize: TextAutoResize) =
+  current.textAutoResize = textAutoResize
+
 proc characters*(text: string) =
   ## Adds text to the group.
   if current.text == "":
@@ -213,7 +216,7 @@ proc characters*(text: string) =
     current.text &= text
 
 proc image*(imageName: string) =
-  ## Adds text to the group.
+  ## Adds image to the group.
   current.imageName = imageName
 
 proc box*(x, y, w, h: float) =
