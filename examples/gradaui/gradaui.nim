@@ -157,94 +157,94 @@ proc drawMain() =
         fill "#cf6f8a"
         font "Montserrat", 10, 400, 18, hLeft, vTop
         characters "This input is invalid"
-    # group "Select":
-    #   box 120, 539, 275, 83
-    #   rectangle "Rectangle":
-    #     box 0, 18, 275, 40
-    #     constraints cMin, cMin
-    #     fill "#ffffff"
-    #     cornerRadius 3
-    #   text "keyboard_arrow_down":
-    #     box 235, 18, 40, 40
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Material Icons", 24, 400, 0, hCenter, vCenter
-    #     characters "keyboard_arrow_down"
-    #   text "Choose something":
-    #     box 15, 28, 134, 22
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "Choose something"
-    #   text "Select Input":
-    #     box 0, 0, 73, 18
-    #     constraints cMin, cMin
-    #     fill "#cbcfd4"
-    #     font "Montserrat", 10, 400, 18, hLeft, vTop
-    #     characters "Select Input"
-    #   text "Field Instructions go right here":
-    #     box 0, 65, 155, 18
-    #     constraints cMin, cMin
-    #     fill "#cbcfd4"
-    #     font "Montserrat", 10, 400, 18, hLeft, vTop
-    #     characters "Field Instructions go right here"
-    # group "Select Expanded":
-    #   box 120, 642, 275, 239
-    #   rectangle "Rectangle":
-    #     box 0, 18, 275, 40
-    #     constraints cMin, cMin
-    #     fill "#ffffff"
-    #   text "keyboard_arrow_down":
-    #     box 235, 18, 40, 40
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Material Icons", 24, 400, 0, hCenter, vCenter
-    #     characters "keyboard_arrow_down"
-    #   text "Choose something":
-    #     box 15, 28, 134, 22
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "Choose something"
-    #   rectangle "Rectangle":
-    #     box 0, 239, 275, 180
-    #     constraints cMin, cMin
-    #     fill "#ffffff"
-    #     dropShadow 0, 0, -1, "#ffffff", 0.800000011920929
-    #   text "An option here":
-    #     box 15, 79, 105, 22
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "An option here"
-    #   rectangle "Rectangle 2":
-    #     box 0, 113, 275, 32
-    #     constraints cMin, cMin
-    #     fill "#f27a54"
-    #   text "Another option":
-    #     box 15, 119, 108, 22
-    #     constraints cMin, cMin
-    #     fill "#ffffff"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "Another option"
-    #   text "Awesome option here":
-    #     box 15, 159, 155, 22
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "Awesome option here"
-    #   text "Last option around":
-    #     box 15, 199, 134, 22
-    #     constraints cMin, cMin
-    #     fill "#747d88"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "Last option around"
-    #   text "Select Input Expanded":
-    #     box 0, 0, 134, 18
-    #     constraints cMin, cMin
-    #     fill "#cbcfd4"
-    #     font "Montserrat", 10, 400, 18, hLeft, vTop
-    #     characters "Select Input Expanded"
+    group "Select":
+      box 120, 539, 275, 83
+      rectangle "Rectangle":
+        box 0, 18, 275, 40
+        constraints cMin, cMin
+        fill "#ffffff"
+        cornerRadius 3
+      text "keyboard_arrow_down":
+        box 235, 18, 40, 40
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Material Icons", 24, 400, 0, hCenter, vCenter
+        characters "keyboard_arrow_down"
+      text "Choose something":
+        box 15, 28, 134, 22
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "Choose something"
+      text "Select Input":
+        box 0, 0, 73, 18
+        constraints cMin, cMin
+        fill "#cbcfd4"
+        font "Montserrat", 10, 400, 18, hLeft, vTop
+        characters "Select Input"
+      text "Field Instructions go right here":
+        box 0, 65, 155, 18
+        constraints cMin, cMin
+        fill "#cbcfd4"
+        font "Montserrat", 10, 400, 18, hLeft, vTop
+        characters "Field Instructions go right here"
+    group "Select Expanded":
+      box 120, 642, 275, 239
+      rectangle "Rectangle":
+        box 0, 18, 275, 40
+        constraints cMin, cMin
+        fill "#ffffff"
+      text "keyboard_arrow_down":
+        box 235, 18, 40, 40
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Material Icons", 24, 400, 0, hCenter, vCenter
+        characters "keyboard_arrow_down"
+      text "Choose something":
+        box 15, 28, 134, 22
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "Choose something"
+      rectangle "Rectangle":
+        box 0, 58, 275, 180
+        constraints cMin, cMin
+        fill "#ffffff"
+      #   dropShadow 0, 0, -1, "#ffffff", 0.800000011920929
+      text "An option here":
+        box 15, 79, 105, 22
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "An option here"
+      rectangle "Rectangle 2":
+        box 0, 113, 275, 32
+        constraints cMin, cMin
+        fill "#f27a54"
+      text "Another option":
+        box 15, 119, 108, 22
+        constraints cMin, cMin
+        fill "#ffffff"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "Another option"
+      text "Awesome option here":
+        box 15, 159, 155, 22
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "Awesome option here"
+      text "Last option around":
+        box 15, 199, 134, 22
+        constraints cMin, cMin
+        fill "#747d88"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "Last option around"
+      text "Select Input Expanded":
+        box 0, 0, 134, 18
+        constraints cMin, cMin
+        fill "#cbcfd4"
+        font "Montserrat", 10, 400, 18, hLeft, vTop
+        characters "Select Input Expanded"
     group "Range Slider":
       box 445, 230, 275, 83
       rectangle "Rectangle":
