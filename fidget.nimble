@@ -10,7 +10,7 @@ srcDir        = "src"
 
 requires "nim >= 1.0.0"
 requires "chroma >= 0.1.0"
-requires "typography >= 0.3.1"
+requires "typography >= 0.3.2"
 requires "flippy >= 0.4.4"
 requires "vmath >= 0.3.1"
 requires "print >= 0.1.0"
