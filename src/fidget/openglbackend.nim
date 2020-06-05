@@ -44,6 +44,7 @@ proc focus*(keyboard: Keyboard, group: Group) =
       group.multiline,
       worldWrap = true,
     )
+    textBox.editable = group.editableText
     textBox.scrollable = false
     refresh()
 
@@ -194,7 +195,7 @@ proc drawText(group: Group) =
     ctx.drawImage(hashFill, charPos, group.fill)
 
   if editing:
-    if textBox.cursor == textBox.selector:
+    if textBox.cursor == textBox.selector and group.editableText:
       # draw cursor
       ctx.fillRect(textBox.cursorRect, group.cursorColor)
     # debug

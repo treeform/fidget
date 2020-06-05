@@ -30,11 +30,12 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#ffffff"
         cornerRadius 3
-      text "Type here...":
+      text "input1":
         box 15, 28, 252, 22
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 14, 400, 22, hLeft, vTop
+        editableText true
         characters "Type here..."
       text "Default Input":
         box 0, 0, 82, 18
@@ -55,11 +56,12 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#ffffff"
         cornerRadius 3
-      text "Type here...":
+      text "input2":
         box 15, 28, 252, 125
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 14, 400, 22, hLeft, vTop
+        editableText true
         characters "Type here..."
       text "Textarea":
         box 0, 0, 267, 18
@@ -81,7 +83,7 @@ proc drawMain() =
         stroke "#747d88"
         cornerRadius 3
         strokeWeight 1
-      text "Type here...":
+      text "input3":
         box 15, 28, 252, 22
         constraints cMin, cMin
         fill "#747d88"
