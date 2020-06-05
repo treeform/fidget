@@ -31,7 +31,7 @@ proc drawMain() =
         fill "#ffffff"
         cornerRadius 3
       text "Type here...":
-        box 15, 28, 78, 22
+        box 15, 28, 252, 22
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -43,10 +43,10 @@ proc drawMain() =
         font "Montserrat", 10, 400, 18, hLeft, vTop
         characters "Default Input"
       text "Field Instructions go right here":
-        box 0, 65, 155, 18
+        box 0, 65, 252, 18
         constraints cMin, cMin
         fill "#cbcfd4"
-        font "Montserrat", 10, 400, 18, hLeft, vTop
+        font "Montserrat", 10, 400, 18, hLeft, vCenter
         characters "Field Instructions go right here"
     group "Input":
       box 120, 1014, 275, 186
@@ -56,19 +56,19 @@ proc drawMain() =
         fill "#ffffff"
         cornerRadius 3
       text "Type here...":
-        box 15, 28, 78, 22
+        box 15, 28, 252, 125
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 14, 400, 22, hLeft, vTop
         characters "Type here..."
       text "Textarea":
-        box 0, 0, 53, 18
+        box 0, 0, 267, 18
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 10, 400, 18, hLeft, vTop
         characters "Textarea"
       text "180 Characters Left":
-        box 0, 168, 96, 18
+        box 0, 168, 267, 18
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 10, 400, 18, hLeft, vTop
@@ -82,19 +82,19 @@ proc drawMain() =
         cornerRadius 3
         strokeWeight 1
       text "Type here...":
-        box 15, 28, 78, 22
+        box 15, 28, 252, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
         characters "Type here..."
       text "Deactivated Input":
-        box 0, 0, 107, 18
+        box 0, 0, 267, 18
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 10, 400, 18, hLeft, vTop
         characters "Deactivated Input"
       text "Field Instructions go right here":
-        box 0, 65, 155, 18
+        box 0, 65, 267, 18
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 10, 400, 18, hLeft, vTop
@@ -111,7 +111,7 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#6fcf97"
       text "Lorem Ipsum":
-        box 15, 28, 95, 22
+        box 15, 28, 252, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -140,7 +140,7 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#cf6f8a"
       text "Lorem Ipsum":
-        box 15, 28, 95, 22
+        box 15, 28, 252, 22
         constraints cMin, cMin
         fill "#f27474"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -171,7 +171,7 @@ proc drawMain() =
         font "Material Icons", 24, 400, 0, hCenter, vCenter
         characters "keyboard_arrow_down"
       text "Choose something":
-        box 15, 28, 134, 22
+        box 15, 28, 220, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -201,7 +201,7 @@ proc drawMain() =
         font "Material Icons", 24, 400, 0, hCenter, vCenter
         characters "keyboard_arrow_down"
       text "Choose something":
-        box 15, 28, 134, 22
+        box 15, 28, 220, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -210,9 +210,9 @@ proc drawMain() =
         box 0, 58, 275, 180
         constraints cMin, cMin
         fill "#ffffff"
-      #   dropShadow 0, 0, -1, "#ffffff", 0.800000011920929
+        #dropShadow 0, 0, -1, "#ffffff", 0.800000011920929
       text "An option here":
-        box 15, 79, 105, 22
+        box 15, 79, 252, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -222,19 +222,19 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#f27a54"
       text "Another option":
-        box 15, 119, 108, 22
+        box 15, 119, 252, 22
         constraints cMin, cMin
         fill "#ffffff"
         font "Montserrat", 14, 400, 22, hLeft, vTop
         characters "Another option"
       text "Awesome option here":
-        box 15, 159, 155, 22
+        box 15, 159, 252, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
         characters "Awesome option here"
       text "Last option around":
-        box 15, 199, 134, 22
+        box 15, 199, 252, 22
         constraints cMin, cMin
         fill "#747d88"
         font "Montserrat", 14, 400, 22, hLeft, vTop
@@ -248,7 +248,7 @@ proc drawMain() =
     group "Range Slider":
       box 445, 230, 275, 83
       rectangle "Rectangle":
-        box 2.2737367544323206e-13, 36, 275, 4
+        box 0, 36, 275, 4
         constraints cMin, cMin
         fill "#747d88"
       rectangle "Rectangle":
@@ -257,54 +257,54 @@ proc drawMain() =
         fill "#f27a54"
         #dropShadow 10, 0, 5, "#cf6f8a", 0.15000000596046448
       text "Range Slider":
-        box 0, 0, 77, 18
+        box 0, 0, 275, 18
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 10, 400, 18, hLeft, vTop
         characters "Range Slider"
       group "Group":
-        box 37, 28, 20, 55
+        box 20, 28, 54, 55
         rectangle "Rectangle":
-          box 8, 0, 4, 20
+          box 25, 0, 4, 20
           constraints cMin, cMin
           fill "#ffffff"
           cornerRadius 3
         text "$20":
-          box 0, 37, 20, 18
+          box 0, 37, 54, 18
           constraints cMin, cMin
           fill "#ffffff"
           font "Montserrat", 10, 700, 18, hCenter, vTop
           characters "$20"
       group "Group":
-        box 214, 28, 26, 55
+        box 195, 28, 64, 55
         rectangle "Rectangle":
-          box 11, 0, 4, 20
+          box 30, 0, 4, 20
           constraints cMin, cMin
           fill "#ffffff"
           cornerRadius 3
         text "$300":
-          box 0, 37, 26, 18
+          box 0, 37, 64, 18
           constraints cMin, cMin
           fill "#ffffff"
           font "Montserrat", 10, 700, 18, hCenter, vTop
           characters "$300"
     group "Radio Buttons":
-      box 445, 333, 169, 50
+      box 445, 333, 275, 50
       group "Group":
-        box 0, 28, 62, 22
+        box 0, 28, 86, 22
         rectangle "Rectangle":
           box 0, 0, 20, 20
           constraints cMin, cMin
           fill "#ffffff"
           cornerRadius 10
         text "I will":
-          box 30, 0, 32, 22
+          box 30, 0, 56, 22
           constraints cMin, cMin
           fill "#cbcfd4"
           font "Montserrat", 14, 400, 22, hLeft, vTop
           characters "I will"
       group "Group":
-        box 92, 28, 77, 22
+        box 92, 28, 133, 22
         rectangle "Rectangle":
           box 0, 0, 20, 20
           constraints cMin, cMin
@@ -316,21 +316,21 @@ proc drawMain() =
           fill "#30363d"
           cornerRadius 10
         text "I won’t":
-          box 30, 0, 47+2, 22
+          box 30, 0, 103, 22
           constraints cMin, cMin
           fill "#cbcfd4"
           font "Montserrat", 14, 400, 22, hLeft, vTop
           characters "I won’t"
       text "Radio Buttons":
-        box 0, 0, 87, 18
+        box 0, 0, 275, 18
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 10, 400, 18, hLeft, vTop
         characters "Radio Buttons"
     group "Checkbox Buttons":
-      box 445, 436, 240, 50
+      box 445, 436, 275, 50
       group "Group":
-        box 0, 28, 80, 22
+        box 0, 28, 102, 22
         rectangle "Rectangle":
           box 0, 0, 20, 20
           constraints cMin, cMin
@@ -341,26 +341,26 @@ proc drawMain() =
         #   constraints cMin, cMin
         #   fill "#30363d"
         text "Design":
-          box 30, 0, 50, 22
+          box 30, 0, 72, 22
           constraints cMin, cMin
           fill "#cbcfd4"
           font "Montserrat", 14, 400, 22, hLeft, vTop
           characters "Design"
       group "Group":
-        box 108, 28, 132, 22
+        box 108, 28, 167, 22
         rectangle "Rectangle":
           box 0, 0, 20, 20
           constraints cMin, cMin
           fill "#ffffff"
           cornerRadius 3
         text "Deverlopment":
-          box 30, 0, 102+2, 22
+          box 30, 0, 137, 22
           constraints cMin, cMin
           fill "#cbcfd4"
           font "Montserrat", 14, 400, 22, hLeft, vTop
           characters "Deverlopment"
       text "Checkbox Buttons":
-        box 0, 0, 111, 18
+        box 0, 0, 275, 18
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 10, 400, 18, hLeft, vTop
@@ -373,7 +373,7 @@ proc drawMain() =
         fill "#f27a54"
         cornerRadius 20
       text "Primary Call to Action":
-        box 50, 14, 135, 13
+        box 50, 14, 142, 13
         constraints cMin, cMin
         fill "#ffffff"
         font "Montserrat", 10, 700, 0, hLeft, vCenter
@@ -383,7 +383,7 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#ffffff"
         font "Material Icons", 24, 400, 0, hCenter, vCenter
-        characters "\uE2C3"
+        characters "backup"
     group "Primary":
       box 445, 714, 200, 40
       rectangle "Rectangle":
@@ -392,7 +392,7 @@ proc drawMain() =
         fill "#f27a54"
         cornerRadius 20
       text "Primary Call to Action":
-        box 20, 14, 135, 13
+        box 17, 14, 146, 13
         constraints cMin, cMin
         fill "#ffffff"
         font "Montserrat", 10, 700, 0, hCenter, vCenter
@@ -402,7 +402,7 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#ffffff"
         font "Material Icons", 24, 400, 0, hCenter, vCenter
-        characters "\uE315"
+        characters "keyboard_arrow_right"
     group "Primary":
       box 445, 914, 200, 40
       rectangle "Rectangle":
@@ -412,7 +412,7 @@ proc drawMain() =
         cornerRadius 20
         strokeWeight 1
       text "Primary Call to Action":
-        box 17, 14, 140, 13
+        box 4, 14, 170, 13
         constraints cMin, cMin
         fill "#ffffff"
         font "Montserrat", 10, 700, 0, hCenter, vCenter
@@ -422,7 +422,7 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#ffffff"
         font "Material Icons", 24, 400, 0, hCenter, vCenter
-        characters "\uE315"
+        characters "keyboard_arrow_right"
     group "Group":
       box 445, 784, 151, 30
       rectangle "Rectangle":
@@ -431,7 +431,7 @@ proc drawMain() =
         fill "#f27a54"
         cornerRadius 20
       text "Small Call to Action":
-        box 15, 9, 121, 13
+        box 12, 9, 130, 13
         constraints cMin, cMin
         fill "#ffffff"
         font "Montserrat", 10, 700, 0, hLeft, vCenter
@@ -445,10 +445,10 @@ proc drawMain() =
         cornerRadius 20
         strokeWeight 1
       text "Small Call to Action":
-        box 15, 9, 127, 13
+        box 0, 9, 151, 13
         constraints cMin, cMin
         fill "#ffffff"
-        font "Montserrat", 10, 700, 0, hLeft, vCenter
+        font "Montserrat", 10, 700, 0, hCenter, vCenter
         characters "Small Call to Action"
     group "Secondary":
       box 445, 844, 222, 40
@@ -459,7 +459,7 @@ proc drawMain() =
         cornerRadius 20
         strokeWeight 1
       text "Secondary Call to Action":
-        box 50, 14, 158, 13
+        box 50, 14, 165, 13
         constraints cMin, cMin
         fill "#ffffff"
         font "Montserrat", 10, 700, 0, hLeft, vCenter
@@ -471,7 +471,7 @@ proc drawMain() =
         font "Material Icons", 24, 400, 0, hCenter, vCenter
         characters "\uE85C"
     group "Group 2":
-      box 445, 534, 197, 22
+      box 445, 534, 275, 22
       rectangle "Rectangle":
         box 0, 0, 40, 20
         constraints cMin, cMin
@@ -482,36 +482,36 @@ proc drawMain() =
         constraints cMin, cMin
         fill "#f27a54"
         cornerRadius 10
-        #dropShadow 10, 0, 5, "#cf6f8a", 0.15000000596046448
+        dropShadow 10, 0, 5, "#cf6f8a", 0.15000000596046448
       text "This one is turned on":
-        box 50, 0, 147, 22
+        box 50, 0, 225, 22
         constraints cMin, cMin
         fill "#cbcfd4"
         font "Montserrat", 14, 400, 22, hLeft, vTop
         characters "This one is turned on"
     group "Group 2.1":
-      box 445, 574, 197, 22
-      # rectangle "Rectangle":
-      #   box 0, 0, 40, 20
-      #   constraints cMin, cMin
-      #   fill "#747d88"
-      #   cornerRadius 10
-    #   rectangle "Rectangle":
-    #     box 0, 0, 20, 20
-    #     constraints cMin, cMin
-    #     fill "#ffffff"
-    #     cornerRadius 10
-    #   text "This one is turned off":
-    #     box 50, 0, 147+2, 22
-    #     constraints cMin, cMin
-    #     fill "#cbcfd4"
-    #     font "Montserrat", 14, 400, 22, hLeft, vTop
-    #     characters "This one is turned off"
+      box 445, 574, 275, 22
+      rectangle "Rectangle":
+        box 0, 0, 40, 20
+        constraints cMin, cMin
+        fill "#747d88"
+        cornerRadius 10
+      rectangle "Rectangle":
+        box 0, 0, 20, 20
+        constraints cMin, cMin
+        fill "#ffffff"
+        cornerRadius 10
+      text "This one is turned off":
+        box 50, 0, 225, 22
+        constraints cMin, cMin
+        fill "#cbcfd4"
+        font "Montserrat", 14, 400, 22, hLeft, vTop
+        characters "This one is turned off"
     text "Form Elements":
       box 129, 89, 582, 64
       constraints cMin, cMin
       fill "#f27a54"
-      font "Montserrat Bold", 64, 700, 22, hCenter, vCenter
+      font "Montserrat", 64, 700, 22, hCenter, vCenter
       characters "Form Elements"
 
 startFidget(drawMain, w = 840, h = 1320)
