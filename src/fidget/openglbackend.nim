@@ -104,6 +104,14 @@ proc drawText(group: Group) =
     for rect in textBox.selectionRegions():
       ctx.fillRect(rect, group.highlightColor)
   else:
+    # TODO handle auto sizing
+    # var size = case group.textStyle.autoResize:
+    #   of tNone:
+    #     group.screenBox.wh
+    #   of tWidthAndHeight:
+    #     vec2(0, 0)
+    #   of tHeight:
+    #     vec2(0, group.screenBox.h)
     layout = font.typeset(
       group.text,
       pos = vec2(0, 0),
