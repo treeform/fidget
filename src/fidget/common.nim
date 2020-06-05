@@ -9,7 +9,7 @@ const
   blackColor* = color(0, 0, 0, 1)
 
 type
-  Contraints* = enum
+  Constraints* = enum
     cMin
     cMax
     cScale
@@ -55,13 +55,23 @@ type
     y*: float
     color*: Color
 
-  Group* = ref object
+  NodeKind* = enum
+    nkRoot
+    nkFrame
+    nkGroup
+    nkImage
+    nkText
+    nkRectangle
+    nkComponent
+    nkInstance
+
+  Node* = ref object
     id*: string
     idPath*: string
-    kind*: string
+    kind*: NodeKind
     text*: string
     code*: string
-    kids*: seq[Group]
+    nodes*: seq[Node]
     box*: Rect
     orgBox*: Rect
     rotation*: float
@@ -78,7 +88,6 @@ type
     textPadding*: int
     imageName*: string
     cornerRadius*: (float, float, float, float)
-    wasDrawn*: bool # Was group drawn or still needs to be drawn
     editableText*: bool
     multiline*: bool
     bindingSet*: bool
@@ -87,6 +96,8 @@ type
     highlightColor*: Color
     shadows*: seq[Shadow]
     clipContent*: bool
+
+    diffIndex*: int
 
   KeyState* = enum
     Empty
@@ -124,18 +135,18 @@ type
     selectionCursor*: int # To which character are we selecting to
 
 var
-  parent*: Group
-  root*: Group
-  prevRoot*: Group
-  groupStack*: seq[Group]
-  current*: Group
+  parent*: Node
+  root*: Node
+  prevRoot*: Node
+  nodeStack*: seq[Node]
+  current*: Node
   scrollBox*: Rect
   scrollBoxMega*: Rect # Scroll box is 500px bigger in y direction
   scrollBoxMini*: Rect # Scroll box is smaller by 100px useful for debugging
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
-  numGroups*: int
+  numNodes*: int
   popupActive*: bool
   inPopup*: bool
   fullscreen* = false
@@ -152,15 +163,21 @@ when not defined(js):
 mouse = Mouse()
 mouse.pos = Vec2()
 
+proc dumpTree*(node: Node, indent="") =
+  echo indent, node.id, node.screenBox
+  for n in node.nodes:
+    dumpTree(n, "  " & indent)
+
 proc setupRoot*() =
-  prevRoot = root
-  root = Group()
-  groupStack = @[root]
+  if root == nil:
+    root = Node()
+    root.kind = nkRoot
+    root.id = "root"
+    root.highlightColor = rgba(0, 0, 0, 60).color
+    root.cursorColor = rgba(0, 0, 0, 255).color
+  nodeStack = @[root]
   current = root
-  root.kind = "group"
-  root.id = "root"
-  root.highlightColor = rgba(0, 0, 0, 60).color
-  root.cursorColor = rgba(0, 0, 0, 255).color
+  root.diffIndex = 0
 
 proc clearInputs*() =
   # Used for onFocus/onUnFocus.

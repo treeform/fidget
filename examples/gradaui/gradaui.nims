@@ -19,4 +19,4 @@ if defined(emscripten):
   --d:noSignalHandler
 
   # Pass this to Emscripten linker to generate html file scaffold for us.
-  switch("passL", "-o gradaui.html --preload-file data --shell-file data/shell.html")
+  switch("passL", "-o gradaui.html -s ALLOW_MEMORY_GROWTH=1 --preload-file data --shell-file data/shell.html")

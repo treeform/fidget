@@ -1,90 +1,124 @@
 import chroma, fidget/common, json, macros, strutils, tables, vmath,
-    fidget/input, strformat
+    fidget/input, print
 
 export chroma, common, input
 
 when defined(js):
   import fidget/htmlbackend
   export htmlbackend
-elif defined(null):
+elif defined(nullbackend):
   import fidget/nullbackend
   export nullbackend
 else:
   import fidget/openglbackend
   export openglbackend
 
-template node(kindStr: string, name: string, inner: untyped): untyped =
-  ## Base template for group, frame, rectangle...
+proc preNode(kind: NodeKind, id: string) =
+  # Process the start of the node.
 
-  # Verify we have drawn the parent first since we are drawing a child now
-  parent = groupStack[^1]
-  if not parent.wasDrawn:
-    parent.draw()
-    parent.wasDrawn = true
+  parent = nodeStack[^1]
 
-  current = Group()
-  current.id = name
-  current.kind = kindStr
-  current.wasDrawn = false
+  # TODO: maybe a better node searcher?
+
+  if parent.nodes.len <= parent.diffIndex:
+    # Create Node
+    current = Node()
+    current.id = id
+    parent.nodes.add(current)
+  else:
+    # Reuse Node
+    current = parent.nodes[parent.diffIndex]
+    if current.id == id:
+      # Same node"
+      discard
+    else:
+      # Big change"
+      current.id = id
+
+  current.kind = kind
   current.textStyle = parent.textStyle
   current.cursorColor = parent.cursorColor
   current.highlightColor = parent.highlightColor
   current.transparency = parent.transparency
-  groupStack.add(current)
+  nodeStack.add(current)
+  inc parent.diffIndex
 
-  for g in groupStack:
+  current.idPath = ""
+  for i, g in nodeStack:
+    if i != 0:
+      current.idPath.add "."
     if g.id != "":
-      if current.idPath.len > 0:
-        current.idPath.add "."
       current.idPath.add g.id
+    else:
+      current.idPath.add $g.diffIndex
 
-  # if pathChecker.hasKey(current.idPath):
-  #   raise newException(ValueError, &"Duplicate id path `{current.idPath}` found.")
-  # else:
-  #   pathChecker[current.idPath] = true
+  current.diffIndex = 0
 
-  block:
-    inner
-
-  if not current.wasDrawn:
-    current.draw()
-    current.wasDrawn = true
-
-  current.postDrawChildren()
-
-  discard groupStack.pop()
-  if groupStack.len > 1:
-    current = groupStack[^1]
+proc postNode() =
+  discard nodeStack.pop()
+  if nodeStack.len > 1:
+    current = nodeStack[^1]
+    current.nodes.setLen(current.diffIndex)
   else:
     current = nil
-  if groupStack.len > 2:
-    parent = groupStack[^2]
+  if nodeStack.len > 2:
+    parent = nodeStack[^2]
   else:
     parent = nil
 
-template group*(name: string, inner: untyped): untyped =
-  ## Starts a new group.
-  node("group", name, inner)
+template node(kind: NodeKind, id: string, inner: untyped): untyped =
+  ## Base template for node, frame, rectangle...
+  preNode(kind, id)
+  inner
+  postNode()
 
-template frame*(name: string, inner: untyped): untyped =
+template group*(id: string, inner: untyped): untyped =
+  ## Starts a new node.
+  node(nkGroup, id, inner)
+
+template frame*(id: string, inner: untyped): untyped =
   ## Starts a new frame.
-  node("frame", name, inner)
+  node(nkFrame, id, inner)
 
-template rectangle*(name: string, inner: untyped): untyped =
+template rectangle*(id: string, inner: untyped): untyped =
   ## Starts a new rectangle.
-  node("rectangle", name, inner)
+  node(nkRectangle, id, inner)
 
-template text*(name: string, inner: untyped): untyped =
+template text*(id: string, inner: untyped): untyped =
   ## Starts a new text element.
-  node("text", name, inner)
+  node(nkText, id, inner)
 
-template component*(name: string, inner: untyped): untyped =
+template component*(id: string, inner: untyped): untyped =
   ## Starts a new component.
-  node("component", name, inner)
+  node(nkComponent, id, inner)
 
-template instance*(name: string, inner: untyped): untyped =
+template instance*(id: string, inner: untyped): untyped =
   ## Starts a new instance of a component.
-  node("component", name, inner)
+  node(nkInstance, id, inner)
+
+template group*(inner: untyped): untyped =
+  ## Starts a new node.
+  node(nkGroup, "", inner)
+
+template frame*(inner: untyped): untyped =
+  ## Starts a new frame.
+  node(nkFrame, "", inner)
+
+template rectangle*(inner: untyped): untyped =
+  ## Starts a new rectangle.
+  node(nkRectangle, "", inner)
+
+template text*(inner: untyped): untyped =
+  ## Starts a new text element.
+  node(nkText, "", inner)
+
+template component*(inner: untyped): untyped =
+  ## Starts a new component.
+  node(nkComponent, "", inner)
+
+template instance*(inner: untyped): untyped =
+  ## Starts a new instance of a component.
+  node(nkInstance, "", inner)
 
 template rectangle*(color: string|Color) =
   ## Shorthand for rectangle with fill.
@@ -125,9 +159,9 @@ template onKeyDown*(inner: untyped) =
   if keyboard.state == Down:
     inner
 
-proc hasKeyboardFocus*(group: Group): bool =
-  ## Does a group have keyboard input focus.
-  return keyboard.inputFocusIdPath == group.idPath
+proc hasKeyboardFocus*(node: Node): bool =
+  ## Does a node have keyboard input focus.
+  return keyboard.inputFocusIdPath == node.idPath
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus.
@@ -209,14 +243,12 @@ proc textAutoResize*(textAutoResize: TextAutoResize) =
   current.textStyle.autoResize = textAutoResize
 
 proc characters*(text: string) =
-  ## Adds text to the group.
-  if current.text == "":
+  ## Sets text.
+  if current.text != text:
     current.text = text
-  else:
-    current.text &= text
 
 proc image*(imageName: string) =
-  ## Adds image to the group.
+  ## Sets image fill.
   current.imageName = imageName
 
 proc box*(x, y, w, h: float) =
@@ -293,7 +325,7 @@ proc cornerRadius*(radius: float) =
   cornerRadius(radius, radius, radius, radius)
 
 proc editableText*(editableText: bool) =
-  ## Sets the code for this group.
+  ## Sets the code for this node.
   current.editableText = editableText
 
 proc multiline*(multiline: bool) =
@@ -344,7 +376,7 @@ proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas.
   current.drawable = drawable
 
-proc constraints*(vCon: Contraints, hCon: Contraints) =
+proc constraints*(vCon: Constraints, hCon: Constraints) =
   ## Sets vertical or horizontal constraint.
   case vCon
     of cMin: discard
@@ -395,7 +427,7 @@ template binding*(stringVariable: untyped) =
       stringVariable = keyboard.input
       refresh()
 
-template override*(name: string, inner: untyped) =
+template override*(id: string, inner: untyped) =
   template `name`(): untyped =
     inner
 
