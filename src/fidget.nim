@@ -206,7 +206,7 @@ proc textPadding*(textPadding: int) =
   current.textPadding = textPadding
 
 proc textAutoResize*(textAutoResize: TextAutoResize) =
-  current.textAutoResize = textAutoResize
+  current.textStyle.autoResize = textAutoResize
 
 proc characters*(text: string) =
   ## Adds text to the group.
