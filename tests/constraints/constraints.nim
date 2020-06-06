@@ -1,5 +1,7 @@
 import fidget
 
+setTitle("Constraints")
+
 proc drawMain() =
   frame "constraints":
     # Got to specify orgBox for constraints to work.

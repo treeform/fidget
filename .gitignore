@@ -16,3 +16,4 @@ android_bars
 tmp
 node_modules
 package-lock.json
+*.flippy
