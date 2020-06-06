@@ -261,13 +261,11 @@ proc draw*(node: Node) =
 
   ctx.restoreTransform()
 
-  for n in node.nodes:
-    n.draw()
+  for j in 1 .. node.nodes.len:
+    node.nodes[^j].draw()
 
   if node.clipContent:
     ctx.popMask()
-
-
 
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
@@ -304,13 +302,12 @@ proc setupFidget(
     mouse.pos = mouse.pos / pixelRatio
 
     # Only draw the root after everything was done:
-    echo "draw"
     root.draw()
 
     ctx.restoreTransform()
     ctx.endFrame()
 
-    dumpTree(root)
+    #dumpTree(root)
 
   useDepthBuffer(false)
 
