@@ -97,16 +97,13 @@ function visit(node) {
     indent -= 1;
     return;
   }
-  if (node.type == "FRAME") {
-    for (let fill of node.backgrounds) {
-      visitFill(fill);
-    }
-  }
+
   if (node.fills != undefined && node.fills != figma.mixed) {
     for (let fill of node.fills) {
       visitFill(fill);
     }
   }
+
   if (node.strokes != undefined && node.strokes != figma.mixed) {
     for (let stroke of node.strokes) {
       visitStroke(stroke);
@@ -146,7 +143,24 @@ function visit(node) {
       v = "vBottom";
     text += ind() + `font ${fontFamily}, ${node.fontSize}, ${fontWeight}, ${lineHeight}, ${h}, ${v}\n`;
     text += ind() + "characters " + JSON.stringify(node.characters) + "\n";
+    if (node.textAutoResize != "NONE") {
+      text += ind() + `textAutoResize ts${titleCase(node.textAutoResize)}\n`
+    }
   }
+
+  console.log(node);
+  if (node.layoutMode == "VERTICAL" || node.layoutMode == "HORIZONTAL") {
+    text += ind() + `layout lm${titleCase(node.layoutMode)}\n`;
+    text += ind() + `counterAxisSizingMode cs${titleCase(node.counterAxisSizingMode)}\n`;
+    text += ind() + `horizontalPadding ${node.horizontalPadding}\n`;
+    text += ind() + `verticalPadding ${node.verticalPadding}\n`;
+    text += ind() + `itemSpacing ${node.itemSpacing}\n`;
+  }
+
+  if (node.layoutAlign && node.layoutAlign != "MIN") {
+     text += ind() + `layoutAlign la${titleCase(node.layoutAlign)}\n`;
+  }
+
   if (node.children) {
     if (node.type == "GROUP") {
       atStack.push({ x: at.x, y: at.y });

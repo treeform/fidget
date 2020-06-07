@@ -1,5 +1,16 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
-    common, vmath, internal, input
+    common, vmath, internal, input, std/compilesettings, strformat
+
+static:
+  ## Writes the needed index.html file.
+  writeFile("index.html", &"""
+<html>
+<head>
+<script src="{querySetting(outFile)}"></script>
+</head>
+<body></body>
+</html>
+  """)
 
 type
   PerfCounter* = object

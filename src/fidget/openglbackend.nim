@@ -6,25 +6,12 @@ export input
 
 var
   ctx*: Context
-  fonts*: Table[string, Font]
   glyphOffsets: Table[Hash, Vec2]
   windowTitle, windowUrl: string
 
   # Used for double-clicking
   multiClick: int
   lastClickTime: float
-
-func hAlignMode(align: HAlign): HAlignMode =
-  case align:
-    of hLeft: HAlignMode.Left
-    of hCenter: Center
-    of hRight: HAlignMode.Right
-
-func vAlignMode(align: VAlign): VAlignMode =
-  case align:
-    of vTop: Top
-    of vCenter: Middle
-    of vBottom: Bottom
 
 proc refresh*() =
   ## Request the screen be redrawn
@@ -59,7 +46,6 @@ proc drawText(node: Node) =
   var font = fonts[node.textStyle.fontFamily]
   font.size = node.textStyle.fontSize
   font.lineHeight = node.textStyle.lineHeight
-
   if font.lineHeight == 0:
     font.lineHeight = font.size
 
@@ -94,36 +80,20 @@ proc drawText(node: Node) =
     textBox.mouseAction(mousePos, click = false, keyboard.shiftKey)
 
   let editing = keyboard.inputFocusIdPath == node.idPath
-  var layout: seq[GlyphPosition]
 
   if editing:
-    if textBox.size != node.screenBox.wh:
-      textBox.resize(node.screenBox.wh)
-    layout = textBox.layout
+    if textBox.size != node.box.wh:
+      textBox.resize(node.box.wh)
+    node.textLayout = textBox.layout
     ctx.saveTransform()
     ctx.translate(-textBox.scroll)
     for rect in textBox.selectionRegions():
       ctx.fillRect(rect, node.highlightColor)
   else:
-    # TODO handle auto sizing
-    # var size = case node.textStyle.autoResize:
-    #   of tNone:
-    #     node.screenBox.wh
-    #   of tWidthAndHeight:
-    #     vec2(0, 0)
-    #   of tHeight:
-    #     vec2(0, node.screenBox.h)
-    layout = font.typeset(
-      node.text,
-      pos = vec2(0, 0),
-      size = node.screenBox.wh,
-      hAlignMode(node.textStyle.textAlignHorizontal),
-      vAlignMode(node.textStyle.textAlignVertical),
-      clip = false,
-    )
+    discard
 
   # draw characters
-  for glyphIdx, pos in layout:
+  for glyphIdx, pos in node.textLayout:
     if pos.character notin font.glyphs:
       continue
     if pos.rune == Rune(32):
@@ -296,6 +266,9 @@ proc setupFidget(
 
     drawMain()
 
+    computeLayout(nil, root)
+    computeScreenBox(nil, root)
+
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
     ctx.beginFrame(windowFrame)
     ctx.saveTransform()
@@ -307,7 +280,7 @@ proc setupFidget(
     ctx.restoreTransform()
     ctx.endFrame()
 
-    #dumpTree(root)
+    dumpTree(root)
 
   useDepthBuffer(false)
 

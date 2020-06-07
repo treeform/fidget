@@ -1,5 +1,5 @@
 import chroma, fidget/common, json, macros, strutils, tables, vmath,
-    fidget/input
+    fidget/input, algorithm
 
 export chroma, common, input
 
@@ -18,7 +18,7 @@ proc preNode(kind: NodeKind, id: string) =
 
   parent = nodeStack[^1]
 
-  # TODO: maybe a better node searcher?
+  # TODO: maybe a better node differ?
 
   if parent.nodes.len <= parent.diffIndex:
     # Create Node
@@ -55,10 +55,13 @@ proc preNode(kind: NodeKind, id: string) =
   current.diffIndex = 0
 
 proc postNode() =
+  # Deal with removed nodes.
+  current.nodes.setLen(current.diffIndex)
+
+  # Pop the stack.
   discard nodeStack.pop()
   if nodeStack.len > 1:
     current = nodeStack[^1]
-    current.nodes.setLen(current.diffIndex)
   else:
     current = nil
   if nodeStack.len > 2:
@@ -257,9 +260,6 @@ proc box*(x, y, w, h: float) =
   current.box.y = y
   current.box.w = w
   current.box.h = h
-  current.screenBox = current.box
-  if parent != nil:
-    current.screenBox = current.box + parent.screenBox
 
 proc box*(x, y, w, h: int|float32|float) =
   ## Sets the box dimensions with integers
@@ -376,39 +376,28 @@ proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas.
   current.drawable = drawable
 
-proc constraints*(vCon: Constraints, hCon: Constraints) =
+proc constraints*(vCon: Constraint, hCon: Constraint) =
   ## Sets vertical or horizontal constraint.
-  case vCon
-    of cMin: discard
-    of cMax:
-      let righSpace = parent.orgBox.w - current.box.x
-      current.box.x = parent.box.w - righSpace
-    of cScale:
-      let xScale = parent.box.w / parent.orgBox.w
-      current.box.x *= xScale
-      current.box.w *= xScale
-    of cStretch:
-      let xDiff = parent.box.w - parent.orgBox.w
-      current.box.w += xDiff
-    of cCenter:
-      current.box.x = floor((parent.box.w - current.box.w) / 2.0)
+  current.constraintsVertical = vCon
+  current.constraintsHorizontal = hCon
 
-  case hCon
-    of cMin: discard
-    of cMax:
-      let bottomSpace = parent.orgBox.h - current.box.y
-      current.box.y = parent.box.h - bottomSpace
-    of cScale:
-      let yScale = parent.box.h / parent.orgBox.h
-      current.box.y *= yScale
-      current.box.h *= yScale
-    of cStretch:
-      let yDiff = parent.box.h - parent.orgBox.h
-      current.box.h += yDiff
-    of cCenter:
-      current.box.y = floor((parent.box.h - current.box.h) / 2.0)
+proc layoutAlign*(mode: LayoutAlign) =
+  current.layoutAlign = mode
 
-  current.screenBox = current.box + parent.screenBox
+proc layout*(mode: LayoutMode) =
+  current.layoutMode = mode
+
+proc counterAxisSizingMode*(mode: CounterAxisSizingMode) =
+  current.counterAxisSizingMode = mode
+
+proc horizontalPadding*(v: float32) =
+  current.horizontalPadding = v
+
+proc verticalPadding*(v: float32) =
+  current.verticalPadding = v
+
+proc itemSpacing*(v: float32) =
+  current.itemSpacing = v
 
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
