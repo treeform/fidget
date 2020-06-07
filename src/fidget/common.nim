@@ -144,6 +144,7 @@ type
   Mouse* = ref object
     #state*: KeyState
     pos*, delta*, prevPos*: Vec2
+    pixelScale*: float32
     wheelDelta*: float
     cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
 
@@ -228,7 +229,7 @@ proc setupRoot*() =
     root = Node()
     root.kind = nkRoot
     root.id = "root"
-    root.highlightColor = rgba(0, 0, 0, 60).color
+    root.highlightColor = parseHtmlColor("#3297FD")
     root.cursorColor = rgba(0, 0, 0, 255).color
   nodeStack = @[root]
   current = root

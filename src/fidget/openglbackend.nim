@@ -244,12 +244,14 @@ proc openBrowser*(url: string) =
 proc setupFidget(
   openglVersion: (int, int),
   msaa: MSAA,
-  mainLoopMode: MainLoopMode
+  mainLoopMode: MainLoopMode,
+  pixelate: bool,
+  pixelScale: float32
 ) =
   base.start(openglVersion, msaa, mainLoopMode)
   setWindowTitle(windowTitle)
 
-  ctx = newContext()
+  ctx = newContext(pixelate=pixelate, pixelScale=pixelScale)
   requestedFrame = true
 
   base.drawFrame = proc() =
@@ -257,12 +259,12 @@ proc setupFidget(
     setupRoot()
     root.box.x = float 0
     root.box.y = float 0
-    root.box.w = windowSize.x
-    root.box.h = windowSize.y
+    root.box.w = windowSize.x / pixelScale
+    root.box.h = windowSize.y / pixelScale
     scrollBox.x = float 0
     scrollBox.y = float 0
-    scrollBox.w = root.box.w
-    scrollBox.h = root.box.h
+    scrollBox.w = root.box.w / pixelScale
+    scrollBox.h = root.box.h / pixelScale
 
     drawMain()
 
@@ -272,7 +274,7 @@ proc setupFidget(
     clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
     ctx.beginFrame(windowFrame)
     ctx.saveTransform()
-    mouse.pos = mouse.pos / pixelRatio
+    ctx.scale(ctx.pixelScale)
 
     # Only draw the root after everything was done:
     root.draw()
@@ -284,16 +286,26 @@ proc setupFidget(
 
   useDepthBuffer(false)
 
-proc runFidget(
+proc startFidget*(
   draw: proc(),
-  tick: proc(),
-  openglVersion: (int, int),
-  msaa: MSAA,
-  mainLoopMode: MainLoopMode
+  tick: proc() = nil,
+  fullscreen = false,
+  w: Positive = 1280,
+  h: Positive = 800,
+  openglVersion = (4, 1),
+  msaa = msaaDisabled,
+  mainLoopMode: MainLoopMode = RepaintOnEvent,
+  pixelate = false,
+  pixelScale = 1.0
 ) =
+  ## Starts Fidget UI library
+  common.fullscreen = fullscreen
+  if not fullscreen:
+    windowSize = vec2(w.float32, h.float32)
   drawMain = draw
   tickMain = tick
-  setupFidget(openglVersion, msaa, mainLoopMode)
+  setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale)
+  mouse.pixelScale = pixelScale
   when defined(emscripten):
     # Emscripten can't block so it will call this callback instead.
     proc emscripten_set_main_loop(f: proc() {.cdecl.}, a: cint, b: bool) {.importc.}
@@ -304,22 +316,6 @@ proc runFidget(
     while running:
       updateLoop()
     exit()
-
-proc startFidget*(
-    draw: proc(),
-    tick: proc() = nil,
-    fullscreen = false,
-    w: Positive = 1280,
-    h: Positive = 800,
-    openglVersion = (4, 1),
-    msaa = msaaDisabled,
-    mainLoopMode: MainLoopMode = RepaintOnEvent
-) =
-  ## Starts Fidget UI library
-  common.fullscreen = fullscreen
-  if not fullscreen:
-    windowSize = vec2(w.float32, h.float32)
-  runFidget(draw, tick, openglVersion, msaa, mainLoopMode)
 
 proc getTitle*(): string =
   ## Gets window title

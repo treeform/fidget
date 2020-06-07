@@ -72,7 +72,7 @@ proc preInput() =
   var x, y: float64
   window.getCursorPos(addr x, addr y)
   mouse.pos = vec2(x, y)
-  mouse.pos *= pixelRatio
+  mouse.pos *= pixelRatio / mouse.pixelScale
   mouse.delta = mouse.pos - mouse.prevPos
   mouse.prevPos = mouse.pos
 
