@@ -1,5 +1,6 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
     common, vmath, internal, input, std/compilesettings, strformat
+import print
 
 static:
   ## Writes the needed index.html file.
@@ -70,6 +71,7 @@ proc computeTextBox*(
   fontName: string,
   fontSize: float,
   fontWeight: float,
+  lineHeight: float,
 ): Vec2 =
   ## Give text, font and a width of the box, compute how far the
   ## text will fill down the hight of the box.
@@ -79,6 +81,7 @@ proc computeTextBox*(
   var tempDiv = document.createElement("div")
   document.body.appendChild(tempDiv)
   tempDiv.style.fontSize = $fontSize & "px"
+  tempDiv.style.lineHeight = $lineHeight & "px"
   tempDiv.style.fontFamily = fontName
   tempDiv.style.fontWeight = $fontWeight
   tempDiv.style.position = "absolute"
@@ -91,17 +94,29 @@ proc computeTextBox*(
   document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
 
-proc computeTextHeight*(
-  text: string,
-  width: float,
-  fontName: string,
-  fontSize: float,
-  fontWeight: float,
-): float =
-  ## Give text, font and a width of the box, compute how far the
-  ## text will fill down the hight of the box.
-  let box = computeTextBox(text, width, fontName, fontSize, fontWeight)
-  return box.y
+# proc computeTextHeight*(
+#   text: string,
+#   width: float,
+#   fontName: string,
+#   fontSize: float,
+#   fontWeight: float,
+# ): float =
+#   ## Give text, font and a width of the box, compute how far the
+#   ## text will fill down the hight of the box.
+#   let box = computeTextBox(text, width, fontName, fontSize, fontWeight)
+#   return box.y
+
+computeTextLayout = proc(node: Node) =
+  let size = computeTextBox(
+    node.text,
+    node.box.w,
+    node.textStyle.fontFamily,
+    node.textStyle.fontSize,
+    node.textStyle.fontWeight,
+    node.textStyle.lineHeight,
+  )
+  node.textLayoutWidth = size.x
+  node.textLayoutHeight = size.y
 
 type
   TextMetrics* {.importc.} = ref object
@@ -312,7 +327,8 @@ proc drawDiff(current: Node) =
           current.screenBox.w,
           current.textStyle.fontFamily,
           current.textStyle.fontSize,
-          current.textStyle.fontWeight
+          current.textStyle.fontWeight,
+          current.textStyle.lineHeight
         )
         var baseLine = getBaseLine(
           current.textStyle.fontFamily,
@@ -385,8 +401,81 @@ proc drawDiff(current: Node) =
 
   inc numNodes
 
-proc draw*(node: Node) =
-  drawDiff(node)
+template hasDifferent(node: common.Node, key: untyped): bool =
+  if node.cache.key != node.key:
+    node.cache.key = node.key
+    print "changed ", node.key
+    true
+  else:
+    false
+
+proc draw*(node: Node, parent: Node) =
+  if node.element == nil:
+    print "create element"
+    if node.kind == nkText:
+      node.element = document.createElement("div")
+      node.textElement = document.createElement("div")
+      node.textElement.style.display = "table-cell"
+      node.textElement.style.position = "unset"
+
+      node.textElement.setAttribute("contenteditable", "true")
+
+      node.element.appendChild(node.textElement)
+    else:
+      node.element = document.createElement("div")
+
+    if parent == nil:
+      document.body.appendChild(node.element)
+    else:
+      parent.element.appendChild(node.element)
+
+  if node.hasDifferent(id):
+    node.element.setAttribute("id", node.id)
+
+  if node.hasDifferent(box):
+    node.element.style.left = $node.box.x & "px"
+    node.element.style.top = $node.box.y & "px"
+    node.element.style.width = $node.box.w & "px"
+    node.element.style.height = $node.box.h & "px"
+
+    if node.textElement != nil:
+      node.textElement.style.width = $node.box.w & "px"
+      node.textElement.style.height = $node.box.h & "px"
+
+  if node.hasDifferent(fill):
+    if node.kind == nkText:
+      node.element.style.color = $node.fill.toHtmlRgba()
+    else:
+      node.element.style.backgroundColor = $node.fill.toHtmlRgba()
+
+  if node.kind == nkText:
+    if node.hasDifferent(text):
+      node.textElement.innerText = node.text
+
+    if node.hasDifferent(textStyle):
+
+      node.textElement.style.fontFamily = node.textStyle.fontFamily
+      node.textElement.style.fontSize = $node.textStyle.fontSize & "px"
+      node.textElement.style.fontWeight = $node.textStyle.fontWeight
+      node.textElement.style.lineHeight = $max(0, node.textStyle.lineHeight) & "px"
+
+      case node.textStyle.textAlignHorizontal:
+        of hLeft:
+          node.textElement.style.textAlign = "left"
+        of hCenter:
+          node.textElement.style.textAlign = "center"
+        of hRight:
+          node.textElement.style.textAlign = "right"
+      case node.textStyle.textAlignVertical:
+        of vTop:
+          node.textElement.style.verticalAlign = "top"
+        of vCenter:
+          node.textElement.style.verticalAlign = "middle"
+        of vBottom:
+          node.textElement.style.verticalAlign = "bottom"
+
+  for n in node.nodes.reverse:
+    draw(n, node)
 
 proc postDrawChildren*(node: Node) =
   if current.clipContent:
@@ -402,16 +491,16 @@ proc drawStart() =
   pathChecker.clear()
 
   pixelRatio = dom.window.devicePixelRatio
-  windowSize.x = float dom.window.innerWidth
-  windowSize.y = float document.body.clientHeight
-  windowFrame.x = float screen.width
-  windowFrame.y = float screen.height
+  windowSize.x = window.innerWidth.float32
+  windowSize.y = window.innerHeight.float32
+  windowFrame.x = window.innerWidth.float32
+  windowFrame.y = window.innerHeight.float32
 
   # set up root HTML
   root.box.x = 0
   root.box.y = 0
-  root.box.w = windowSize.x #document.body.clientWidth #
-  root.box.h = windowSize.y
+  root.box.w = windowFrame.x
+  root.box.h = windowFrame.y
   root.transparency = 1.0
 
   scrollBox.x = float dom.window.scrollX
@@ -491,6 +580,12 @@ proc hardRedraw() =
 
   drawStart()
   drawMain()
+
+  computeLayout(nil, root)
+  computeScreenBox(nil, root)
+
+  draw(root, nil)
+
   drawFinish()
 
 proc requestHardRedraw(time: float = 0.0) =
@@ -502,7 +597,7 @@ proc refresh*() =
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
 
-proc startFidget*(draw: proc()) =
+proc startFidget*(draw: proc(), w = 0, h = 0) =
   ## Start the HTML backend
   ## NOTE: returns instantly!
   drawMain = draw

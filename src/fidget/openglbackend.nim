@@ -13,6 +13,29 @@ var
   multiClick: int
   lastClickTime: float
 
+computeTextLayout = proc(node: Node) =
+  var font = fonts[node.textStyle.fontFamily]
+  font.size = node.textStyle.fontSize
+  font.lineHeight = node.textStyle.lineHeight
+  if font.lineHeight == 0:
+    font.lineHeight = font.size
+  var
+    boundsMin: Vec2
+    boundsMax: Vec2
+  node.textLayout = font.typeset(
+    node.text.toRunes(),
+    pos = vec2(0, 0),
+    size = node.box.wh,
+    hAlignMode(node.textStyle.textAlignHorizontal),
+    vAlignMode(node.textStyle.textAlignVertical),
+    clip = false,
+    boundsMin = boundsMin,
+    boundsMax = boundsMax
+  )
+  node.textLayoutWidth = boundsMax.x - boundsMin.x
+  node.textLayoutHeight = boundsMax.y - boundsMin.y
+
+
 proc refresh*() =
   ## Request the screen be redrawn
   requestedFrame = true

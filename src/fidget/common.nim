@@ -1,4 +1,4 @@
-import chroma, vmath, tables, input, sequtils
+import chroma, vmath, tables, input, sequtils, hashes
 
 when not defined(js):
   import typography, typography/textboxes, unicode, tables
@@ -85,6 +85,14 @@ type
     nkComponent
     nkInstance
 
+  HtmlCache* = object
+    id*: string
+    box*: Rect
+    fill*: Color
+    stroke*: Color
+    text*: string
+    textStyle*: TextStyle
+
   Node* = ref object
     id*: string
     idPath*: string
@@ -129,6 +137,8 @@ type
       textLayout*: seq[GlyphPosition]
     else:
       element*: Element
+      textElement*: Element
+      cache*: HTMLCache
     textLayoutHeight*: float32
     textLayoutWidth*: float32
 
@@ -190,6 +200,8 @@ var
 
   # Used to check for duplicate ID paths.
   pathChecker*: Table[string, bool]
+
+  computeTextLayout*: proc(node: Node)
 
 when not defined(js):
   var
@@ -313,27 +325,7 @@ proc computeLayout*(parent, node: Node) =
 
   # Typeset text
   if node.kind == nkText:
-    when not defined(js):
-      var font = fonts[node.textStyle.fontFamily]
-      font.size = node.textStyle.fontSize
-      font.lineHeight = node.textStyle.lineHeight
-      if font.lineHeight == 0:
-        font.lineHeight = font.size
-      var
-        boundsMin: Vec2
-        boundsMax: Vec2
-      node.textLayout = font.typeset(
-        node.text.toRunes(),
-        pos = vec2(0, 0),
-        size = node.box.wh,
-        hAlignMode(node.textStyle.textAlignHorizontal),
-        vAlignMode(node.textStyle.textAlignVertical),
-        clip = false,
-        boundsMin = boundsMin,
-        boundsMax = boundsMax
-      )
-      node.textLayoutWidth = boundsMax.x - boundsMin.x
-      node.textLayoutHeight = boundsMax.y - boundsMin.y
+    computeTextLayout(node)
 
     case node.textStyle.autoResize:
       of tsNone:
