@@ -277,6 +277,9 @@ proc drawDiff(current: Group) =
   if old.screenBox.wh == current.box.wh:
     current.textOffset = old.textOffset
 
+  ## TODO: Fix this
+  forceTextReLayout = true
+
   if current.kind == "text":
     if current.editableText:
       if old.text != current.text:
