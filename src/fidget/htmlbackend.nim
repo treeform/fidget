@@ -3,10 +3,15 @@ import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
 
 static:
   ## Writes the needed index.html file.
-  writeFile("index.html", &"""
+  let indexPath = querySetting(outDir) & "/index.html"
+  try:
+    discard readFile(indexPath)
+  except:
+    echo "Writing out ", indexPath, "."
+    writeFile(indexPath, &"""
 <html>
 <head>
-<script src="{querySetting(outFile)}"></script>
+<script src="{querySetting(outDir) & "/" & querySetting(outFile)}"></script>
 </head>
 <body></body>
 </html>
@@ -17,8 +22,11 @@ type
     drawMain*: float
     numLowLevelCalls*: int
 
+  Node = common.Node
+  HTMLNode = dom.Node
+
 var
-  groupCache*: seq[Group]
+  nodeCache*: seq[Node]
   domCache*: seq[Element]
 
   rootDomNode*: Element
@@ -39,15 +47,15 @@ proc toHtmlRgbaCached(color: Color): string =
     result = color.toHtmlRgba()
     colorCache[color] = result
 
-proc focus*(keyboard: Keyboard, group: Group) =
+proc focus*(keyboard: Keyboard, node: Node) =
   ## uses JS events
   discard
 
-proc unFocus*(keyboard: Keyboard, group: Group) =
+proc unFocus*(keyboard: Keyboard, node: Node) =
   ## uses JS events
   discard
 
-proc removeAllChildren(dom: Node) =
+proc removeAllChildren(dom: HTMLNode) =
   while dom.firstChild != nil:
     dom.removeChild(dom.firstChild)
 
@@ -128,12 +136,10 @@ proc getBaseLine *(
     baseLineCache[font] = fontSize - m.actualBoundingBoxAscent
   baseLineCache[font]
 
-proc tag(group: Group): string =
-  if group.kind == "":
-    return ""
-  elif group.kind == "text":
-    if group.editableText:
-      if group.multiline:
+proc tag(node: Node): string =
+  if node.kind == nkText:
+    if node.editableText:
+      if node.multiline:
         return "textarea"
       else:
         return "input"
@@ -158,42 +164,42 @@ proc createDefaultElement(tag: string): Element =
 proc insertChildAtIndex(parent: Element, index: int, child: Element) =
   parent.insertBefore(child, parent.children[index])
 
-proc drawDiff(current: Group) =
+proc drawDiff(current: Node) =
 
   if current.clipContent:
     # TODO: merge with prev clipping stack
     clipStack.add current.screenBox
 
-  if groupCache.len == numGroups:
+  if nodeCache.len == numNodes:
     inc perf.numLowLevelCalls
 
-    var old = Group()
+    var old = Node()
     old.kind = current.kind
     old.editableText = current.editableText
     old.multiline = current.multiline
     var dom = createDefaultElement(current.tag)
     rootDomNode.appendChild(dom)
 
-    groupCache.add(old)
+    nodeCache.add(old)
     domCache.add(dom)
 
   var
-    dom = domCache[numGroups]
-    old = groupCache[numGroups]
+    dom = domCache[numNodes]
+    old = nodeCache[numNodes]
 
   # When tags don't match we can't convert a node
   # into another node, so we have to recreate them
   if old.tag != current.tag:
     inc perf.numLowLevelCalls
 
-    old = Group()
+    old = Node()
     old.kind = current.kind
     old.editableText = current.editableText
     old.multiline = current.multiline
     dom = createDefaultElement(current.tag)
-    rootDomNode.replaceChild(dom, rootDomNode.children[numGroups])
-    domCache[numGroups] = dom
-    groupCache[numGroups] = old
+    rootDomNode.replaceChild(dom, rootDomNode.children[numNodes])
+    domCache[numNodes] = dom
+    nodeCache[numNodes] = old
 
   # change kinds
   if old.kind != current.kind:
@@ -210,7 +216,7 @@ proc drawDiff(current: Group) =
   if old.fill != current.fill:
     inc perf.numLowLevelCalls
     old.fill = current.fill
-    if current.kind == "text":
+    if current.kind == nkText:
       dom.style.color = $current.fill.toHtmlRgba()
       dom.style.backgroundColor = "rgba(0,0,0,0)"
     else:
@@ -288,10 +294,7 @@ proc drawDiff(current: Group) =
   if old.screenBox.wh == current.box.wh:
     current.textOffset = old.textOffset
 
-  ## TODO: Fix this
-  forceTextReLayout = true
-
-  if current.kind == "text":
+  if current.kind == nkText:
     if current.editableText:
       if old.text != current.text:
         if document.activeElement != dom:
@@ -367,25 +370,25 @@ proc drawDiff(current: Group) =
   # Set clipping mask.
   if clipStack.len > 0:
     let clipMask = clipStack[^1]
-    if numGroups notin clipCache or clipCache[numGroups] != clipMask:
-      clipCache[numGroups] = clipMask
+    if numNodes notin clipCache or clipCache[numNodes] != clipMask:
+      clipCache[numNodes] = clipMask
       let a = clipMask.xy - current.screenBox.xy
       let b = clipMask.xy + clipMask.wh - current.screenBox.xy
       let clipPath = &"polygon({a.x}px {a.y}px, {a.x}px {b.y}px, {b.x}px {b.y}px, {b.x}px {a.y}px)"
       dom.style.clipPath = clipPath
       inc perf.numLowLevelCalls
   else:
-    if numGroups in clipCache:
+    if numNodes in clipCache:
       dom.style.clipPath = ""
       inc perf.numLowLevelCalls
-      clipCache.del(numGroups)
+      clipCache.del(numNodes)
 
-  inc numGroups
+  inc numNodes
 
-proc draw*(group: Group) =
-  drawDiff(group)
+proc draw*(node: Node) =
+  drawDiff(node)
 
-proc postDrawChildren*(group: Group) =
+proc postDrawChildren*(node: Node) =
   if current.clipContent:
     discard clipStack.pop()
 
@@ -394,7 +397,7 @@ var prevMouseCursorStyle: MouseCursorStyle
 
 proc drawStart() =
   startTime = dom.window.performance.now()
-  numGroups = 0
+  numNodes = 0
   perf.numLowLevelCalls = 0
   pathChecker.clear()
 
@@ -456,13 +459,13 @@ proc drawFinish() =
   perf.drawMain = dom.window.performance.now() - startTime
 
   # echo perf.drawMain
-  # echo numGroups
+  # echo numNodes
   # echo perf.numLowLevelCalls
 
   # remove left over nodes
-  while rootDomNode.childNodes.len > numGroups:
+  while rootDomNode.childNodes.len > numNodes:
     rootDomNode.removeChild(domCache[^1])
-    discard groupCache.pop()
+    discard nodeCache.pop()
     discard domCache.pop()
 
   # Only set mouse style when it changes.
@@ -571,7 +574,7 @@ proc startFidget*(draw: proc()) =
     keyboard.state = KeyState.Up
     hardRedraw()
 
-  proc isTextTag(node: Node): bool =
+  proc isTextTag(node: HTMLNode): bool =
     node.nodeName == "TEXTAREA" or node.nodeName == "INPUT"
 
   dom.window.addEventListener "input", proc(event: Event) =

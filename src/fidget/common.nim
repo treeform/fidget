@@ -2,6 +2,8 @@ import chroma, vmath, tables, input, sequtils
 
 when not defined(js):
   import typography, typography/textboxes, unicode, tables
+else:
+  import dom2
 
 const
   clearColor* = color(0, 0, 0, 0)
@@ -125,8 +127,10 @@ type
     diffIndex*: int
     when not defined(js):
       textLayout*: seq[GlyphPosition]
-      textLayoutHeight*: float32
-      textLayoutWidth*: float32
+    else:
+      element*: Element
+    textLayoutHeight*: float32
+    textLayoutWidth*: float32
 
   KeyState* = enum
     Empty
@@ -309,27 +313,27 @@ proc computeLayout*(parent, node: Node) =
 
   # Typeset text
   if node.kind == nkText:
-    var font = fonts[node.textStyle.fontFamily]
-    font.size = node.textStyle.fontSize
-    font.lineHeight = node.textStyle.lineHeight
-    if font.lineHeight == 0:
-      font.lineHeight = font.size
-
-    var
-      boundsMin: Vec2
-      boundsMax: Vec2
-    node.textLayout = font.typeset(
-      node.text.toRunes(),
-      pos = vec2(0, 0),
-      size = node.box.wh,
-      hAlignMode(node.textStyle.textAlignHorizontal),
-      vAlignMode(node.textStyle.textAlignVertical),
-      clip = false,
-      boundsMin = boundsMin,
-      boundsMax = boundsMax
-    )
-    node.textLayoutWidth = boundsMax.x - boundsMin.x
-    node.textLayoutHeight = boundsMax.y - boundsMin.y
+    when not defined(js):
+      var font = fonts[node.textStyle.fontFamily]
+      font.size = node.textStyle.fontSize
+      font.lineHeight = node.textStyle.lineHeight
+      if font.lineHeight == 0:
+        font.lineHeight = font.size
+      var
+        boundsMin: Vec2
+        boundsMax: Vec2
+      node.textLayout = font.typeset(
+        node.text.toRunes(),
+        pos = vec2(0, 0),
+        size = node.box.wh,
+        hAlignMode(node.textStyle.textAlignHorizontal),
+        vAlignMode(node.textStyle.textAlignVertical),
+        clip = false,
+        boundsMin = boundsMin,
+        boundsMax = boundsMax
+      )
+      node.textLayoutWidth = boundsMax.x - boundsMin.x
+      node.textLayoutHeight = boundsMax.y - boundsMin.y
 
     case node.textStyle.autoResize:
       of tsNone:
