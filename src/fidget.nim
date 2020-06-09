@@ -24,6 +24,7 @@ proc preNode(kind: NodeKind, id: string) =
     # Create Node
     current = Node()
     current.id = id
+    current.uid = newUId()
     parent.nodes.add(current)
   else:
     # Reuse Node
@@ -53,9 +54,11 @@ proc preNode(kind: NodeKind, id: string) =
       current.idPath.add $g.diffIndex
 
   current.diffIndex = 0
-
+import print
 proc postNode() =
   # Deal with removed nodes.
+  for i in current.diffIndex ..< current.nodes.len:
+    remove(current.nodes[i])
   current.nodes.setLen(current.diffIndex)
 
   # Pop the stack.
@@ -164,12 +167,10 @@ template onKeyDown*(inner: untyped) =
 
 proc hasKeyboardFocus*(node: Node): bool =
   ## Does a node have keyboard input focus.
-  return keyboard.inputFocusIdPath == node.idPath
+  return keyboard.focusNode == node
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus.
-  if not current.bindingSet:
-    raise newException(ValueError, "onInput: Binding not set, must be called after.")
   if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
@@ -205,7 +206,7 @@ proc id*(id: string) =
 
 proc font*(
   fontFamily: string,
-  fontSize, fontWeight, lineHeight: float,
+  fontSize, fontWeight, lineHeight: float32,
   textAlignHorizontal: HAlign,
   textAlignVertical: VAlign
 ) =
@@ -221,15 +222,15 @@ proc fontFamily*(fontFamily: string) =
   ## Sets the font family.
   current.textStyle.fontFamily = fontFamily
 
-proc fontSize*(fontSize: float) =
+proc fontSize*(fontSize: float32) =
   ## Sets the font size in pixels.
   current.textStyle.fontSize = fontSize
 
-proc fontWeight*(fontWeight: float) =
+proc fontWeight*(fontWeight: float32) =
   ## Sets the font weight.
   current.textStyle.fontWeight = fontWeight
 
-proc lineHeight*(lineHeight: float) =
+proc lineHeight*(lineHeight: float32) =
   ## Sets the font size.
   current.textStyle.lineHeight = lineHeight
 
@@ -254,30 +255,35 @@ proc image*(imageName: string) =
   ## Sets image fill.
   current.imageName = imageName
 
-proc box*(x, y, w, h: float) =
+proc box*(x, y, w, h: float32) =
   ## Sets the box dimensions.
   current.box.x = x
   current.box.y = y
   current.box.w = w
   current.box.h = h
 
-proc box*(x, y, w, h: int|float32|float) =
+proc box*(
+  x: int|float32|float64,
+  y: int|float32|float64,
+  w: int|float32|float64,
+  h: int|float32|float64
+) =
   ## Sets the box dimensions with integers
-  box(float x, float y, float w, float h)
+  box(float32 x, float32 y, float32 w, float32 h)
 
 proc box*(rect: Rect) =
   ## Sets the box dimensions with integers
   box(rect.x, rect.y, rect.w, rect.h)
 
-proc orgBox*(x, y, w, h: int|float32|float) =
+proc orgBox*(x, y, w, h: int|float32|float32) =
   ## Sets the box dimensions of the original element for constraints.
-  #box(float x, float y, float w, float h)
-  current.orgBox.x = float x
-  current.orgBox.y = float y
-  current.orgBox.w = float w
-  current.orgBox.h = float h
+  #box(float32 x, float32 y, float32 w, float32 h)
+  current.orgBox.x = float32 x
+  current.orgBox.y = float32 y
+  current.orgBox.w = float32 w
+  current.orgBox.h = float32 h
 
-proc rotation*(rotationInDeg: float) =
+proc rotation*(rotationInDeg: float32) =
   ## Sets rotation in degrees.
   current.rotation = rotationInDeg
 
@@ -308,7 +314,7 @@ proc stroke*(color: string, alpha = 1.0) =
   current.stroke = parseHtmlColor(color)
   current.stroke.a = alpha
 
-proc strokeWeight*(weight: float) =
+proc strokeWeight*(weight: float32) =
   ## Sets stroke/border weight.
   current.strokeWeight = weight
 
@@ -316,11 +322,11 @@ proc zLevel*(zLevel: int) =
   ## Sets zLevel.
   current.zLevel = zLevel
 
-proc cornerRadius*(a, b, c, d: float) =
+proc cornerRadius*(a, b, c, d: float32) =
   ## Sets all radius of all 4 corners.
   current.cornerRadius = (a, b, c, d)
 
-proc cornerRadius*(radius: float) =
+proc cornerRadius*(radius: float32) =
   ## Sets all radius of all 4 corners.
   cornerRadius(radius, radius, radius, radius)
 
@@ -354,13 +360,13 @@ proc highlightColor*(color: string, alpha = 1.0) =
   current.highlightColor = parseHtmlColor(color)
   current.highlightColor.a = alpha
 
-proc dropShadow*(blur, x, y: float, color: string, alpha: float) =
+proc dropShadow*(blur, x, y: float32, color: string, alpha: float32) =
   ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
   current.shadows.add Shadow(kind: DropShadow, blur: blur, x: x, y: y, color: c)
 
-proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
+proc innerShadow*(blur, x, y: float32, color: string, alpha: float32) =
   ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
@@ -401,20 +407,18 @@ proc itemSpacing*(v: float32) =
 
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
-  if current.bindingSet:
-    raise newException(ValueError, "Binding already set.")
   current.bindingSet = true
-
   editableText true
-  characters stringVariable
-  onClick:
-    keyboard.focus(current)
-  onClickOutside:
-    keyboard.unFocus(current)
+  if not current.hasKeyboardFocus():
+    characters stringVariable
+  if not defined(js):
+    onClick:
+      keyboard.focus(current)
+    onClickOutside:
+      keyboard.unFocus(current)
   onInput:
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input
-      refresh()
 
 template override*(id: string, inner: untyped) =
   template `name`(): untyped =

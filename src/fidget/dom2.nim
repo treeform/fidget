@@ -104,6 +104,13 @@ type
     timing*: PerformanceTiming
 
   Selection* {.importc.} = ref object
+    anchorNode*: Node
+    anchorOffset*: int
+    focusNode*: Node
+    focusOffset*: int
+    isCollapsed*: bool
+    rangeCount*: int
+    `type`*: cstring
 
   LocalStorage* {.importc.} = ref object
 
@@ -1091,6 +1098,7 @@ else:
       importc: "document.getElementById", nodecl.}
   proc appendChild*(n, child: Node) {.importcpp.}
   proc removeChild*(n, child: Node) {.importcpp.}
+  proc remove*(child: Node) {.importcpp.}
   proc replaceChild*(n, newNode, oldNode: Node) {.importcpp.}
   proc insertBefore*(n, newNode, before: Node) {.importcpp.}
   proc getElementById*(d: Document; id: cstring): Element {.importcpp.}

@@ -35,16 +35,16 @@ type
 
   TextStyle* = object
     fontFamily*: string
-    fontSize*: float
-    fontWeight*: float
-    lineHeight*: float
+    fontSize*: float32
+    fontWeight*: float32
+    lineHeight*: float32
     textAlignHorizontal*: HAlign
     textAlignVertical*: VAlign
     autoResize*: TextAutoResize
 
   BorderStyle* = object
     color*: Color
-    width*: float
+    width*: float32
 
   ShadowStyle* = enum
     DropShadow
@@ -70,9 +70,9 @@ type
 
   Shadow* = object
     kind*: ShadowStyle
-    blur*: float
-    x*: float
-    y*: float
+    blur*: float32
+    x*: float32
+    y*: float32
     color*: Color
 
   NodeKind* = enum
@@ -85,16 +85,9 @@ type
     nkComponent
     nkInstance
 
-  HtmlCache* = object
-    id*: string
-    box*: Rect
-    fill*: Color
-    stroke*: Color
-    text*: string
-    textStyle*: TextStyle
-
   Node* = ref object
     id*: string
+    uid*: string
     idPath*: string
     kind*: NodeKind
     text*: string
@@ -102,12 +95,12 @@ type
     nodes*: seq[Node]
     box*: Rect
     orgBox*: Rect
-    rotation*: float
+    rotation*: float32
     screenBox*: Rect
     textOffset*: Vec2
     fill*: Color
-    transparency*: float
-    strokeWeight*: float
+    transparency*: float32
+    strokeWeight*: float32
     stroke*: Color
     zLevel*: int
     resizeDone*: bool
@@ -115,7 +108,7 @@ type
     textStyle*: TextStyle
     textPadding*: int
     imageName*: string
-    cornerRadius*: (float, float, float, float)
+    cornerRadius*: (float32, float32, float32, float32)
     editableText*: bool
     multiline*: bool
     bindingSet*: bool
@@ -138,7 +131,7 @@ type
     else:
       element*: Element
       textElement*: Element
-      cache*: HTMLCache
+      cache*: Node
     textLayoutHeight*: float32
     textLayoutWidth*: float32
 
@@ -159,7 +152,7 @@ type
     #state*: KeyState
     pos*, delta*, prevPos*: Vec2
     pixelScale*: float32
-    wheelDelta*: float
+    wheelDelta*: float32
     cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
 
   Keyboard* = ref object
@@ -172,8 +165,8 @@ type
     ctrlKey*: bool
     shiftKey*: bool
     superKey*: bool
-    inputFocusIdPath*: string
-    prevInputFocusIdPath*: string
+    focusNode*: Node
+    focusLostNode*: Node
     input*: string
     textCursor*: int      # At which character in the input string are we
     selectionCursor*: int # To which character are we selecting to
@@ -196,12 +189,20 @@ var
   fullscreen* = false
   windowSize*: Vec2    # Screen coordinates
   windowFrame*: Vec2   # Pixel coordinates
-  pixelRatio*: float   # Multiplier to convert from screen coords to pixels
+  pixelRatio*: float32   # Multiplier to convert from screen coords to pixels
 
   # Used to check for duplicate ID paths.
   pathChecker*: Table[string, bool]
 
   computeTextLayout*: proc(node: Node)
+
+  lastUId: int
+  nodeLookup*: Table[string, Node]
+
+proc newUId*(): string =
+  # Returns next numerical unique id.
+  inc lastUId
+  $lastUId
 
 when not defined(js):
   var
@@ -245,6 +246,7 @@ proc setupRoot*() =
     root = Node()
     root.kind = nkRoot
     root.id = "root"
+    root.uid = newUId()
     root.highlightColor = parseHtmlColor("#3297FD")
     root.cursorColor = rgba(0, 0, 0, 255).color
   nodeStack = @[root]
@@ -252,8 +254,6 @@ proc setupRoot*() =
   root.diffIndex = 0
 
 proc clearInputs*() =
-  # Used for onFocus/onUnFocus.
-  keyboard.prevInputFocusIdPath = keyboard.inputFocusIdPath
 
   mouse.wheelDelta = 0
 

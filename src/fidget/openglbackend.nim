@@ -35,7 +35,6 @@ computeTextLayout = proc(node: Node) =
   node.textLayoutWidth = boundsMax.x - boundsMin.x
   node.textLayoutHeight = boundsMax.y - boundsMin.y
 
-
 proc refresh*() =
   ## Request the screen be redrawn
   requestedFrame = true
