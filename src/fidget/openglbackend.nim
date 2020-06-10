@@ -285,6 +285,10 @@ proc setupFidget(
   requestedFrame = true
 
   base.drawFrame = proc() =
+    clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
+    ctx.beginFrame(windowFrame)
+    ctx.saveTransform()
+    ctx.scale(ctx.pixelScale)
 
     setupRoot()
     root.box.x = float 0
@@ -303,11 +307,6 @@ proc setupFidget(
 
     computeLayout(nil, root)
     computeScreenBox(nil, root)
-
-    clearColorBuffer(color(1.0, 1.0, 1.0, 1.0))
-    ctx.beginFrame(windowFrame)
-    ctx.saveTransform()
-    ctx.scale(ctx.pixelScale)
 
     # Only draw the root after everything was done:
     root.draw()

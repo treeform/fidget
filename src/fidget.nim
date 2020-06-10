@@ -55,6 +55,12 @@ proc preNode(kind: NodeKind, id: string) =
 
   current.diffIndex = 0
 
+  # reset some basic styles
+  current.fill.a = 0
+  current.strokeWeight = 0
+  current.text.setLen(0)
+  current.imageName.setLen(0)
+
 proc postNode() =
   # Deal with removed nodes.
   for i in current.diffIndex ..< current.nodes.len:
