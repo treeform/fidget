@@ -1,4 +1,4 @@
-import fidget, print
+import fidget
 
 type
   Area = ref object
@@ -71,9 +71,7 @@ proc drawMain() =
               fill "#FF4400"
 
             onClick:
-              print "click"
               area.expanded = not area.expanded
-              print area.expanded
               mouse.consume()
 
           rectangle "reRun":
@@ -83,7 +81,6 @@ proc drawMain() =
               fill "#FF4400"
 
             onClick:
-              print "rerun"
               mouse.consume()
 
           var innerAtY = 0
@@ -104,7 +101,6 @@ proc drawMain() =
                 characters area.queryCode
 
               onClick:
-                print "edit", area.queryCode
                 editingArea = area
                 mouse.consume()
 
