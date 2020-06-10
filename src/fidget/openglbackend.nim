@@ -40,8 +40,8 @@ proc refresh*() =
   requestedFrame = true
 
 proc focus*(keyboard: Keyboard, node: Node) =
-  if keyboard.inputFocusIdPath != node.idPath:
-    keyboard.inputFocusIdPath = node.idPath
+  if keyboard.focusNode != node:
+    keyboard.focusNode = node
     keyboard.input = node.text
     textBox = newTextBox(
       fonts[node.textStyle.fontFamily],
@@ -58,8 +58,8 @@ proc focus*(keyboard: Keyboard, node: Node) =
     refresh()
 
 proc unFocus*(keyboard: Keyboard, node: Node) =
-  if keyboard.inputFocusIdPath == node.idPath:
-    keyboard.inputFocusIdPath = ""
+  if keyboard.focusNode == node:
+    keyboard.focusNode = nil
 
 proc drawText(node: Node) =
   if node.textStyle.fontFamily notin fonts:
@@ -97,11 +97,11 @@ proc drawText(node: Node) =
   if textBox != nil and
       mouse.down and
       not mouse.click and
-      keyboard.inputFocusIdPath == node.idPath:
+      keyboard.focusNode == node:
     # Dragging the mouse:
     textBox.mouseAction(mousePos, click = false, keyboard.shiftKey)
 
-  let editing = keyboard.inputFocusIdPath == node.idPath
+  let editing = keyboard.focusNode == node
 
   if editing:
     if textBox.size != node.box.wh:
@@ -195,7 +195,6 @@ proc drawText(node: Node) =
     # ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
     ctx.restoreTransform()
 
-    keyboard.input = textBox.text
 
   #ctx.clearMask()
 
@@ -208,8 +207,12 @@ proc release*(mouse: Mouse) =
 proc hide*(mouse: Mouse) =
   hideMouse()
 
+proc remove*(node: Node) =
+  ## Removes the node.
+  discard
+
 proc draw*(node: Node) =
-  ## Draws the node
+  ## Draws the node.
   ctx.saveTransform()
   ctx.translate(node.screenBox.xy)
   if node.rotation != 0:
@@ -288,6 +291,9 @@ proc setupFidget(
     scrollBox.w = root.box.w / pixelScale
     scrollBox.h = root.box.h / pixelScale
 
+    if textBox != nil:
+      keyboard.input = textBox.text
+
     drawMain()
 
     computeLayout(nil, root)
@@ -304,7 +310,7 @@ proc setupFidget(
     ctx.restoreTransform()
     ctx.endFrame()
 
-    dumpTree(root)
+    #dumpTree(root)
 
   useDepthBuffer(false)
 

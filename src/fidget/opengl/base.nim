@@ -198,7 +198,7 @@ proc onSetKey(
   keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
 
   # Do the text box commands.
-  if keyboard.inputFocusIdPath != "" and setKey:
+  if keyboard.focusNode != nil and setKey:
     keyboard.state = KeyState.Press
     let
       ctrl = keyboard.ctrlKey
@@ -259,7 +259,7 @@ proc onSetKey(
 
 proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
   requestedFrame = true
-  if keyboard.inputFocusIdPath != "":
+  if keyboard.focusNode != nil:
     textBox.scrollBy(-yoffset * 50)
   else:
     mouse.wheelDelta += yoffset
@@ -283,7 +283,7 @@ proc onMouseMove(window: staticglfw.Window, x, y: cdouble) {.cdecl.} =
 
 proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
   requestedFrame = true
-  if keyboard.inputFocusIdPath != "":
+  if keyboard.focusNode != nil:
     keyboard.state = KeyState.Press
     textBox.typeCharacter(Rune(character))
   else:

@@ -1,6 +1,6 @@
 import chroma, fidget/common, json, macros, strutils, tables, vmath,
     fidget/input, algorithm
-
+import print
 export chroma, common, input
 
 when defined(js):
@@ -54,7 +54,7 @@ proc preNode(kind: NodeKind, id: string) =
       current.idPath.add $g.diffIndex
 
   current.diffIndex = 0
-import print
+
 proc postNode() =
   # Deal with removed nodes.
   for i in current.diffIndex ..< current.nodes.len:
@@ -417,6 +417,7 @@ template binding*(stringVariable: untyped) =
     onClickOutside:
       keyboard.unFocus(current)
   onInput:
+    print keyboard.input
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input
 
