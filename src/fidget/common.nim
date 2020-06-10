@@ -1,7 +1,7 @@
-import chroma, vmath, tables, input, sequtils, hashes
+import chroma, vmath, tables, input, sequtils
 
 when not defined(js):
-  import typography, typography/textboxes, unicode, tables
+  import typography, typography/textboxes, tables
 else:
   import dom2
 
@@ -134,6 +134,8 @@ type
       cache*: Node
     textLayoutHeight*: float32
     textLayoutWidth*: float32
+    ## Can the text be selected.
+    selectable*: bool
 
   KeyState* = enum
     Empty
@@ -166,7 +168,8 @@ type
     shiftKey*: bool
     superKey*: bool
     focusNode*: Node
-    focusLostNode*: Node
+    onFocusNode*: Node
+    onUnFocusNode*: Node
     input*: string
     textCursor*: int      # At which character in the input string are we
     selectionCursor*: int # To which character are we selecting to

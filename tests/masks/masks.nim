@@ -1,4 +1,4 @@
-import fidget, math, random
+import fidget, math
 
 loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
 

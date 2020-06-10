@@ -41,7 +41,10 @@ proc refresh*() =
 
 proc focus*(keyboard: Keyboard, node: Node) =
   if keyboard.focusNode != node:
+    keyboard.onUnFocusNode = keyboard.focusNode
+    keyboard.onFocusNode = node
     keyboard.focusNode = node
+
     keyboard.input = node.text
     textBox = newTextBox(
       fonts[node.textStyle.fontFamily],
@@ -59,6 +62,8 @@ proc focus*(keyboard: Keyboard, node: Node) =
 
 proc unFocus*(keyboard: Keyboard, node: Node) =
   if keyboard.focusNode == node:
+    keyboard.onUnFocusNode = keyboard.focusNode
+    keyboard.onFocusNode = nil
     keyboard.focusNode = nil
 
 proc drawText(node: Node) =
@@ -73,7 +78,7 @@ proc drawText(node: Node) =
 
   let mousePos = mouse.pos - node.screenBox.xy
 
-  if mouse.down and mouse.pos.inside(node.screenBox):
+  if node.selectable and mouse.down and mouse.pos.inside(node.screenBox):
     # mouse actions click, drag, double clicking
     keyboard.focus(node)
     if mouse.click:

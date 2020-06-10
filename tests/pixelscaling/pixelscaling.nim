@@ -54,11 +54,14 @@ proc drawMain() =
       textAutoResize tsHeight
       layoutAlign laStretch
 
-
-startFidget(
-  drawMain,
-  w = 600,
-  h = 341*3,
-  pixelate = true,
-  pixelScale = 3.0
-)
+when defined(js):
+  echo "JS backend does not support pixel scaling"
+  startFidget(drawMain)
+else:
+  startFidget(
+    drawMain,
+    w = 600,
+    h = 341*3,
+    pixelate = true,
+    pixelScale = 3.0
+  )

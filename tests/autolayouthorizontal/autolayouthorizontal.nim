@@ -43,6 +43,6 @@ proc drawMain() =
         fill "#00407b"
 
   for i in 0 ..< 7:
-    widths[i] = max(widths[i] + random(-1 .. 2), 10)
+    widths[i] = max(widths[i] + rand(-1 .. 2), 10)
 
 startFidget(drawMain, w = 400, h = 400)

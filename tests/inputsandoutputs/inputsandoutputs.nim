@@ -1,4 +1,4 @@
-import fidget, print
+import fidget
 
 loadFont("Ubuntu", "data/Ubuntu.ttf")
 setTitle("Inputs and Outputs")

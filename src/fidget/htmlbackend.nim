@@ -1,22 +1,36 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
-    common, vmath, internal, input, std/compilesettings, strformat
-import print
+    common, vmath, internal, input, strformat
 
-static:
-  ## Writes the needed index.html file.
-  let indexPath = querySetting(outDir) & "/index.html"
-  try:
-    discard readFile(indexPath)
-  except:
-    echo "Writing out ", indexPath, "."
-    writeFile(indexPath, &"""
-<html>
-<head>
-<script src="{querySetting(outDir) & "/" & querySetting(outFile)}"></script>
-</head>
-<body></body>
-</html>
-  """)
+#import std/compilesettings, os
+# static:
+#   ## Writes the needed index.html file.
+#   let indexPath = querySetting(outDir) & "/index.html"
+#   if not existsFile(indexPath):
+#     echo "Writing out ", indexPath, "."
+#     writeFile(indexPath, &"""
+# <html>
+# <head>
+# <script src="{querySetting(outDir) & "/" & querySetting(outFile)}"></script>
+# </head>
+# <body></body>
+# </html>
+#   """)
+
+const defaultStyle = """
+div {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 0;
+  margin: 0;
+  resize: none;
+  position: absolute;
+  display: block;
+}
+"""
 
 type
   PerfCounter* = object
@@ -167,7 +181,6 @@ proc insertChildAtIndex(parent: Element, index: int, child: Element) =
 template hasDifferent(node: common.Node, key: untyped): bool =
   if node.cache.key != node.key:
     node.cache.key = node.key
-    #print "changed ", node.key
     true
   else:
     false
@@ -368,8 +381,6 @@ proc drawStart() =
     keyboard.textCursor = 0
     keyboard.selectionCursor = 0
 
-  print keyboard.textCursor, keyboard.selectionCursor
-
   var canvas = cast[Canvas](canvasNode)
   ctx = canvas.getContext2D()
   var
@@ -449,9 +460,13 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     ## called when html page loads and JS can start running
     rootDomNode = document.createElement("div")
     document.body.appendChild(rootDomNode)
-
+    # Add a canvas node for drawing.
     canvasNode = document.createElement("canvas")
     document.body.appendChild(canvasNode)
+    # Add a style node.
+    var styleNode = document.createElement("style")
+    styleNode.innerText = defaultStyle
+    document.head.appendChild(styleNode)
     refresh()
 
   dom.window.addEventListener "resize", proc(event: Event) =
@@ -485,6 +500,12 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     mouse.pos.y = float event.pageY
     refresh()
 
+  dom.window.addEventListener "keypress", proc(event: Event) =
+    let event = cast[KeyboardEvent](event)
+    if keyboard.focusNode != nil and not keyboard.focusNode.multiline:
+      if event.keyCode == 13:
+        event.preventDefault()
+
   dom.window.addEventListener "keydown", proc(event: Event) =
     ## When keyboards key is pressed down
     ## Used together with key up for continuous things like scroll or games
@@ -497,7 +518,6 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     buttonDown[key] = true
     hardRedraw()
     if keyboard.consumed:
-      echo "preventDefault"
       event.preventDefault()
       keyboard.consumed = false
 
@@ -511,23 +531,16 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     keyboard.state = KeyState.Up
     hardRedraw()
 
-  proc isTextTag(node: HTMLNode): bool =
-    node.nodeName == "TEXTAREA" or node.nodeName == "INPUT"
-
   dom.window.addEventListener "input", proc(event: Event) =
     ## When INPUT element has keyboard input this is called
-    echo "input"
-    echo document.activeElement.innerText
-
     keyboard.input = $document.activeElement.innerText
     keyboard.state = Press
-
-    let selection = document.getSelection()
-    print selection.anchorOffset
-    print selection.focusOffset
-
-    print keyboard.textCursor
-    print keyboard.selectionCursor
+    # fix keyboard input if it has \n in it
+    if keyboard.focusNode != nil and not keyboard.focusNode.multiline:
+      if "\n" in keyboard.input:
+        keyboard.input = keyboard.input.replace("\n", "")
+        document.activeElement.innerText = keyboard.input
+        # TODO Keep the selection the same
     refresh()
 
   dom.window.addEventListener "focusin", proc(event: Event) =
@@ -535,12 +548,9 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     ## the keyboard.inputFocusId
     ## Note: "focus" does not bubble, so its not used here.
     let uid = $document.activeElement.getAttribute("uid")
-    keyboard.focusLostNode = keyboard.focusNode
+    #Note: keyboard.onUnFocusNode is set by focus out.
+    keyboard.onFocusNode = nodeLookup[uid]
     keyboard.focusNode = nodeLookup[uid]
-    if keyboard.focusLostNode != nil:
-      echo "focus out ", keyboard.focusLostNode.id
-    if keyboard.focusNode != nil:
-      echo "focus in ", keyboard.focusNode.id
     refresh()
 
   dom.window.addEventListener "focusout", proc(event: Event) =
@@ -548,10 +558,9 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     ## the keyboard.inputFocusId
     ## Note: "blur" does not bubble, so its not used here.
     # redraw everything to sync up the bind(string)
-    # Used for onFocus/onUnFocus.
-    keyboard.focusLostNode = keyboard.focusNode
-    if keyboard.focusLostNode != nil:
-      echo "focus out ", keyboard.focusLostNode.id
+    keyboard.onUnFocusNode = keyboard.focusNode
+    # Note: onFocusNode and focusNode are set by focusin.
+    keyboard.onFocusNode = nil
     keyboard.focusNode = nil
     keyboard.input = ""
     refresh()

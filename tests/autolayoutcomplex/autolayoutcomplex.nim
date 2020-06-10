@@ -1,4 +1,4 @@
-import fidget, random
+import fidget
 
 setTitle("Auto Layout Complex")
 

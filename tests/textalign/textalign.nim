@@ -1,4 +1,4 @@
-import fidget, math, print, strformat
+import fidget, math, strformat
 
 var
   fontS = 14.0

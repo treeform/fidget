@@ -1,6 +1,6 @@
 import chroma, fidget/common, json, macros, strutils, tables, vmath,
     fidget/input, algorithm
-import print
+
 export chroma, common, input
 
 when defined(js):
@@ -186,18 +186,14 @@ template onDown*(inner: untyped) =
 
 template onFocus*(inner: untyped) =
   ## On focusing an input element.
-  if not current.bindingSet:
-    raise newException(ValueError, "onFocus: Binding not set, must be called after.")
-  if keyboard.inputFocusIdPath == current.idPath and
-      keyboard.prevInputFocusIdPath != current.idPath:
+  if keyboard.onFocusNode == current:
+    keyboard.onFocusNode = nil
     inner
 
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an input element.
-  if not current.bindingSet:
-    raise newException(ValueError, "onUnFocus: Binding not set, must be called after.")
-  if keyboard.inputFocusIdPath != current.idPath and
-      keyboard.prevInputFocusIdPath == current.idPath:
+  if keyboard.onUnFocusNode == current:
+    keyboard.onUnFocusNode = nil
     inner
 
 proc id*(id: string) =
@@ -405,6 +401,9 @@ proc verticalPadding*(v: float32) =
 proc itemSpacing*(v: float32) =
   current.itemSpacing = v
 
+proc selectable*(v: bool) =
+  current.selectable = v
+
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
   current.bindingSet = true
@@ -417,7 +416,6 @@ template binding*(stringVariable: untyped) =
     onClickOutside:
       keyboard.unFocus(current)
   onInput:
-    print keyboard.input
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input
 
