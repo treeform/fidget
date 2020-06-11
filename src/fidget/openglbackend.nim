@@ -57,7 +57,8 @@ proc focus*(keyboard: Keyboard, node: Node) =
       worldWrap = true,
     )
     textBox.editable = node.editableText
-    textBox.scrollable = false
+    textBox.scrollable = true
+
     refresh()
 
 proc unFocus*(keyboard: Keyboard, node: Node) =

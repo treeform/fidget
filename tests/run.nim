@@ -7,7 +7,7 @@ var runList: seq[string]
 proc compileNative() =
   for folder in runList:
     let file = folder.lastPathPart
-    let cmd = &"nim c --hints:off {folder}/{file}.nim"
+    let cmd = &"nim c --hints:off --verbosity:0 {folder}/{file}.nim"
     echo cmd
     if execShellCmd(cmd) != 0:
       echo "[error] ", folder
@@ -27,7 +27,7 @@ proc runNative() =
 proc compileJS() =
   for folder in runList:
     let file = folder.lastPathPart
-    let cmd = &"nim js --hints:off {folder}/{file}.nim"
+    let cmd = &"nim js --hints:off --verbosity:0 -d:genhtml {folder}/{file}.nim"
     echo cmd
     if execShellCmd(cmd) != 0:
       echo "[error] ", folder
@@ -40,15 +40,35 @@ proc runJS() =
     let file = folder.lastPathPart
     var exeDir = os.getAppDir().parentDir
     let fileUrl = &"file:///{exeDir}/{folder}/{file}.html"
-    if execShellCmd(&"start chrome {fileUrl}") != 0:
-      echo "[error] Starting Chrome: ", fileUrl
-      quit()
+    when defined(windows):
+      if execShellCmd(&"start chrome {fileUrl}") != 0:
+        echo "[error] Starting Chrome: ", fileUrl
+        quit()
+    when defined(osx):
+      echo "here"
+      if execShellCmd(&"open {fileUrl}") != 0:
+        echo "[error] Starting Chrome: ", fileUrl
+        quit()
+
+proc genHTML() =
+  for folder in runList:
+    ## Writes the needed index.html file.
+    let
+      (dir, name, extension) = folder.splitFile
+    let indexPath = &"{dir}/{name}/{name}.html"
+    writeFile(indexPath, &"""<html>
+<head>
+<script src="{name}.js"></script>
+</head>
+<body></body>
+</html>""")
 
 proc main(
   compile: bool = false,
   native: bool = false,
   js: bool = false,
-  run: bool = false
+  run: bool = false,
+  genhtml: bool = false,
 ) =
   runList.add "tests/autolayoutcomplex"
   runList.add "tests/autolayouthorizontal"
@@ -90,6 +110,8 @@ proc main(
     compileJS()
   if run and js:
     runJS()
+  if genhtml:
+    genHTML()
   # compileWasm()
   # runWasm()
 

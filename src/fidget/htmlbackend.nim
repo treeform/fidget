@@ -1,21 +1,6 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
     common, vmath, internal, input, strformat
 
-#import std/compilesettings, os
-# static:
-#   ## Writes the needed index.html file.
-#   let indexPath = querySetting(outDir) & "/index.html"
-#   if not existsFile(indexPath):
-#     echo "Writing out ", indexPath, "."
-#     writeFile(indexPath, &"""
-# <html>
-# <head>
-# <script src="{querySetting(outDir) & "/" & querySetting(outFile)}"></script>
-# </head>
-# <body></body>
-# </html>
-#   """)
-
 const defaultStyle = """
 div {
   border: none;
