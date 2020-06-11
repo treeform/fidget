@@ -60,6 +60,9 @@ proc preNode(kind: NodeKind, id: string) =
   current.strokeWeight = 0
   current.text.setLen(0)
   current.imageName.setLen(0)
+  current.clipContent = false
+  current.constraintsHorizontal = cMin
+  current.constraintsVertical = cMin
 
 proc postNode() =
   # Deal with removed nodes.
@@ -413,6 +416,7 @@ proc selectable*(v: bool) =
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
   current.bindingSet = true
+  selectable true
   editableText true
   if not current.hasKeyboardFocus():
     characters stringVariable

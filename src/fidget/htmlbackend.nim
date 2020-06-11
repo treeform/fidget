@@ -34,9 +34,6 @@ var
 
   perf*: PerfCounter
 
-  clipStack: seq[Rect]
-  clipCache: Table[int, Rect]
-
 var colorCache: Table[chroma.Color, string]
 proc toHtmlRgbaCached(color: Color): string =
   result = colorCache.getOrDefault(color)
@@ -186,6 +183,15 @@ proc remove*(node: Node) =
 
 proc draw*(node: Node, parent: Node) =
   ## Draws the node (diffs HTML elements).
+
+  if node.cache != nil and (node.cache.kind == nkText) != (node.kind == nkText):
+    if node.element != nil:
+      node.element.remove()
+      node.element = nil
+    if node.textElement != nil:
+      node.textElement.remove()
+      node.textElement = nil
+
   if node.element == nil:
     node.element = document.createElement("div")
     node.element.setAttribute("uid", node.uid)
@@ -233,6 +239,12 @@ proc draw*(node: Node, parent: Node) =
   if node.hasDifferent(transparency):
     node.element.style.opacity = $node.transparency
 
+  if node.hasDifferent(clipContent):
+    if node.clipContent:
+      node.element.style.overflow = "hidden"
+    else:
+      node.element.style.overflow = "visable"
+
   if node.kind == nkText:
     # In a text node many params apply to the text (not the fill).
 
@@ -241,7 +253,11 @@ proc draw*(node: Node, parent: Node) =
       node.element.style.color = $node.fill.toHtmlRgba()
 
     if node.hasDifferent(text):
-      node.textElement.innerText = node.text
+      if keyboard.focusNode != node:
+        node.textElement.innerText = node.text
+      else:
+        # Don't mess with inner text when user is typing!
+        discard
 
     if node.hasDifferent(textStyle):
 
@@ -283,7 +299,7 @@ proc draw*(node: Node, parent: Node) =
     # Check for image (background image).
     if node.hasDifferent(imageName):
       if node.imageName != "":
-        node.element.style.backgroundImage = "url(" & node.imageName & ")"
+        node.element.style.backgroundImage = "url(data/" & node.imageName & ")"
         node.element.style.backgroundSize = "100% 100%"
       else:
         node.element.style.backgroundImage = ""
@@ -313,10 +329,6 @@ proc draw*(node: Node, parent: Node) =
 
   for n in node.nodes.reverse:
     draw(n, node)
-
-proc postDrawChildren*(node: Node) =
-  if current.clipContent:
-    discard clipStack.pop()
 
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
@@ -534,8 +546,11 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     ## Note: "focus" does not bubble, so its not used here.
     let uid = $document.activeElement.getAttribute("uid")
     #Note: keyboard.onUnFocusNode is set by focus out.
-    keyboard.onFocusNode = nodeLookup[uid]
-    keyboard.focusNode = nodeLookup[uid]
+    let node = nodeLookup[uid]
+    keyboard.input = node.text
+    echo "set keyboard input to", node.text
+    keyboard.onFocusNode = node
+    keyboard.focusNode = node
     refresh()
 
   dom.window.addEventListener "focusout", proc(event: Event) =

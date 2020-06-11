@@ -50,18 +50,13 @@ proc runJS() =
         echo "[error] Starting Chrome: ", fileUrl
         quit()
 
-proc genHTML() =
+proc generateHTML() =
   for folder in runList:
     ## Writes the needed index.html file.
     let
       (dir, name, extension) = folder.splitFile
     let indexPath = &"{dir}/{name}/{name}.html"
-    writeFile(indexPath, &"""<html>
-<head>
-<script src="{name}.js"></script>
-</head>
-<body></body>
-</html>""")
+    writeFile(indexPath, &"""<script src="{name}.js"></script>""")
 
 proc main(
   compile: bool = false,
@@ -80,7 +75,7 @@ proc main(
   runList.add "tests/fontmetrics"
   runList.add "tests/hovers"
   runList.add "tests/images"
-  runList.add "tests/inputs"
+  runList.add "tests/inputtoggle"
   runList.add "tests/inputsandoutputs"
   runList.add "tests/inputtest"
   runList.add "tests/masks"
@@ -98,7 +93,7 @@ proc main(
   runList.add "examples/padoftext"
   # TODO: finish runList.add "examples/todo"
 
-  if not(compile or native or js or run):
+  if not(compile or native or js or run or genhtml):
     echo "Usage:"
     echo "  run --compile --native --js --run"
 
@@ -111,7 +106,7 @@ proc main(
   if run and js:
     runJS()
   if genhtml:
-    genHTML()
+    generateHTML()
   # compileWasm()
   # runWasm()
 

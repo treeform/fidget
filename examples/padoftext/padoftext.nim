@@ -1,12 +1,10 @@
 import fidget
 
-when defined(js):
-  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.ttf")
-else:
-  loadFont("IBM Plex Sans Regular", "../data/IBMPlexSans-Regular.svg")
+loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
+
+setTitle("Pad of Text")
 
 var
-  titleValue = "Lorem ipsum dolor"
   textValue = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut volutpat mi tortor, quis congue elit bibendum vitae. Pellentesque risus velit, tempor vel arcu pellentesque, lacinia ultrices felis. Aliquam erat volutpat. Nulla sodales odio ac turpis fermentum, quis pulvinar erat efficitur. Ut molestie consectetur odio vitae interdum. Etiam dui odio, porta in volutpat in, facilisis at erat. Etiam sed augue eget risus tincidunt sagittis sit amet nec justo. Donec ac auctor massa. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
 
@@ -21,26 +19,11 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
 
 proc drawMain() =
 
-  setTitle(titleValue)
-
-  group "title":
-    box 100, 10, 200, 50
-    font "IBM Plex Sans Regular", 40.0, 400.0, 50, hLeft, vCenter
-    rectangle "#F7F7F9"
-
-    text "title":
-      box 0, 0, parent.box.w, parent.box.h
-      fill "#000000"
-      multiline false
-      binding titleValue
-
-      onInput:
-        setTitle(titleValue)
-
   group "pad":
     box 100, 100, parent.box.w - 200, parent.box.h - 200
     font "IBM Plex Sans Regular", 20.0, 400.0, 25, hLeft, vTop
-    rectangle "#F7F7F9"
+    fill "#F7F7F9"
+    clipContent true
 
     text "input":
       box 0, 0, parent.box.w, parent.box.h

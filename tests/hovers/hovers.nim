@@ -14,13 +14,6 @@ proc drawMain() =
   frame "main":
     box 0, 0, int root.box.w, max(int root.box.h, h)
 
-    group "center":
-      box 100, 100, 100, 100
-      fill "#0000FF"
-
-      onHover:
-        fill "#FF0000"
-
     inPopup = true
     group "center":
       box 150, 150, 100, 100
@@ -29,5 +22,12 @@ proc drawMain() =
       onHover:
         fill "#FF0000"
     inPopup = false
+
+    group "center":
+      box 100, 100, 100, 100
+      fill "#0000FF"
+
+      onHover:
+        fill "#FF0000"
 
 startFidget(drawMain)
