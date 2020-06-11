@@ -17,59 +17,66 @@ proc drawMain() =
 
     box 0, 0, int root.box.w, max(int root.box.h, h)
 
-    text "singleLineBox":
-      box 300, 0, 400, 40
-      fill "#000000"
-      textAlign hLeft, vTop
-      binding singleLineValue
-      onFocus:
-        echo "onFocus singleLineBox"
-      onUnFocus:
-        echo "onUnFocus singleLineBox"
-    text "singleLineBoxPlaceHolder":
-      box 300, 0, 400, 40
-      fill "#888888"
-      textAlign hLeft, vTop
-      selectable false
-      if singleLineValue == "":
-        characters "This is an single line box."
-      else:
-        characters ""
-      onFocus:
-        echo "onFocus ", current.id
-      onUnFocus:
-        echo "onUnFocus ", current.id
-    group "bg2":
+    group "singleLineBox":
       box 300, 0, 400, 40
       fill "#F8F8F8"
+      clipContent true
 
-    text "multiLineBox":
-      box 300, 60, 400, 100
-      fill "#000000"
-      textAlign hLeft, vTop
-      multiline true
-      #placeholder "This is a text area"
-      binding multiLineValue
-      onFocus:
-        echo "onFocus multiLineBox"
-      onUnFocus:
-        echo "onUnFocus multiLineBox"
-    text "multiLineBoxPlaceHolder":
-      box 300, 60, 400, 100
-      fill "#888888"
-      textAlign hLeft, vTop
-      selectable false
-      if multiLineValue == "":
-        characters "This is an multi line box."
-      else:
-        characters ""
-      onFocus:
-        echo "onFocus ", current.id
-      onUnFocus:
-        echo "onUnFocus ", current.id
-    group "bg3":
+      text "text":
+        box 0, 0, 400, 40
+        fill "#000000"
+        textAlign hLeft, vTop
+        binding singleLineValue
+        onFocus:
+          echo "onFocus singleLineBox"
+        onUnFocus:
+          echo "onUnFocus singleLineBox"
+
+      text "placeHolder":
+        box 0, 0, 400, 40
+        fill "#888888"
+        textAlign hLeft, vTop
+        selectable false
+        if singleLineValue == "":
+          characters "This is an single line box."
+        else:
+          characters ""
+        onFocus:
+          echo "onFocus ", current.id
+        onUnFocus:
+          echo "onUnFocus ", current.id
+
+    group "multiLineBox":
       box 300, 60, 400, 100
       fill "#F8F8F8"
+      clipContent true
+
+      text "text":
+        box 0, 0, 400, 100
+        fill "#000000"
+        textAlign hLeft, vTop
+        multiline true
+        #placeholder "This is a text area"
+        binding multiLineValue
+        onFocus:
+          echo "onFocus multiLineBox"
+        onUnFocus:
+          echo "onUnFocus multiLineBox"
+
+      text "placeHolder":
+        box 0, 0, 400, 100
+        fill "#888888"
+        textAlign hLeft, vTop
+        selectable false
+        if multiLineValue == "":
+          characters "This is an multi line box."
+        else:
+          characters ""
+        onFocus:
+          echo "onFocus ", current.id
+        onUnFocus:
+          echo "onUnFocus ", current.id
+
 
     text "singleLineOut":
       box 300, 300, 400, 40
