@@ -1,5 +1,5 @@
-import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
-    common, vmath, internal, input, strformat, os
+import chroma, common, dom2 as dom, html5_canvas, input, internal, math, os,
+    strformat, strutils, tables, vmath
 
 const defaultStyle = """
 div {
@@ -101,7 +101,7 @@ computeTextLayout = proc(node: Node) =
 
 type
   TextMetrics* {.importc.} = ref object
-    width: float   # This is read-only
+    width: float # This is read-only
     actualBoundingBoxAscent*: float
     actualBoundingBoxDescent*: float
     actualBoundingBoxLeft*: float

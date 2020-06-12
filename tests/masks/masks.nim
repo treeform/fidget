@@ -2,7 +2,6 @@ import fidget, math
 
 loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
 
-
 var clip = true
 
 proc drawMain() =

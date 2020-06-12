@@ -1,5 +1,5 @@
-import chroma, fidget/common, json, macros, strutils, tables, vmath,
-    fidget/input, algorithm
+import algorithm, chroma, fidget/common, fidget/input, json, macros, strutils,
+    tables, vmath
 
 export chroma, common, input
 

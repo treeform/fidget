@@ -7,8 +7,8 @@ for i, bar in bars:
   bars[i] = rand(40)
 
 var
-  singleLineValue: string # = "Quick brown fox jumped over the lazy dog"
-  multiLineValue: string # = "Quick brown fox jumped over the lazy dog"
+  singleLineValue: string
+  multiLineValue: string
 
 proc drawMain() =
   setTitle("Input Test")
@@ -78,7 +78,6 @@ proc drawMain() =
           echo "onFocus ", current.id
         onUnFocus:
           echo "onUnFocus ", current.id
-
 
     text "singleLineOut":
       box 300, 300, 400, 40

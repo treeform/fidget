@@ -7,7 +7,6 @@ import fidget
 # echo "one".hash
 # echo (1, 1.0, "one").hash
 
-
 # https://www.figmafreebies.com/download/grada-free-figma-ui-kit/
 
 loadFont("Montserrat", "Montserrat-Regular.ttf")

@@ -1111,9 +1111,9 @@ proc clearTimeout*(t: Timeout) {.importc, nodecl.}
 {.push importcpp.}
 
 # EventTarget "methods"
-proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event);
+proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event)
     useCapture: bool = false)
-proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event);
+proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event)
     options: AddEventListenerOptions)
 proc dispatchEvent*(et: EventTarget; ev: Event)
 proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event))
@@ -1129,7 +1129,7 @@ proc close*(w: Window)
 proc confirm*(w: Window; msg: cstring): bool
 proc disableExternalCapture*(w: Window)
 proc enableExternalCapture*(w: Window)
-proc find*(w: Window; text: cstring; caseSensitive = false;
+proc find*(w: Window; text: cstring; caseSensitive = false
            backwards = false)
 proc focus*(w: Window)
 proc forward*(w: Window)
@@ -1138,7 +1138,7 @@ proc handleEvent*(w: Window; e: Event)
 proc home*(w: Window)
 proc moveBy*(w: Window; x, y: int)
 proc moveTo*(w: Window; x, y: int)
-proc open*(w: Window; uri, windowname: cstring;
+proc open*(w: Window; uri, windowname: cstring
            properties: cstring = nil): Window
 proc print*(w: Window)
 proc prompt*(w: Window; text, default: cstring): cstring
@@ -1251,22 +1251,22 @@ proc item*(list: TouchList; i: int): Touch
 proc clearData*(dt: DataTransfer; format: cstring)
 proc getData*(dt: DataTransfer; format: cstring): cstring
 proc setData*(dt: DataTransfer; format: cstring; data: cstring)
-proc setDragImage*(dt: DataTransfer; img: Element; xOffset: int64;
+proc setDragImage*(dt: DataTransfer; img: Element; xOffset: int64
     yOffset: int64)
 
 # DataTransferItem "methods"
 proc getAsFile*(dti: DataTransferItem): File
 
 # InputElement "methods"
-proc setSelectionRange*(e: InputElement; selectionStart: int; selectionEnd: int;
+proc setSelectionRange*(e: InputElement; selectionStart: int; selectionEnd: int
     selectionDirection: cstring = "none")
-proc setRangeText*(e: InputElement; replacement: cstring; startindex: int = 0;
+proc setRangeText*(e: InputElement; replacement: cstring; startindex: int = 0
     endindex: int = 0; selectionMode: cstring = "preserve")
 proc setCustomValidity*(e: InputElement; error: cstring)
 proc checkValidity*(e: InputElement): bool
 
 # Blob "methods"
-proc slice*(e: Blob; startindex: int = 0; endindex: int = e.size;
+proc slice*(e: Blob; startindex: int = 0; endindex: int = e.size
     contentType: cstring = "")
 
 # Performance "methods"

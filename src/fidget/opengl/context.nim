@@ -23,8 +23,8 @@ type
     frameSize: Vec2             ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
-    pixelate*: bool              ## Makes texture look pixelated, like a pixel game.
-    pixelScale*: float32         ## Multiple scaling factor.
+    pixelate*: bool             ## Makes texture look pixelated, like a pixel game.
+    pixelScale*: float32        ## Multiple scaling factor.
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]

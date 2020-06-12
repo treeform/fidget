@@ -1,4 +1,4 @@
-import os, strformat, cligen;
+import cligen, os, strformat
 
 let examplesDir = getCurrentDir()
 
@@ -147,6 +147,5 @@ proc main(
     runWasm()
   if clean:
     runClean()
-
 
 dispatch(main)

@@ -1,6 +1,6 @@
-import chroma, hashes, internal, opengl/base, opengl/context, input,
-    strformat, strutils, tables, times, typography, typography/textboxes,
-    common, vmath, flippy, unicode, os
+import chroma, common, flippy, hashes, input, internal, opengl/base,
+    opengl/context, os, strformat, strutils, tables, times, typography,
+    typography/textboxes, unicode, vmath
 
 export input
 
@@ -166,7 +166,6 @@ proc drawText(node: Node) =
       ctx.putImage(hashFill, glyphFill)
       glyphOffsets[hashFill] = glyphOffset
 
-
     if node.strokeWeight > 0 and hashStroke notin ctx.entries:
       var
         glyph = font.glyphs[pos.character]
@@ -200,7 +199,6 @@ proc drawText(node: Node) =
     # ctx.fillRect(textBox.selectorRect, rgba(0, 0, 0, 255).color)
     # ctx.fillRect(rect(textBox.mousePos, vec2(4, 4)), rgba(255, 128, 128, 255).color)
     ctx.restoreTransform()
-
 
   #ctx.clearMask()
 
@@ -282,7 +280,7 @@ proc setupFidget(
   base.start(openglVersion, msaa, mainLoopMode)
   setWindowTitle(windowTitle)
 
-  ctx = newContext(pixelate=pixelate, pixelScale=pixelScale)
+  ctx = newContext(pixelate = pixelate, pixelScale = pixelScale)
   requestedFrame = true
 
   base.drawFrame = proc() =
@@ -344,7 +342,7 @@ proc startFidget*(
     proc emscripten_set_main_loop(f: proc() {.cdecl.}, a: cint, b: bool) {.importc.}
     proc mainLoop() {.cdecl.} =
       updateLoop()
-    emscripten_set_main_loop(main_loop, 0, true);
+    emscripten_set_main_loop(main_loop, 0, true)
   else:
     while running:
       updateLoop()

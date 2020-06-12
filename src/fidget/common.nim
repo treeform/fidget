@@ -1,4 +1,4 @@
-import chroma, vmath, tables, input, sequtils
+import chroma, input, sequtils, tables, vmath
 
 when not defined(js):
   import typography, typography/textboxes, tables
@@ -151,17 +151,14 @@ type
     NSResize
 
   Mouse* = ref object
-    #state*: KeyState
     pos*, delta*, prevPos*: Vec2
     pixelScale*: float32
     wheelDelta*: float32
-    cursorStyle*: MouseCursorStyle # Sets the mouse cursor icon
+    cursorStyle*: MouseCursorStyle ## Sets the mouse cursor icon
 
   Keyboard* = ref object
     state*: KeyState
-    # keyCode*: int
-    # scanCode*: int
-    consumed*: bool       ## Consumed - need to prevent default action.
+    consumed*: bool ## Consumed - need to prevent default action.
     keyString*: string
     altKey*: bool
     ctrlKey*: bool
@@ -171,8 +168,8 @@ type
     onFocusNode*: Node
     onUnFocusNode*: Node
     input*: string
-    textCursor*: int      # At which character in the input string are we
-    selectionCursor*: int # To which character are we selecting to
+    textCursor*: int ## At which character in the input string are we
+    selectionCursor*: int ## To which character are we selecting to
 
 var
   parent*: Node
@@ -181,8 +178,8 @@ var
   nodeStack*: seq[Node]
   current*: Node
   scrollBox*: Rect
-  scrollBoxMega*: Rect # Scroll box is 500px bigger in y direction
-  scrollBoxMini*: Rect # Scroll box is smaller by 100px useful for debugging
+  scrollBoxMega*: Rect ## Scroll box is 500px bigger in y direction
+  scrollBoxMini*: Rect ## Scroll box is smaller by 100px useful for debugging
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
@@ -190,9 +187,9 @@ var
   popupActive*: bool
   inPopup*: bool
   fullscreen* = false
-  windowSize*: Vec2    # Screen coordinates
-  windowFrame*: Vec2   # Pixel coordinates
-  pixelRatio*: float32   # Multiplier to convert from screen coords to pixels
+  windowSize*: Vec2    ## Screen coordinates
+  windowFrame*: Vec2   ## Pixel coordinates
+  pixelRatio*: float32 ## Multiplier to convert from screen coords to pixels
 
   # Used to check for duplicate ID paths.
   pathChecker*: Table[string, bool]
@@ -229,7 +226,7 @@ when not defined(js):
 mouse = Mouse()
 mouse.pos = Vec2()
 
-proc dumpTree*(node: Node, indent="") =
+proc dumpTree*(node: Node, indent = "") =
   echo indent, node.id, node.screenBox
   for n in node.nodes:
     dumpTree(n, "  " & indent)
@@ -237,14 +234,14 @@ proc dumpTree*(node: Node, indent="") =
 iterator reverse*[T](a: seq[T]): T {.inline.} =
   var i = a.len - 1
   while i > -1:
-      yield a[i]
-      dec i
+    yield a[i]
+    dec i
 
 iterator reversePairs*[T](a: seq[T]): (int, T) {.inline.} =
   var i = a.len - 1
   while i > -1:
-      yield (a.len - 1 - i, a[i])
-      dec i
+    yield (a.len - 1 - i, a[i])
+    dec i
 
 proc setupRoot*() =
   if root == nil:

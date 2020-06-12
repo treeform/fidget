@@ -1,4 +1,4 @@
-import ../internal, ../common, chroma, flippy, ../input, opengl, os, perf,
+import ../common, ../input, ../internal, chroma, flippy, opengl, os, perf,
     staticglfw, times, typography/textboxes, unicode, vmath
 
 when defined(glDebugMessageCallback):
