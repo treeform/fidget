@@ -35,6 +35,10 @@ proc compileJS() =
       quit "[error] " & folder
     else:
       echo "[ok] " & folder
+    # write html file
+    let(dir, name, _) = folder.splitFile
+    let indexPath = &"{dir}/{name}/{name}.html"
+    writeFile(indexPath, &"""<script src="{name}.js"></script>""")
 
 proc runJS() =
   for folder in runList:
@@ -47,14 +51,6 @@ proc runJS() =
     else:
       if execShellCmd(&"open {fileUrl}") != 0:
         quit "[error] Starting Chrome: " & fileUrl
-
-proc generateHTML() =
-  for folder in runList:
-    ## Writes the needed index.html file.
-    let
-      (dir, name, extension) = folder.splitFile
-    let indexPath = &"{dir}/{name}/{name}.html"
-    writeFile(indexPath, &"""<script src="{name}.js"></script>""")
 
 proc compileWasm() =
   for folder in runList:
@@ -90,7 +86,6 @@ proc main(
   native: bool = false,
   js: bool = false,
   run: bool = false,
-  genhtml: bool = false,
   wasm: bool = false,
 ) =
   runList.add "tests/autolayouttext"
@@ -121,7 +116,7 @@ proc main(
   runList.add "examples/padoftext"
   # TODO: finish runList.add "examples/todo"
 
-  if not(compile or native or js or run or genhtml or wasm):
+  if not(compile or native or js or run or wasm):
     echo "Usage:"
     echo "  run --compile --native --js --run"
 
@@ -133,8 +128,6 @@ proc main(
     compileJS()
   if run and js:
     runJS()
-  if genhtml:
-    generateHTML()
   if compile and wasm:
     compileWasm()
   if run and wasm:

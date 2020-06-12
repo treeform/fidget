@@ -1,5 +1,5 @@
 import chroma, dom2 as dom, html5_canvas, math, strformat, strutils, tables,
-    common, vmath, internal, input, strformat
+    common, vmath, internal, input, strformat, os
 
 const defaultStyle = """
 div {
