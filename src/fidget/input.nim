@@ -1,5 +1,3 @@
-import vmath
-
 type
   Button* = enum
     UNBOUND = 0

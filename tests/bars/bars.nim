@@ -15,11 +15,11 @@ proc drawMain() =
 
   frame "main":
     box 0, 0, int root.box.w, max(int root.box.h, h)
-    rectangle "#F7F7F9"
+    fill "#F7F7F9"
 
     group "center":
       box 50, 0, barW, float max(int root.box.h, h)
-      rectangle "#FFFFFF"
+      fill "#FFFFFF"
 
       # Draw a list of bars using a simple for loop.
       for i, bar in bars.mpairs:
@@ -52,7 +52,7 @@ proc drawMain() =
             # Draw the bar itself.
             group "bar":
               box 60, 0, barW - 80*2, 40
-              rectangle "#F7F7F9"
+              fill "#F7F7F9"
               rectangle "barFg":
                 box 0, 0, (barW - 80*2) * float(bar), 40
                 fill "#46D15F"

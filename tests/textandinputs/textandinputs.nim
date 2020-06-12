@@ -1,9 +1,6 @@
 import fidget
 
-when defined(js):
-  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
-else:
-  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.svg")
+loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
 
 proc drawMain() =
   # Set the window title.

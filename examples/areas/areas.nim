@@ -1,4 +1,4 @@
-import fidget, print
+import fidget
 
 type
   Area = ref object
@@ -46,11 +46,11 @@ proc drawMain() =
 
   frame "main":
     box 0, 0, root.box.w, totalPageHeight
-    rectangle "#F7F7F9"
+    fill "#F7F7F9"
 
     group "center":
       box (int(parent.box.w) - width) / 2, 0, width, totalPageHeight
-      rectangle "#FFFFFF"
+      fill "#FFFFFF"
 
       var atY = 60
 
@@ -71,9 +71,7 @@ proc drawMain() =
               fill "#FF4400"
 
             onClick:
-              print "click"
               area.expanded = not area.expanded
-              print area.expanded
               mouse.consume()
 
           rectangle "reRun":
@@ -83,7 +81,6 @@ proc drawMain() =
               fill "#FF4400"
 
             onClick:
-              print "rerun"
               mouse.consume()
 
           var innerAtY = 0
@@ -104,7 +101,6 @@ proc drawMain() =
                 characters area.queryCode
 
               onClick:
-                print "edit", area.queryCode
                 editingArea = area
                 mouse.consume()
 
@@ -114,7 +110,7 @@ proc drawMain() =
 
           group "resultsOutput":
             box 0, innerAtY, width, area.heightOuput
-            rectangle "#FFFFFF"
+            fill "#FFFFFF"
 
             innerAtY += area.heightOuput
 

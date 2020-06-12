@@ -1,7 +1,7 @@
 ## Cairo backend uses Cairo and glfw3 libarires to provide graphics and input
 
-import chroma, glfw3 as glfw, math, opengl, os, print, quickcairo, random,
-    times, common, unicode, vmath
+import chroma, common, glfw3 as glfw, math, opengl, os, print, quickcairo,
+    random, times, unicode, vmath
 
 when defined(Windows):
   import windows

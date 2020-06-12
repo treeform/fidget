@@ -1,7 +1,7 @@
 ## Flippy backend uses Flippy and glfw3 libarires to provide graphics and input
 
-import chroma, flippy, glfw3 as glfw, math, opengl, os, print, tables, times,
-    typography, common, unicode, vmath
+import chroma, common, flippy, glfw3 as glfw, math, opengl, os, print, tables,
+    times, typography, unicode, vmath
 
 const GlfwLib = "libglfw.so.3"
 
