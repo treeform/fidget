@@ -1,6 +1,6 @@
 import fidget
 
-loadFont("Inconsolata", "data/Inconsolata-Regular.ttf")
+loadFont("Inconsolata", "Inconsolata-Regular.ttf")
 
 setTitle("Pad of Code")
 

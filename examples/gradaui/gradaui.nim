@@ -10,9 +10,9 @@ import fidget
 
 # https://www.figmafreebies.com/download/grada-free-figma-ui-kit/
 
-loadFont("Montserrat", "data/Montserrat-Regular.ttf")
-loadFont("Montserrat Bold", "data/Montserrat-Bold.ttf")
-loadFont("Material Icons", "data/MaterialIcons-Regular.ttf")
+loadFont("Montserrat", "Montserrat-Regular.ttf")
+loadFont("Montserrat Bold", "Montserrat-Bold.ttf")
+loadFont("Material Icons", "MaterialIcons-Regular.ttf")
 
 proc drawMain() =
 

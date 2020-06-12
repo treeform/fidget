@@ -10,30 +10,31 @@ proc compileNative() =
     let cmd = &"nim c --hints:off --verbosity:0 {folder}/{file}.nim"
     echo cmd
     if execShellCmd(cmd) != 0:
-      echo "[error] ", folder
-      quit(1)
+      quit "[error] " & folder
     else:
-      echo "[ok] ", folder
+      echo "[ok] " & folder
 
 proc runNative() =
   for folder in runList:
-    setCurrentDir(".." / folder)
+    setCurrentDir(folder)
     let exeUrl = folder.lastPathPart
-    if execShellCmd(exeUrl) != 0:
-      echo "[error] Starting ", exeUrl
-      quit()
+    when defined(windows):
+      if execShellCmd(exeUrl & ".exe") != 0:
+        quit "[error] Starting " & exeUrl & ".exe"
+    else:
+      if execShellCmd(exeUrl) != 0:
+        quit "[error] Starting " & exeUrl
     setCurrentDir(examplesDir)
 
 proc compileJS() =
   for folder in runList:
     let file = folder.lastPathPart
-    let cmd = &"nim js --hints:off --verbosity:0 -d:genhtml {folder}/{file}.nim"
+    let cmd = &"nim js --hints:off --verbosity:0 {folder}/{file}.nim"
     echo cmd
     if execShellCmd(cmd) != 0:
-      echo "[error] ", folder
-      quit()
+      quit "[error] " & folder
     else:
-      echo "[ok] ", folder
+      echo "[ok] " & folder
 
 proc runJS() =
   for folder in runList:
@@ -42,13 +43,10 @@ proc runJS() =
     let fileUrl = &"file:///{exeDir}/{folder}/{file}.html"
     when defined(windows):
       if execShellCmd(&"start chrome {fileUrl}") != 0:
-        echo "[error] Starting Chrome: ", fileUrl
-        quit()
-    when defined(osx):
-      echo "here"
+        quit "[error] Starting Chrome: " & fileUrl
+    else:
       if execShellCmd(&"open {fileUrl}") != 0:
-        echo "[error] Starting Chrome: ", fileUrl
-        quit()
+        quit "[error] Starting Chrome: " & fileUrl
 
 proc generateHTML() =
   for folder in runList:
@@ -58,16 +56,46 @@ proc generateHTML() =
     let indexPath = &"{dir}/{name}/{name}.html"
     writeFile(indexPath, &"""<script src="{name}.js"></script>""")
 
+proc compileWasm() =
+  for folder in runList:
+    let file = folder.lastPathPart
+    if not existsDir(folder / "wasm"):
+      createDir(folder / "wasm")
+    echo folder / "data"
+    let inner =
+      if existsDir(folder / "data"):
+        echo "using data folder"
+        &"-o {folder}/wasm/{file}.html --preload-file {folder}/data@data/ --shell-file src/shell_minimal.html -s ALLOW_MEMORY_GROWTH=1"
+      else:
+        &"-o {folder}/wasm/{file}.html --shell-file src/shell_minimal.html -s ALLOW_MEMORY_GROWTH=1"
+    let cmd = &"nim c -d:emscripten --gc:arc --hints:off --verbosity:0 --passL:\"{inner}\" {folder}/{file}.nim"
+    echo cmd
+    if execShellCmd(cmd) != 0:
+      quit "[error] " & folder
+
+proc runWasm() =
+  for folder in runList:
+    let file = folder.lastPathPart
+    var exeDir = os.getAppDir().parentDir
+    let fileUrl = &"http://localhost:1337/{folder}/wasm/{file}.html"
+    when defined(windows):
+      if execShellCmd(&"start chrome {fileUrl}") != 0:
+        quit "[error] Starting Chrome: " & fileUrl
+    else:
+      if execShellCmd(&"open {fileUrl}") != 0:
+        quit "[error] Starting Chrome: " & fileUrl
+
 proc main(
   compile: bool = false,
   native: bool = false,
   js: bool = false,
   run: bool = false,
   genhtml: bool = false,
+  wasm: bool = false,
 ) =
+  runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
   runList.add "tests/autolayouthorizontal"
-  runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutvertical"
   runList.add "tests/bars"
   runList.add "tests/constraints"
@@ -93,7 +121,7 @@ proc main(
   runList.add "examples/padoftext"
   # TODO: finish runList.add "examples/todo"
 
-  if not(compile or native or js or run or genhtml):
+  if not(compile or native or js or run or genhtml or wasm):
     echo "Usage:"
     echo "  run --compile --native --js --run"
 
@@ -107,8 +135,10 @@ proc main(
     runJS()
   if genhtml:
     generateHTML()
-  # compileWasm()
-  # runWasm()
+  if compile and wasm:
+    compileWasm()
+  if run and wasm:
+    runWasm()
 
 
 dispatch(main)

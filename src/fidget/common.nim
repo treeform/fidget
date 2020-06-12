@@ -202,6 +202,8 @@ var
   lastUId: int
   nodeLookup*: Table[string, Node]
 
+  dataDir*: string = "data"
+
 proc newUId*(): string =
   # Returns next numerical unique id.
   inc lastUId

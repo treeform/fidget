@@ -1,7 +1,7 @@
 
 import fidget
 
-loadFont("Ubuntu", "data/Ubuntu.ttf")
+loadFont("Ubuntu", "Ubuntu.ttf")
 setTitle("Text Align Fixed")
 
 proc drawMain() =

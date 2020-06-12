@@ -4,14 +4,10 @@ var
   fontS = 14.0
   lineH = 14.0
 
-when defined(js):
-  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
-else:
-  loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.svg")
+setTitle("Fidget Fonts Example")
+loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
 
 proc drawMain() =
-
-  setTitle("Fidget Fonts Example")
 
   font "IBM Plex Sans Regular", 12, 200, 16, hLeft, vTop
 

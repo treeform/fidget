@@ -1,6 +1,6 @@
 import fidget
 
-loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
+loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
 
 setTitle("Pad of Text")
 

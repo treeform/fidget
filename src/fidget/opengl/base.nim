@@ -344,10 +344,11 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
       glEnable(GL_DEBUG_OUTPUT)
 
-  echo getVersionString()
-  echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
-  echo "GL_SHADING_LANGUAGE_VERSION:",
-    cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
+  when defined(printGLVersion):
+    echo getVersionString()
+    echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
+    echo "GL_SHADING_LANGUAGE_VERSION:",
+      cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   discard window.setFramebufferSizeCallback(onResize)
   discard window.setWindowFocusCallback(onFocus)

@@ -299,7 +299,7 @@ proc draw*(node: Node, parent: Node) =
     # Check for image (background image).
     if node.hasDifferent(imageName):
       if node.imageName != "":
-        node.element.style.backgroundImage = "url(data/" & node.imageName & ")"
+        node.element.style.backgroundImage = &"url({dataDir / node.imageName})"
         node.element.style.backgroundSize = "100% 100%"
       else:
         node.element.style.backgroundImage = ""
@@ -611,7 +611,7 @@ proc setUrl*(url: string) =
 proc loadFont*(name: string, pathOrUrl: string) =
   ## Loads a font.
   dom.window.document.write &"""
-    <style>@font-face {{font-family: '{name}'; src: URL('{pathOrUrl}') format('truetype');}}</style>
+    <style>@font-face {{font-family: '{name}'; src: URL('{dataDir / pathOrUrl}') format('truetype');}}</style>
   """
 
 proc setItem*(key, value: string) =

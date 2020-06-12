@@ -4,7 +4,7 @@ var
   textValue: string
   beEdit = false
 
-loadFont("IBM Plex Sans Regular", "data/IBMPlexSans-Regular.ttf")
+loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
 
 setTitle("Inputs Example")
 

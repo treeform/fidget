@@ -1,6 +1,6 @@
 import chroma, hashes, internal, opengl/base, opengl/context, input,
     strformat, strutils, tables, times, typography, typography/textboxes,
-    common, vmath, flippy, unicode
+    common, vmath, flippy, unicode, os
 
 export input
 
@@ -257,7 +257,7 @@ proc draw*(node: Node) =
       ), node.stroke, node.strokeWeight, node.cornerRadius[0])
 
     if node.imageName != "":
-      let path = &"data/{node.imageName}"
+      let path = dataDir / node.imageName
       ctx.drawImage(path, size = vec2(node.screenBox.w, node.screenBox.h))
 
   ctx.restoreTransform()
@@ -369,11 +369,12 @@ proc setUrl*(url: string) =
   refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =
-  ## Loads a font.
   if pathOrUrl.endsWith(".svg"):
-    fonts[name] = readFontSvg(pathOrUrl)
+    fonts[name] = readFontSvg(dataDir / pathOrUrl)
   elif pathOrUrl.endsWith(".ttf"):
-    fonts[name] = readFontTtf(pathOrUrl)
+    fonts[name] = readFontTtf(dataDir / pathOrUrl)
+  elif pathOrUrl.endsWith(".oft"):
+    fonts[name] = readFontOtf(dataDir / pathOrUrl)
   else:
     raise newException(Exception, "Unsupported font format")
 

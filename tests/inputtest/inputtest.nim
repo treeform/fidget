@@ -1,5 +1,7 @@
 import fidget, math, random
 
+loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
+
 var bars = newSeq[int](10)
 for i, bar in bars:
   bars[i] = rand(40)
@@ -152,9 +154,5 @@ proc drawMain() =
             fill "#FF0000"
 
           inc y
-
-
-
-loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
 
 startFidget(drawMain)

@@ -1,6 +1,6 @@
 import fidget
 
-loadFont("Ubuntu", "data/Ubuntu.ttf")
+loadFont("Ubuntu", "Ubuntu.ttf")
 setTitle("Auto Layout Text")
 
 proc drawMain() =

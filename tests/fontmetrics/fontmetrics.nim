@@ -1,13 +1,13 @@
 
 import fidget
 
-loadFont("Jura", "data/Jura-Regular.ttf")
-loadFont("Lato", "data/Lato-Regular.ttf")
-loadFont("IBM Plex Sans", "data/IBMPlexSans-Regular.ttf")
-loadFont("Silver", "data/silver.ttf")
-loadFont("Ubuntu", "data/Ubuntu.ttf")
-loadFont("Changa", "data/Changa-Bold.ttf")
-loadFont("Source Sans Pro", "data/SourceSansPro-Regular.ttf")
+loadFont("Jura", "Jura-Regular.ttf")
+loadFont("Lato", "Lato-Regular.ttf")
+loadFont("IBM Plex Sans", "IBMPlexSans-Regular.ttf")
+loadFont("Silver", "silver.ttf")
+loadFont("Ubuntu", "Ubuntu.ttf")
+loadFont("Changa", "Changa-Bold.ttf")
+loadFont("Source Sans Pro", "SourceSansPro-Regular.ttf")
 
 setTitle("Font Metrics")
 
