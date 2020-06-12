@@ -81,12 +81,25 @@ proc runWasm() =
       if execShellCmd(&"open {fileUrl}") != 0:
         quit "[error] Starting Chrome: " & fileUrl
 
+proc runClean() =
+  for folder in runList:
+    if existsDir(folder / "wasm"):
+      removeDir(folder / "wasm")
+    let file = folder.lastPathPart
+    if existsFile(folder / file & ".html"):
+      removeFile(folder / file & ".html")
+    if existsFile(folder / file & ".js"):
+      removeFile(folder / file & ".js")
+    if existsFile(folder / file & ".exe"):
+      removeFile(folder / file & ".exe")
+
 proc main(
   compile: bool = false,
   native: bool = false,
   js: bool = false,
   run: bool = false,
   wasm: bool = false,
+  clean: bool = false,
 ) =
   runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
@@ -116,7 +129,7 @@ proc main(
   runList.add "examples/padoftext"
   # TODO: finish runList.add "examples/todo"
 
-  if not(compile or native or js or run or wasm):
+  if not(compile or native or js or run or wasm or clean):
     echo "Usage:"
     echo "  run --compile --native --js --run"
 
@@ -132,6 +145,8 @@ proc main(
     compileWasm()
   if run and wasm:
     runWasm()
+  if clean:
+    runClean()
 
 
 dispatch(main)
