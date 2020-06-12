@@ -1,4 +1,4 @@
-import vmath, chroma
+import chroma, vmath
 
 type
 

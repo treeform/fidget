@@ -1,12 +1,14 @@
-import fidget, math, random, strutils, times
+import fidget, math, random
+
+loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
 
 var bars = newSeq[int](10)
 for i, bar in bars:
   bars[i] = rand(40)
 
 var
-  singleLineValue: string # = "Quick brown fox jumped over the lazy dog"
-  multiLineValue: string # = "Quick brown fox jumped over the lazy dog"
+  singleLineValue: string
+  multiLineValue: string
 
 proc drawMain() =
   setTitle("Input Test")
@@ -17,87 +19,115 @@ proc drawMain() =
 
     box 0, 0, int root.box.w, max(int root.box.h, h)
 
-    group "bg1":
-      box 0, 0, 200, 500
-      fill "#F8F8F8"
-
-    group "bg2":
+    group "singleLineBox":
       box 300, 0, 400, 40
       fill "#F8F8F8"
-    text "singleLineBoxPlaceHolder":
-      box 300, 0, 400, 40
-      fill "#888888"
-      textAlign hLeft, vTop
-      if singleLineValue == "":
-        characters "This is an single line box."
-    text "singleLineBox":
-      box 300, 0, 400, 40
-      fill "#000000"
-      textAlign hLeft, vTop
-      binding singleLineValue
-      onFocus:
-        echo "onFocus singleLineBox"
-      onUnFocus:
-        echo "onUnFocus singleLineBox"
+      clipContent true
 
-    group "bg3":
+      text "text":
+        box 0, 0, 400, 40
+        fill "#000000"
+        textAlign hLeft, vTop
+        binding singleLineValue
+        onFocus:
+          echo "onFocus singleLineBox"
+        onUnFocus:
+          echo "onUnFocus singleLineBox"
+
+      text "placeHolder":
+        box 0, 0, 400, 40
+        fill "#888888"
+        textAlign hLeft, vTop
+        selectable false
+        if singleLineValue == "":
+          characters "This is an single line box."
+        else:
+          characters ""
+        onFocus:
+          echo "onFocus ", current.id
+        onUnFocus:
+          echo "onUnFocus ", current.id
+
+    group "multiLineBox":
       box 300, 60, 400, 100
       fill "#F8F8F8"
-    text "multiLineBoxPlaceHolder":
-      box 300, 60, 400, 100
-      fill "#888888"
-      textAlign hLeft, vTop
-      if multiLineValue == "":
-        characters "This is an multi line box."
-    text "multiLineBox":
-      box 300, 60, 400, 100
-      fill "#000000"
-      textAlign hLeft, vTop
-      multiline true
-      #placeholder "This is a text area"
-      binding multiLineValue
-      onFocus:
-        echo "onFocus multiLineBox"
-      onUnFocus:
-        echo "onUnFocus multiLineBox"
+      clipContent true
 
-    group "bg4":
-      box 300, 300, 400, 40
-      fill "#F8E8E8"
+      text "text":
+        box 0, 0, 400, 100
+        fill "#000000"
+        textAlign hLeft, vTop
+        multiline true
+        #placeholder "This is a text area"
+        binding multiLineValue
+        onFocus:
+          echo "onFocus multiLineBox"
+        onUnFocus:
+          echo "onUnFocus multiLineBox"
+
+      text "placeHolder":
+        box 0, 0, 400, 100
+        fill "#888888"
+        textAlign hLeft, vTop
+        selectable false
+        if multiLineValue == "":
+          characters "This is an multi line box."
+        else:
+          characters ""
+        onFocus:
+          echo "onFocus ", current.id
+        onUnFocus:
+          echo "onUnFocus ", current.id
+
     text "singleLineOut":
       box 300, 300, 400, 40
       fill "#000000"
       textAlign hLeft, vTop
       characters singleLineValue
-
-    group "bg5":
-      box 300, 360, 400, 100
+    group "bg4":
+      box 300, 300, 400, 40
       fill "#F8E8E8"
+
     text "multiLineOut":
       box 300, 360, 400, 100
       fill "#000000"
       textAlign hLeft, vTop
       multiline true
       characters multiLineValue
-
-    group "bg6":
-      box 300, 480, 400, 40
+    group "bg5":
+      box 300, 360, 400, 100
       fill "#F8E8E8"
+
     text "inputFocusIdPath":
       box 300, 480, 400, 40
       fill "#000000"
       textAlign hLeft, vTop
-      characters keyboard.inputFocusIdPath
-
-    group "bg7":
-      box 300, 560, 400, 40
+      if keyboard.focusNode != nil:
+        characters keyboard.focusNode.id
+      else:
+        characters "nil"
+    group "bg6":
+      box 300, 480, 400, 40
       fill "#F8E8E8"
+
     text "prevInputFocusIdPath":
       box 300, 560, 400, 40
       fill "#000000"
       textAlign hLeft, vTop
-      characters keyboard.prevInputFocusIdPath
+      if keyboard.onUnFocusNode != nil:
+        characters keyboard.onUnFocusNode.id
+      else:
+        characters "nil"
+    group "bg7":
+      box 300, 560, 400, 40
+      fill "#F8E8E8"
 
+    text "button1":
+      box 300, 620, 100, 20
+      fill "#000000"
+      textAlign hLeft, vTop
+      multiline true
+      characters "Press me"
     group "bg8":
       box 300, 620, 100, 20
       fill "#F8E8E8"
@@ -105,30 +135,23 @@ proc drawMain() =
         fill "#FF0000"
       onClick:
         echo "pressed!"
-    text "button1":
-      box 300, 620, 100, 20
-      fill "#000000"
-      textAlign hLeft, vTop
-      multiline true
-      characters "Press me"
 
+    group "bg1":
+      box 0, 0, 200, 500
+      fill "#F8F8F8"
+      var y: int
+      for button in Button:
+        if buttonDown[button]:
+          text "text-" & $button:
+            box 10, y*20, 150, 20
+            fill "#000000"
+            echo $button
+            characters $button
 
-    var y: int
-    for button in Button:
-      if buttonDown[button]:
-        text "text-" & $button:
-          box 10, y*20, 150, 20
-          fill "#000000"
-          editableText false
-          characters $button
+          group "group-" & $button:
+            box 150, y*20, 20, 20
+            fill "#FF0000"
 
-        group "group-" & $button:
-          box 150, y*20, 20, 20
-
-          fill "#FF0000"
-
-        inc y
-
-loadFont("IBM Plex Sans Regular", "../../examples/data/IBMPlexSans-Regular.ttf")
+          inc y
 
 startFidget(drawMain)

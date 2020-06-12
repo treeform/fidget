@@ -1,90 +1,139 @@
-import chroma, fidget/common, json, macros, strutils, tables, vmath,
-    fidget/input, strformat
+import algorithm, chroma, fidget/common, fidget/input, json, macros, strutils,
+    tables, vmath
 
 export chroma, common, input
 
 when defined(js):
   import fidget/htmlbackend
   export htmlbackend
-elif defined(null):
+elif defined(nullbackend):
   import fidget/nullbackend
   export nullbackend
 else:
   import fidget/openglbackend
   export openglbackend
 
-template node(kindStr: string, name: string, inner: untyped): untyped =
-  ## Base template for group, frame, rectangle...
+proc preNode(kind: NodeKind, id: string) =
+  # Process the start of the node.
 
-  # Verify we have drawn the parent first since we are drawing a child now
-  parent = groupStack[^1]
-  if not parent.wasDrawn:
-    parent.draw()
-    parent.wasDrawn = true
+  parent = nodeStack[^1]
 
-  current = Group()
-  current.id = name
-  current.kind = kindStr
-  current.wasDrawn = false
+  # TODO: maybe a better node differ?
+
+  if parent.nodes.len <= parent.diffIndex:
+    # Create Node
+    current = Node()
+    current.id = id
+    current.uid = newUId()
+    parent.nodes.add(current)
+  else:
+    # Reuse Node
+    current = parent.nodes[parent.diffIndex]
+    if current.id == id:
+      # Same node"
+      discard
+    else:
+      # Big change"
+      current.id = id
+
+  current.kind = kind
   current.textStyle = parent.textStyle
   current.cursorColor = parent.cursorColor
   current.highlightColor = parent.highlightColor
   current.transparency = parent.transparency
-  groupStack.add(current)
+  nodeStack.add(current)
+  inc parent.diffIndex
 
-  for g in groupStack:
+  current.idPath = ""
+  for i, g in nodeStack:
+    if i != 0:
+      current.idPath.add "."
     if g.id != "":
-      if current.idPath.len > 0:
-        current.idPath.add "."
       current.idPath.add g.id
+    else:
+      current.idPath.add $g.diffIndex
 
-  # if pathChecker.hasKey(current.idPath):
-  #   raise newException(ValueError, &"Duplicate id path `{current.idPath}` found.")
-  # else:
-  #   pathChecker[current.idPath] = true
+  current.diffIndex = 0
 
-  block:
-    inner
+  # reset some basic styles
+  current.fill.a = 0
+  current.strokeWeight = 0
+  current.text.setLen(0)
+  current.imageName.setLen(0)
+  current.clipContent = false
+  current.constraintsHorizontal = cMin
+  current.constraintsVertical = cMin
 
-  if not current.wasDrawn:
-    current.draw()
-    current.wasDrawn = true
+proc postNode() =
+  # Deal with removed nodes.
+  for i in current.diffIndex ..< current.nodes.len:
+    remove(current.nodes[i])
+  current.nodes.setLen(current.diffIndex)
 
-  current.postDrawChildren()
-
-  discard groupStack.pop()
-  if groupStack.len > 1:
-    current = groupStack[^1]
+  # Pop the stack.
+  discard nodeStack.pop()
+  if nodeStack.len > 1:
+    current = nodeStack[^1]
   else:
     current = nil
-  if groupStack.len > 2:
-    parent = groupStack[^2]
+  if nodeStack.len > 2:
+    parent = nodeStack[^2]
   else:
     parent = nil
 
-template group*(name: string, inner: untyped): untyped =
-  ## Starts a new group.
-  node("group", name, inner)
+template node(kind: NodeKind, id: string, inner: untyped): untyped =
+  ## Base template for node, frame, rectangle...
+  preNode(kind, id)
+  inner
+  postNode()
 
-template frame*(name: string, inner: untyped): untyped =
+template group*(id: string, inner: untyped): untyped =
+  ## Starts a new node.
+  node(nkGroup, id, inner)
+
+template frame*(id: string, inner: untyped): untyped =
   ## Starts a new frame.
-  node("frame", name, inner)
+  node(nkFrame, id, inner)
 
-template rectangle*(name: string, inner: untyped): untyped =
+template rectangle*(id: string, inner: untyped): untyped =
   ## Starts a new rectangle.
-  node("rectangle", name, inner)
+  node(nkRectangle, id, inner)
 
-template text*(name: string, inner: untyped): untyped =
+template text*(id: string, inner: untyped): untyped =
   ## Starts a new text element.
-  node("text", name, inner)
+  node(nkText, id, inner)
 
-template component*(name: string, inner: untyped): untyped =
+template component*(id: string, inner: untyped): untyped =
   ## Starts a new component.
-  node("component", name, inner)
+  node(nkComponent, id, inner)
 
-template instance*(name: string, inner: untyped): untyped =
+template instance*(id: string, inner: untyped): untyped =
   ## Starts a new instance of a component.
-  node("component", name, inner)
+  node(nkInstance, id, inner)
+
+template group*(inner: untyped): untyped =
+  ## Starts a new node.
+  node(nkGroup, "", inner)
+
+template frame*(inner: untyped): untyped =
+  ## Starts a new frame.
+  node(nkFrame, "", inner)
+
+template rectangle*(inner: untyped): untyped =
+  ## Starts a new rectangle.
+  node(nkRectangle, "", inner)
+
+template text*(inner: untyped): untyped =
+  ## Starts a new text element.
+  node(nkText, "", inner)
+
+template component*(inner: untyped): untyped =
+  ## Starts a new component.
+  node(nkComponent, "", inner)
+
+template instance*(inner: untyped): untyped =
+  ## Starts a new instance of a component.
+  node(nkInstance, "", inner)
 
 template rectangle*(color: string|Color) =
   ## Shorthand for rectangle with fill.
@@ -125,14 +174,12 @@ template onKeyDown*(inner: untyped) =
   if keyboard.state == Down:
     inner
 
-proc hasKeyboardFocus*(group: Group): bool =
-  ## Does a group have keyboard input focus.
-  return keyboard.inputFocusIdPath == group.idPath
+proc hasKeyboardFocus*(node: Node): bool =
+  ## Does a node have keyboard input focus.
+  return keyboard.focusNode == node
 
 template onInput*(inner: untyped) =
   ## This is called when key is pressed and this element has focus.
-  if not current.bindingSet:
-    raise newException(ValueError, "onInput: Binding not set, must be called after.")
   if keyboard.state == Press and current.hasKeyboardFocus():
     inner
 
@@ -148,18 +195,14 @@ template onDown*(inner: untyped) =
 
 template onFocus*(inner: untyped) =
   ## On focusing an input element.
-  if not current.bindingSet:
-    raise newException(ValueError, "onFocus: Binding not set, must be called after.")
-  if keyboard.inputFocusIdPath == current.idPath and
-      keyboard.prevInputFocusIdPath != current.idPath:
+  if keyboard.onFocusNode == current:
+    keyboard.onFocusNode = nil
     inner
 
 template onUnFocus*(inner: untyped) =
   ## On loosing focus on an input element.
-  if not current.bindingSet:
-    raise newException(ValueError, "onUnFocus: Binding not set, must be called after.")
-  if keyboard.inputFocusIdPath != current.idPath and
-      keyboard.prevInputFocusIdPath == current.idPath:
+  if keyboard.onUnFocusNode == current:
+    keyboard.onUnFocusNode = nil
     inner
 
 proc id*(id: string) =
@@ -168,7 +211,7 @@ proc id*(id: string) =
 
 proc font*(
   fontFamily: string,
-  fontSize, fontWeight, lineHeight: float,
+  fontSize, fontWeight, lineHeight: float32,
   textAlignHorizontal: HAlign,
   textAlignVertical: VAlign
 ) =
@@ -184,15 +227,15 @@ proc fontFamily*(fontFamily: string) =
   ## Sets the font family.
   current.textStyle.fontFamily = fontFamily
 
-proc fontSize*(fontSize: float) =
+proc fontSize*(fontSize: float32) =
   ## Sets the font size in pixels.
   current.textStyle.fontSize = fontSize
 
-proc fontWeight*(fontWeight: float) =
+proc fontWeight*(fontWeight: float32) =
   ## Sets the font weight.
   current.textStyle.fontWeight = fontWeight
 
-proc lineHeight*(lineHeight: float) =
+proc lineHeight*(lineHeight: float32) =
   ## Sets the font size.
   current.textStyle.lineHeight = lineHeight
 
@@ -209,43 +252,43 @@ proc textAutoResize*(textAutoResize: TextAutoResize) =
   current.textStyle.autoResize = textAutoResize
 
 proc characters*(text: string) =
-  ## Adds text to the group.
-  if current.text == "":
+  ## Sets text.
+  if current.text != text:
     current.text = text
-  else:
-    current.text &= text
 
 proc image*(imageName: string) =
-  ## Adds image to the group.
+  ## Sets image fill.
   current.imageName = imageName
 
-proc box*(x, y, w, h: float) =
+proc box*(x, y, w, h: float32) =
   ## Sets the box dimensions.
   current.box.x = x
   current.box.y = y
   current.box.w = w
   current.box.h = h
-  current.screenBox = current.box
-  if parent != nil:
-    current.screenBox = current.box + parent.screenBox
 
-proc box*(x, y, w, h: int|float32|float) =
+proc box*(
+  x: int|float32|float64,
+  y: int|float32|float64,
+  w: int|float32|float64,
+  h: int|float32|float64
+) =
   ## Sets the box dimensions with integers
-  box(float x, float y, float w, float h)
+  box(float32 x, float32 y, float32 w, float32 h)
 
 proc box*(rect: Rect) =
   ## Sets the box dimensions with integers
   box(rect.x, rect.y, rect.w, rect.h)
 
-proc orgBox*(x, y, w, h: int|float32|float) =
+proc orgBox*(x, y, w, h: int|float32|float32) =
   ## Sets the box dimensions of the original element for constraints.
-  #box(float x, float y, float w, float h)
-  current.orgBox.x = float x
-  current.orgBox.y = float y
-  current.orgBox.w = float w
-  current.orgBox.h = float h
+  #box(float32 x, float32 y, float32 w, float32 h)
+  current.orgBox.x = float32 x
+  current.orgBox.y = float32 y
+  current.orgBox.w = float32 w
+  current.orgBox.h = float32 h
 
-proc rotation*(rotationInDeg: float) =
+proc rotation*(rotationInDeg: float32) =
   ## Sets rotation in degrees.
   current.rotation = rotationInDeg
 
@@ -276,7 +319,7 @@ proc stroke*(color: string, alpha = 1.0) =
   current.stroke = parseHtmlColor(color)
   current.stroke.a = alpha
 
-proc strokeWeight*(weight: float) =
+proc strokeWeight*(weight: float32) =
   ## Sets stroke/border weight.
   current.strokeWeight = weight
 
@@ -284,16 +327,16 @@ proc zLevel*(zLevel: int) =
   ## Sets zLevel.
   current.zLevel = zLevel
 
-proc cornerRadius*(a, b, c, d: float) =
+proc cornerRadius*(a, b, c, d: float32) =
   ## Sets all radius of all 4 corners.
   current.cornerRadius = (a, b, c, d)
 
-proc cornerRadius*(radius: float) =
+proc cornerRadius*(radius: float32) =
   ## Sets all radius of all 4 corners.
   cornerRadius(radius, radius, radius, radius)
 
 proc editableText*(editableText: bool) =
-  ## Sets the code for this group.
+  ## Sets the code for this node.
   current.editableText = editableText
 
 proc multiline*(multiline: bool) =
@@ -322,13 +365,13 @@ proc highlightColor*(color: string, alpha = 1.0) =
   current.highlightColor = parseHtmlColor(color)
   current.highlightColor.a = alpha
 
-proc dropShadow*(blur, x, y: float, color: string, alpha: float) =
+proc dropShadow*(blur, x, y: float32, color: string, alpha: float32) =
   ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
   current.shadows.add Shadow(kind: DropShadow, blur: blur, x: x, y: y, color: c)
 
-proc innerShadow*(blur, x, y: float, color: string, alpha: float) =
+proc innerShadow*(blur, x, y: float32, color: string, alpha: float32) =
   ## Sets drawable, drawable in HTML creates a canvas.
   var c = parseHtmlColor(color)
   c.a = alpha
@@ -344,58 +387,49 @@ proc drawable*(drawable: bool) =
   ## Sets drawable, drawable in HTML creates a canvas.
   current.drawable = drawable
 
-proc constraints*(vCon: Contraints, hCon: Contraints) =
+proc constraints*(vCon: Constraint, hCon: Constraint) =
   ## Sets vertical or horizontal constraint.
-  case vCon
-    of cMin: discard
-    of cMax:
-      let righSpace = parent.orgBox.w - current.box.x
-      current.box.x = parent.box.w - righSpace
-    of cScale:
-      let xScale = parent.box.w / parent.orgBox.w
-      current.box.x *= xScale
-      current.box.w *= xScale
-    of cStretch:
-      let xDiff = parent.box.w - parent.orgBox.w
-      current.box.w += xDiff
-    of cCenter:
-      current.box.x = floor((parent.box.w - current.box.w) / 2.0)
+  current.constraintsVertical = vCon
+  current.constraintsHorizontal = hCon
 
-  case hCon
-    of cMin: discard
-    of cMax:
-      let bottomSpace = parent.orgBox.h - current.box.y
-      current.box.y = parent.box.h - bottomSpace
-    of cScale:
-      let yScale = parent.box.h / parent.orgBox.h
-      current.box.y *= yScale
-      current.box.h *= yScale
-    of cStretch:
-      let yDiff = parent.box.h - parent.orgBox.h
-      current.box.h += yDiff
-    of cCenter:
-      current.box.y = floor((parent.box.h - current.box.h) / 2.0)
+proc layoutAlign*(mode: LayoutAlign) =
+  current.layoutAlign = mode
 
-  current.screenBox = current.box + parent.screenBox
+proc layout*(mode: LayoutMode) =
+  current.layoutMode = mode
+
+proc counterAxisSizingMode*(mode: CounterAxisSizingMode) =
+  current.counterAxisSizingMode = mode
+
+proc horizontalPadding*(v: float32) =
+  current.horizontalPadding = v
+
+proc verticalPadding*(v: float32) =
+  current.verticalPadding = v
+
+proc itemSpacing*(v: float32) =
+  current.itemSpacing = v
+
+proc selectable*(v: bool) =
+  current.selectable = v
 
 template binding*(stringVariable: untyped) =
   ## Makes the current object text-editable and binds it to the stringVariable.
-  if current.bindingSet:
-    raise newException(ValueError, "Binding already set.")
   current.bindingSet = true
-
+  selectable true
   editableText true
-  characters stringVariable
-  onClick:
-    keyboard.focus(current)
-  onClickOutside:
-    keyboard.unFocus(current)
+  if not current.hasKeyboardFocus():
+    characters stringVariable
+  if not defined(js):
+    onClick:
+      keyboard.focus(current)
+    onClickOutside:
+      keyboard.unFocus(current)
   onInput:
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input
-      refresh()
 
-template override*(name: string, inner: untyped) =
+template override*(id: string, inner: untyped) =
   template `name`(): untyped =
     inner
 

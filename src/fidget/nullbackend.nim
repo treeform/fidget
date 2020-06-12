@@ -1,14 +1,17 @@
 ## Backend null is a dummy backend used for testing / dec gen
 ## Not a real backend will not draw anything
 
-import internal, tables, times, common
+import common, internal, tables, times
 
 var
   windowTitle, windowUrl: string
   values = newTable[string, string]()
 
-proc draw*(group: Group) =
-  ## Draws the group
+proc draw*(node: Node) =
+  ## Draws the node
+
+proc postDrawChildren*(node: Node) =
+  ## Turns off clip masks and such
 
 proc refresh*() =
   ## Request the screen be redrawn
@@ -18,14 +21,21 @@ proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard
 
-proc startFidget*(draw: proc()) =
+proc startFidget*(
+    draw: proc(),
+    tick: proc() = nil,
+    fullscreen = false,
+    w: Positive = 1280,
+    h: Positive = 800,
+) =
   ## Starts fidget UI library
-  ## Null backend only draws drawMain() once
   drawMain = draw
-  let startTime = epochTime()
-  setupRoot()
-  drawMain()
-  echo "drawMain walk took: ", epochTime() - startTime, "ms"
+  for i in 0 ..< 10:
+    let startTime = epochTime()
+    setupRoot()
+    drawMain()
+    echo "drawMain walk took: ", epochTime() - startTime, "ms"
+  dumpTree(root)
 
 proc getTitle*(): string =
   ## Gets window title

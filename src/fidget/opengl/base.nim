@@ -1,4 +1,4 @@
-import ../internal, ../common, chroma, flippy, ../input, opengl, os, perf,
+import ../common, ../input, ../internal, chroma, flippy, opengl, os, perf,
     staticglfw, times, typography/textboxes, unicode, vmath
 
 when defined(glDebugMessageCallback):
@@ -72,7 +72,7 @@ proc preInput() =
   var x, y: float64
   window.getCursorPos(addr x, addr y)
   mouse.pos = vec2(x, y)
-  mouse.pos *= pixelRatio
+  mouse.pos *= pixelRatio / mouse.pixelScale
   mouse.delta = mouse.pos - mouse.prevPos
   mouse.prevPos = mouse.pos
 
@@ -198,7 +198,7 @@ proc onSetKey(
   keyboard.shiftKey = setKey and ((modifiers and MOD_SHIFT) != 0)
 
   # Do the text box commands.
-  if keyboard.inputFocusIdPath != "" and setKey:
+  if keyboard.focusNode != nil and setKey:
     keyboard.state = KeyState.Press
     let
       ctrl = keyboard.ctrlKey
@@ -259,7 +259,7 @@ proc onSetKey(
 
 proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
   requestedFrame = true
-  if keyboard.inputFocusIdPath != "":
+  if keyboard.focusNode != nil:
     textBox.scrollBy(-yoffset * 50)
   else:
     mouse.wheelDelta += yoffset
@@ -283,7 +283,7 @@ proc onMouseMove(window: staticglfw.Window, x, y: cdouble) {.cdecl.} =
 
 proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
   requestedFrame = true
-  if keyboard.inputFocusIdPath != "":
+  if keyboard.focusNode != nil:
     keyboard.state = KeyState.Press
     textBox.typeCharacter(Rune(character))
   else:
@@ -344,10 +344,11 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
       glEnable(GL_DEBUG_OUTPUT)
 
-  echo getVersionString()
-  echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
-  echo "GL_SHADING_LANGUAGE_VERSION:",
-    cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
+  when defined(printGLVersion):
+    echo getVersionString()
+    echo "GL_VERSION:", cast[cstring](glGetString(GL_VERSION))
+    echo "GL_SHADING_LANGUAGE_VERSION:",
+      cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION))
 
   discard window.setFramebufferSizeCallback(onResize)
   discard window.setWindowFocusCallback(onFocus)

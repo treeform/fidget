@@ -23,6 +23,8 @@ type
     frameSize: Vec2             ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
+    pixelate*: bool             ## Makes texture look pixelated, like a pixel game.
+    pixelScale*: float32        ## Multiple scaling factor.
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -52,7 +54,7 @@ proc setUpMaskFramebuffer(ctx: Context) =
     0
   )
 
-proc createAtlasTexture(size: int): Texture =
+proc createAtlasTexture(ctx: Context, size: int): Texture =
   result.width = size.GLint
   result.height = size.GLint
   result.componentType = GL_UNSIGNED_BYTE
@@ -60,7 +62,10 @@ proc createAtlasTexture(size: int): Texture =
   result.internalFormat = GL_RGBA8
   result.genMipmap = true
   result.minFilter = minLinearMipmapLinear
-  result.magFilter = magLinear
+  if ctx.pixelate:
+    result.magFilter = magNearest
+  else:
+    result.magFilter = magLinear
   bindTextureData(result.addr, nil)
 
 proc addMaskTexture(ctx: Context, frameSize = vec2(1, 1)) =
@@ -76,7 +81,10 @@ proc addMaskTexture(ctx: Context, frameSize = vec2(1, 1)) =
   else:
     maskTexture.internalFormat = GL_R8
   maskTexture.minFilter = minLinear
-  maskTexture.magFilter = magLinear
+  if ctx.pixelate:
+    maskTexture.magFilter = magNearest
+  else:
+    maskTexture.magFilter = magLinear
   bindTextureData(maskTexture.addr, nil)
   ctx.maskTextures.add(maskTexture)
 
@@ -84,6 +92,8 @@ proc newContext*(
   atlasSize = 1024,
   atlasMargin = 4,
   maxQuads = 1024,
+  pixelate = false,
+  pixelScale = 1.0
 ): Context =
   ## Creates a new context.
   if maxQuads > quadLimit:
@@ -95,9 +105,11 @@ proc newContext*(
   result.maxQuads = maxQuads
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
+  result.pixelate = pixelate
+  result.pixelScale = pixelScale
 
   result.heights = newSeq[uint16](atlasSize)
-  result.atlasTexture = createAtlasTexture(atlasSize)
+  result.atlasTexture = result.createAtlasTexture(atlasSize)
 
   result.addMaskTexture()
 
@@ -181,7 +193,7 @@ proc grow(ctx: Context) =
   ctx.atlasSize = ctx.atlasSize * 2
   echo "grow atlasSize ", ctx.atlasSize
   ctx.heights.setLen(ctx.atlasSize)
-  ctx.atlasTexture = createAtlasTexture(ctx.atlasSize)
+  ctx.atlasTexture = ctx.createAtlasTexture(ctx.atlasSize)
   ctx.entries.clear()
 
 proc findEmptyRect(ctx: Context, width, height: int): Rect =
