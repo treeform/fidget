@@ -29,11 +29,13 @@ type
     vBottom
 
   TextAutoResize* = enum
+    ## Should text element resize and how.
     tsNone
     tsWidthAndHeight
     tsHeight
 
   TextStyle* = object
+    ## Holder for text styles.
     fontFamily*: string
     fontSize*: float32
     fontWeight*: float32
@@ -43,30 +45,32 @@ type
     autoResize*: TextAutoResize
 
   BorderStyle* = object
+    ## What kind of border.
     color*: Color
     width*: float32
 
-  ShadowStyle* = enum
-    DropShadow
-    InnerShadow
-
   LayoutAlign* = enum
-    # Applicable only inside auto-layout frames.
+    ## Applicable only inside auto-layout frames.
     laMin
     laCenter
     laMax
     laStretch
 
   LayoutMode* = enum
-    # The auto-layout mode on a frame.
+    ## The auto-layout mode on a frame.
     lmNone
     lmVertical
     lmHorizontal
 
   CounterAxisSizingMode* = enum
-    # How to deal with the opposite side of an auto-layout frame.
+    ## How to deal with the opposite side of an auto-layout frame.
     csAuto
     csFixed
+
+  ShadowStyle* = enum
+    ## Supports drop and inner shadows.
+    DropShadow
+    InnerShadow
 
   Shadow* = object
     kind*: ShadowStyle
@@ -76,6 +80,7 @@ type
     color*: Color
 
   NodeKind* = enum
+    ## Different types of nodes.
     nkRoot
     nkFrame
     nkGroup
