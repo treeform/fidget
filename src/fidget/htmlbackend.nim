@@ -1,5 +1,5 @@
 import chroma, common, dom2 as dom, html5_canvas, input, internal, math, os,
-    strformat, strutils, tables, vmath
+    strformat, strutils, tables, vmath, html/ajax, json
 
 const defaultStyle = """
 div {
@@ -627,3 +627,33 @@ proc loadGoogleFontUrl*(url: string) =
   link.setAttribute("href", url)
   link.setAttribute("rel", "stylesheet")
   document.head.appendChild(link)
+
+proc httpGet*(url: string): HttpCall =
+  if url notin httpCalls:
+    result = HttpCall()
+
+    result.httpRequest = newXMLHttpRequest()
+    proc httpGetCb(e: Event) {.closure.} =
+      if result.httpRequest.readyState == rsDONE:
+        if result.httpRequest.status == 200:
+          result.status = Ready
+          result.data = $result.httpRequest.responseText
+          result.json = parseJson(result.data)
+        else:
+          result.status = Error
+      refresh()
+    result.httpRequest.onreadystatechange = httpGetCb
+    result.httpRequest.open("GET", url)
+    result.httpRequest.send()
+
+    httpCalls[url] = result
+    result.status = Loading
+  else:
+    result = httpCalls[url]
+
+  when not defined(js):
+    if result.status == Loading and result.future.finished:
+      result.status = Ready
+      result.data = result.future.read()
+
+  return

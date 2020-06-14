@@ -101,6 +101,11 @@ proc main(
   wasm: bool = false,
   clean: bool = false,
 ) =
+
+  if not wasm:
+    runList.add "tests/httpget"
+    runList.add "examples/hn"
+
   runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
   runList.add "tests/autolayouthorizontal"
