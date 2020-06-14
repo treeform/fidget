@@ -1,9 +1,9 @@
-import chroma, input, sequtils, tables, vmath
+import chroma, input, sequtils, tables, vmath, json
 
-when not defined(js):
-  import typography, typography/textboxes, tables
+when defined(js):
+  import dom2, html/ajax
 else:
-  import dom2
+  import typography, typography/textboxes, tables, asyncfutures
 
 const
   clearColor* = color(0, 0, 0, 0)
@@ -171,6 +171,21 @@ type
     textCursor*: int ## At which character in the input string are we
     selectionCursor*: int ## To which character are we selecting to
 
+  HttpStatus* = enum
+    Starting
+    Ready
+    Loading
+    Error
+
+  HttpCall* = ref object
+    status*: HttpStatus
+    data*: string
+    json*: JsonNode
+    when defined(js):
+      httpRequest*: XMLHttpRequest
+    else:
+      future*: Future[string]
+
 var
   parent*: Node
   root*: Node
@@ -200,6 +215,9 @@ var
   nodeLookup*: Table[string, Node]
 
   dataDir*: string = "data"
+
+  ## Used for HttpCalls
+  httpCalls*: Table[string, HttpCall]
 
 proc newUId*(): string =
   # Returns next numerical unique id.
