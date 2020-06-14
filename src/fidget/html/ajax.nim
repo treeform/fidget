@@ -38,7 +38,7 @@ proc newXMLHttpRequest*(): XMLHttpRequest {.importcpp: "new XMLHttpRequest()".}
 proc abort*(r: XMLHttpRequest){.importcpp.}
 proc getAllResponseHeaders*(r: XMLHttpRequest): cstring {.importcpp.}
 proc getResponseHeader*(r: XMLHttpRequest, name: cstring): cstring{.importcpp.}
-proc open*(r: XMLHttpRequest, methd: cstring, url: cstring, async: bool = true,
+proc open*(r: XMLHttpRequest, `method`: cstring, url: cstring, async: bool = true,
     user: cstring = nil, password: cstring = nil){.importcpp.}
 proc overrideMimeType*(r: XMLHttpRequest, mime: cstring){.importcpp.}
 proc send*(r: XMLHttpRequest){.importcpp.}
