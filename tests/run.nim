@@ -1,4 +1,4 @@
-import cligen, os, strformat
+import cligen, os, strformat, osproc
 
 let examplesDir = getCurrentDir()
 
