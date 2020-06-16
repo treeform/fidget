@@ -106,6 +106,9 @@ proc main(
     runList.add "tests/httpget"
     runList.add "examples/hn"
 
+  if not js:
+    runList.add "tests/imagegen"
+
   runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
   runList.add "tests/autolayouthorizontal"
