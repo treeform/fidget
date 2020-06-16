@@ -108,6 +108,7 @@ proc main(
 
   if not js:
     runList.add "tests/imagegen"
+    runList.add "tests/imagestatic"
 
   runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
