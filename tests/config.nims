@@ -1,1 +1,2 @@
 --path:"../src"
+#--gc:arc

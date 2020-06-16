@@ -331,6 +331,12 @@ proc setupFidget(
     ctx.endFrame()
 
     #dumpTree(root)
+    when defined(testOneFrame):
+      ## This is used for test only
+      ## Take a screen shot of the first frame and exit.
+      var img = takeScreenshot()
+      img.save("screenshot.png")
+      quit()
 
   useDepthBuffer(false)
 

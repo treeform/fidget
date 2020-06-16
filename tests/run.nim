@@ -14,6 +14,16 @@ proc compileNative() =
     else:
       echo "[ok] " & folder
 
+proc compileTestOneFrame() =
+  for folder in runList:
+    let file = folder.lastPathPart
+    let cmd = &"nim c --hints:off --verbosity:0 -d:testOneFrame {folder}/{file}.nim"
+    echo cmd
+    if execShellCmd(cmd) != 0:
+      quit "[error] " & folder
+    else:
+      echo "[ok] " & folder
+
 proc runNative() =
   for folder in runList:
     setCurrentDir(folder)
@@ -100,6 +110,7 @@ proc main(
   run: bool = false,
   wasm: bool = false,
   clean: bool = false,
+  testOneFrame: bool = false,
 ) =
 
   if not wasm:
@@ -142,7 +153,10 @@ proc main(
     echo "  run --compile --native --js --run"
 
   if compile and native:
-    compileNative()
+    if testOneFrame:
+      compileTestOneFrame()
+    else:
+      compileNative()
   if run and native:
     runNative()
   if compile and js:
@@ -155,5 +169,11 @@ proc main(
     runWasm()
   if clean:
     runClean()
+
+  if testOneFrame:
+    let (outp, _) = execCmdEx("git diff *.png")
+    if len(outp) != 0:
+      echo outp
+      quit("Output does not match")
 
 dispatch(main)
