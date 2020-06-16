@@ -113,13 +113,13 @@ proc main(
   testOneFrame: bool = false,
 ) =
 
-  if not wasm:
-    runList.add "tests/httpget"
-    runList.add "examples/hn"
+  # if not wasm:
+  #   runList.add "tests/httpget"
+  #   runList.add "examples/hn"
 
-  if not js:
-    runList.add "tests/imagegen"
-    runList.add "tests/imagestatic"
+  # if not js:
+  #   runList.add "tests/imagegen"
+  #   runList.add "tests/imagestatic"
 
   runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
