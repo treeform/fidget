@@ -247,6 +247,21 @@ proc putImage*(ctx: Context, path: string | Hash, image: Image) =
     image
   )
 
+proc updateImage*(ctx: Context, path: string | Hash, image: Image) =
+  ## Updates an image that was put there with putImage.
+  ## Useful for things like video.
+  ## * Must be the same size.
+  ## * This does not set mipmaps.
+  let rect = ctx.entries[path]
+  assert rect.w == image.width.float / float(ctx.atlasSize)
+  assert rect.h == image.height.float / float(ctx.atlasSize)
+  updateSubImage(
+    ctx.atlasTexture,
+    int(rect.x * ctx.atlasSize.float),
+    int(rect.y * ctx.atlasSize.float),
+    image
+  )
+
 proc putFlippy*(ctx: Context, path: string | Hash, flippy: Flippy) =
   let rect = ctx.findEmptyRect(flippy.width, flippy.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
