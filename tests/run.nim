@@ -32,7 +32,7 @@ proc runNative() =
       if execShellCmd(exeUrl & ".exe") != 0:
         quit "[error] Starting " & exeUrl & ".exe"
     else:
-      if execShellCmd(exeUrl) != 0:
+      if execShellCmd("./" & exeUrl) != 0:
         quit "[error] Starting " & exeUrl
     setCurrentDir(examplesDir)
 
