@@ -32,4 +32,4 @@ jobs:
 
     - run: xvfb-run nimble test
     - run: nim c -r tests/run.nim --compile --js
-    - run: xvfb-run nim c -r tests/run.nim --compile --testOneFrame --native --run
+    - run: nim c -r tests/run.nim --compile --testOneFrame --native --run
