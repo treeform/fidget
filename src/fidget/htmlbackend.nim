@@ -54,7 +54,6 @@ proc removeAllChildren(dom: HTMLNode) =
     dom.removeChild(dom.firstChild)
 
 proc removeTextSelection*() {.exportc.} =
-  echo dom.window.document.getSelection()
   dom.window.document.getSelection().removeAllRanges()
 
 var
@@ -414,7 +413,6 @@ proc drawFinish() =
   # echo perf.numLowLevelCalls
 
   # Only set mouse style when it changes.
-  echo "draw finish ", mouse.cursorStyle
   if prevMouseCursorStyle != mouse.cursorStyle:
     prevMouseCursorStyle = mouse.cursorStyle
     case mouse.cursorStyle:
@@ -557,7 +555,6 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     #Note: keyboard.onUnFocusNode is set by focus out.
     let node = nodeLookup[uid]
     keyboard.input = node.text
-    echo "set keyboard input to", node.text
     keyboard.onFocusNode = node
     keyboard.focusNode = node
     refresh()
