@@ -63,6 +63,7 @@ proc preNode(kind: NodeKind, id: string) =
   current.clipContent = false
   current.constraintsHorizontal = cMin
   current.constraintsVertical = cMin
+  current.editableText = false
 
 proc postNode() =
   # Deal with removed nodes.
