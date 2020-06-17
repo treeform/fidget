@@ -21,19 +21,19 @@ proc preNode(kind: NodeKind, id: string) =
   # TODO: maybe a better node differ?
 
   if parent.nodes.len <= parent.diffIndex:
-    # Create Node
+    # Create Node.
     current = Node()
     current.id = id
     current.uid = newUId()
     parent.nodes.add(current)
   else:
-    # Reuse Node
+    # Reuse Node.
     current = parent.nodes[parent.diffIndex]
     if current.id == id:
-      # Same node"
+      # Same node.
       discard
     else:
-      # Big change"
+      # Big change.
       current.id = id
 
   current.kind = kind
@@ -55,7 +55,7 @@ proc preNode(kind: NodeKind, id: string) =
 
   current.diffIndex = 0
 
-  # reset some basic styles
+  # Reset some basic styles.
   current.fill.a = 0
   current.strokeWeight = 0
   current.text.setLen(0)
@@ -66,6 +66,8 @@ proc preNode(kind: NodeKind, id: string) =
   current.editableText = false
 
 proc postNode() =
+  ## Node drawing is done.
+
   # Deal with removed nodes.
   for i in current.diffIndex ..< current.nodes.len:
     remove(current.nodes[i])
@@ -143,10 +145,11 @@ template rectangle*(color: string|Color) =
     fill color
 
 proc mouseOverlapLogic*(): bool =
+  ## Returns true if mouse overlaps the current node.
   (not popupActive or inPopup) and mouse.pos.inside(current.screenBox)
 
 template onClick*(inner: untyped) =
-  ## OnClick event handler.
+  ## On click event handler.
   if mouse.click and mouseOverlapLogic():
     inner
 
@@ -156,7 +159,7 @@ template onClickOutside*(inner: untyped) =
     inner
 
 template onRightClick*(inner: untyped) =
-  ## OnClick event handler.
+  ## On right click event handler.
   if buttonPress[MOUSE_RIGHT] and mouseOverlapLogic():
     inner
 
@@ -250,6 +253,7 @@ proc textPadding*(textPadding: int) =
   current.textPadding = textPadding
 
 proc textAutoResize*(textAutoResize: TextAutoResize) =
+  ## Set the text auto resize mode.
   current.textStyle.autoResize = textAutoResize
 
 proc characters*(text: string) =
@@ -283,7 +287,6 @@ proc box*(rect: Rect) =
 
 proc orgBox*(x, y, w, h: int|float32|float32) =
   ## Sets the box dimensions of the original element for constraints.
-  #box(float32 x, float32 y, float32 w, float32 h)
   current.orgBox.x = float32 x
   current.orgBox.y = float32 y
   current.orgBox.w = float32 w
@@ -394,24 +397,31 @@ proc constraints*(vCon: Constraint, hCon: Constraint) =
   current.constraintsHorizontal = hCon
 
 proc layoutAlign*(mode: LayoutAlign) =
+  ## Set the layout alignment mode.
   current.layoutAlign = mode
 
 proc layout*(mode: LayoutMode) =
+  ## Set the layout mode.
   current.layoutMode = mode
 
 proc counterAxisSizingMode*(mode: CounterAxisSizingMode) =
+  ## Set the counter axis sizing mode.
   current.counterAxisSizingMode = mode
 
 proc horizontalPadding*(v: float32) =
+  ## Set the horizontal padding for auto layout.
   current.horizontalPadding = v
 
 proc verticalPadding*(v: float32) =
+  ## Set the vertical padding for auto layout.
   current.verticalPadding = v
 
 proc itemSpacing*(v: float32) =
+  ## Set the item spacing for auto layout.
   current.itemSpacing = v
 
 proc selectable*(v: bool) =
+  ## Set text selectable flag.
   current.selectable = v
 
 template binding*(stringVariable: untyped) =
@@ -429,10 +439,6 @@ template binding*(stringVariable: untyped) =
   onInput:
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input
-
-template override*(id: string, inner: untyped) =
-  template `name`(): untyped =
-    inner
 
 proc parseParams*(): Table[string, string] =
   ## Parses the params of the main URL.
