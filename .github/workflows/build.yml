@@ -33,4 +33,6 @@ jobs:
     - run: xvfb-run nimble test
     - run: nim c -r tests/run.nim --compile --js
     - run: nim c -r tests/run.nim --compile --testOneFrame --native
-    - run: /home/runner/work/fidget/fidget/tests/autolayouttext/autolayouttext
+    - run: |
+        cd /home/runner/work/fidget/fidget/tests/autolayouttext/
+        xvfb-run autolayouttext
