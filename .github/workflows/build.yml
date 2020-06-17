@@ -35,4 +35,4 @@ jobs:
     - run: nim c -r tests/run.nim --compile --testOneFrame --native
     - run: |
         cd /home/runner/work/fidget/fidget/tests/autolayouttext/
-        xvfb-run autolayouttext
+        xvfb-run /home/runner/work/fidget/fidget/tests/autolayouttext/autolayouttext
