@@ -31,6 +31,9 @@ proc runNative() =
     when defined(windows):
       if execShellCmd(exeUrl & ".exe") != 0:
         quit "[error] Starting " & exeUrl & ".exe"
+    elif defined(linux):
+      if execShellCmd("xvfb-run " & exeUrl) != 0:
+        quit "[error] Starting " & exeUrl
     else:
       if execShellCmd("./" & exeUrl) != 0:
         quit "[error] Starting " & exeUrl
