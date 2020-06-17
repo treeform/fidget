@@ -35,6 +35,7 @@ proc preNode(kind: NodeKind, id: string) =
     else:
       # Big change.
       current.id = id
+    current.resetToDefault()
 
   current.kind = kind
   current.textStyle = parent.textStyle
@@ -55,15 +56,7 @@ proc preNode(kind: NodeKind, id: string) =
 
   current.diffIndex = 0
 
-  # Reset some basic styles.
-  current.fill.a = 0
-  current.strokeWeight = 0
-  current.text.setLen(0)
-  current.imageName.setLen(0)
-  current.clipContent = false
-  current.constraintsHorizontal = cMin
-  current.constraintsVertical = cMin
-  current.editableText = false
+
 
 proc postNode() =
   ## Node drawing is done.

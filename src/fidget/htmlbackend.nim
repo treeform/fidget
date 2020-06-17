@@ -76,8 +76,8 @@ proc computeTextBox*(
     tempDiv = document.createElement("div")
     rootDomNode.appendChild(tempDiv)
     tempDiv.style.position = "absolute"
-    tempDiv.style.left = "-10000"
-    tempDiv.style.top = "-10000"
+    tempDiv.style.left = "-10000px"
+    tempDiv.style.top = "-10000px"
 
   tempDiv.style.fontSize = $fontSize & "px"
   tempDiv.style.lineHeight = $lineHeight & "px"
