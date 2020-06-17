@@ -1,9 +1,9 @@
-import chroma, input, sequtils, tables, vmath
+import chroma, input, sequtils, tables, vmath, json
 
-when not defined(js):
-  import typography, typography/textboxes, tables
+when defined(js):
+  import dom2, html/ajax
 else:
-  import dom2
+  import typography, typography/textboxes, tables, asyncfutures
 
 const
   clearColor* = color(0, 0, 0, 0)
@@ -29,11 +29,13 @@ type
     vBottom
 
   TextAutoResize* = enum
+    ## Should text element resize and how.
     tsNone
     tsWidthAndHeight
     tsHeight
 
   TextStyle* = object
+    ## Holder for text styles.
     fontFamily*: string
     fontSize*: float32
     fontWeight*: float32
@@ -43,30 +45,32 @@ type
     autoResize*: TextAutoResize
 
   BorderStyle* = object
+    ## What kind of border.
     color*: Color
     width*: float32
 
-  ShadowStyle* = enum
-    DropShadow
-    InnerShadow
-
   LayoutAlign* = enum
-    # Applicable only inside auto-layout frames.
+    ## Applicable only inside auto-layout frames.
     laMin
     laCenter
     laMax
     laStretch
 
   LayoutMode* = enum
-    # The auto-layout mode on a frame.
+    ## The auto-layout mode on a frame.
     lmNone
     lmVertical
     lmHorizontal
 
   CounterAxisSizingMode* = enum
-    # How to deal with the opposite side of an auto-layout frame.
+    ## How to deal with the opposite side of an auto-layout frame.
     csAuto
     csFixed
+
+  ShadowStyle* = enum
+    ## Supports drop and inner shadows.
+    DropShadow
+    InnerShadow
 
   Shadow* = object
     kind*: ShadowStyle
@@ -76,6 +80,7 @@ type
     color*: Color
 
   NodeKind* = enum
+    ## Different types of nodes.
     nkRoot
     nkFrame
     nkGroup
@@ -171,6 +176,21 @@ type
     textCursor*: int ## At which character in the input string are we
     selectionCursor*: int ## To which character are we selecting to
 
+  HttpStatus* = enum
+    Starting
+    Ready
+    Loading
+    Error
+
+  HttpCall* = ref object
+    status*: HttpStatus
+    data*: string
+    json*: JsonNode
+    when defined(js):
+      httpRequest*: XMLHttpRequest
+    else:
+      future*: Future[string]
+
 var
   parent*: Node
   root*: Node
@@ -200,6 +220,9 @@ var
   nodeLookup*: Table[string, Node]
 
   dataDir*: string = "data"
+
+  ## Used for HttpCalls
+  httpCalls*: Table[string, HttpCall]
 
 proc newUId*(): string =
   # Returns next numerical unique id.

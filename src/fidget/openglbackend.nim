@@ -2,6 +2,9 @@ import chroma, common, flippy, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
     typography/textboxes, unicode, vmath
 
+when not defined(emscripten):
+  import httpClient, asyncdispatch, asyncfutures, json
+
 export input
 
 var
@@ -22,10 +25,13 @@ computeTextLayout = proc(node: Node) =
   var
     boundsMin: Vec2
     boundsMax: Vec2
+    size = node.box.wh
+  if node.textStyle.autoResize == tsWidthAndHeight:
+    size = vec2(0, 0)
   node.textLayout = font.typeset(
     node.text.toRunes(),
     pos = vec2(0, 0),
-    size = node.box.wh,
+    size = size,
     hAlignMode(node.textStyle.textAlignHorizontal),
     vAlignMode(node.textStyle.textAlignVertical),
     clip = false,
@@ -317,6 +323,16 @@ proc setupFidget(
 
   useDepthBuffer(false)
 
+proc asyncPoll() =
+  when not defined(emscripten):
+    var haveCalls = false
+    for call in httpCalls.values:
+      if call.status == Loading:
+        haveCalls = true
+        break
+    if haveCalls:
+      poll()
+
 proc startFidget*(
   draw: proc(),
   tick: proc() = nil,
@@ -341,11 +357,14 @@ proc startFidget*(
     # Emscripten can't block so it will call this callback instead.
     proc emscripten_set_main_loop(f: proc() {.cdecl.}, a: cint, b: bool) {.importc.}
     proc mainLoop() {.cdecl.} =
+
+      asyncPoll()
       updateLoop()
     emscripten_set_main_loop(main_loop, 0, true)
   else:
     while running:
       updateLoop()
+      asyncPoll()
     exit()
 
 proc getTitle*(): string =
@@ -383,3 +402,30 @@ proc setItem*(key, value: string) =
 proc getItem*(key: string): string =
   ## Gets a value into local storage or file.
   readFile(&"{key}.data")
+
+when not defined(emscripten):
+  proc httpGetCb(future: Future[string]) =
+    refresh()
+
+  proc httpGet*(url: string): HttpCall =
+    if url notin httpCalls:
+      result = HttpCall()
+      var client = newAsyncHttpClient()
+      echo "new call"
+      result.future = client.getContent(url)
+      result.future.addCallback(httpGetCb)
+      httpCalls[url] = result
+      result.status = Loading
+    else:
+      result = httpCalls[url]
+
+    if result.status == Loading and result.future.finished:
+      result.status = Ready
+      try:
+        result.data = result.future.read()
+        result.json = parseJson(result.data)
+      except HttpRequestError:
+        echo getCurrentExceptionMsg()
+        result.status = Error
+
+    return
