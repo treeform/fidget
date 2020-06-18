@@ -217,12 +217,20 @@ proc draw*(node: Node, parent: Node) =
     node.textElement.setAttribute("uid", node.uid)
     node.textElement.style.display = "table-cell"
     node.textElement.style.position = "unset"
+    node.textElement.style.whiteSpace = "pre"
 
     node.element.appendChild(node.textElement)
 
   # Check if text should be editable by user.
   if node.hasDifferent(editableText):
-    node.textElement.setAttribute("contenteditable", $node.editableText)
+    if node.editableText:
+      node.textElement.setAttribute("contenteditable", "true")
+      node.element.style.overflowX = "hidden"
+      node.element.style.overflowY = "auto"
+    else:
+      node.textElement.setAttribute("contenteditable", "true")
+      node.element.style.overflowX = "visible"
+      node.element.style.overflowY = "visible"
 
   # Check node id.
   if node.hasDifferent(id):
@@ -254,7 +262,7 @@ proc draw*(node: Node, parent: Node) =
 
     # Check fill (text color).
     if node.hasDifferent(fill):
-      node.element.style.color = $node.fill.toHtmlRgba()
+      node.textElement.style.color = $node.fill.toHtmlRgba()
 
     if node.hasDifferent(text):
       if keyboard.focusNode != node:
