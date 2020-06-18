@@ -56,8 +56,6 @@ proc preNode(kind: NodeKind, id: string) =
 
   current.diffIndex = 0
 
-
-
 proc postNode() =
   ## Node drawing is done.
 
@@ -139,7 +137,10 @@ template rectangle*(color: string|Color) =
 
 proc mouseOverlapLogic*(): bool =
   ## Returns true if mouse overlaps the current node.
-  (not popupActive or inPopup) and mouse.pos.inside(current.screenBox)
+  (not popupActive or inPopup) and
+  current.screenBox.w > 0 and
+  current.screenBox.h > 0 and
+  mouse.pos.inside(current.screenBox)
 
 template onClick*(inner: untyped) =
   ## On click event handler.
