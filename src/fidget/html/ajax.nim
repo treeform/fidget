@@ -4,13 +4,7 @@ type ProgressEvent* = object of Event
   size*: int
   loaded*: int
 
-type XmlHttpRequestEventTarget* = object of EventTarget
-  onloadstart*: proc(e: Event)
-  onprogress*: proc(e: ProgressEvent)
-  ontimeout*: proc(e: Event)
-  onloadend*: proc(e: Event)
-
-type XmlHttpRequestUpload* = object of XmlHttpRequestEventTarget
+type XmlHttpRequestUpload* = object of EventTarget
 
 type ReadyState* = enum
   rsUNSENT = 0
