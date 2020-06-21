@@ -68,7 +68,7 @@ Fidget has several backends that are planned:
 * Nodes are positions relative to the parent
 * Nodes have minimal set of properties that match Figma.
 * Resizing is done same way as Fimga's [Constraints](https://www.youtube.com/watch?v=rRQAQ1d9q9w).
-* Layout is done same was as Figma's [Auto Layout](https://www.youtube.com/watch?v=NrKX46DzkGQ).
+* Layout is done same way as Figma's [Auto Layout](https://www.youtube.com/watch?v=NrKX46DzkGQ).
 
 The main idea of fidget is to use standard imperative nim paradigms like nim-procs, nim-for-loops, nim-ifs, nim-templates instead of say providing a custom language, XML templates, HTML, Jinja templates, CSS ...
 
@@ -80,7 +80,7 @@ If you want to do something fancy just do a little math. Many times a simple mat
 
 # Why Nim?
 
-Nim is a great languages because it’s easy on the eyes like python, but typed and is perfromant as C. It can also compile to JavaScript, C, C++, ObjC. Nim is a great language for UI design because it has advanced templates and macros can make a really good DSL (domain specific language) - that makes writing UIs straightforward, intuitive and crossplatform.
+Nim is a great languages because it’s easy on the eyes like Python, but typed and is performant as C. It can also compile to JavaScript, C, C++, ObjC. Nim is a great language for UI design because it has advanced templates and macros can make a really good DSL (domain specific language) - that makes writing UIs straightforward, intuitive and crossplatform.
 
 # Imperative UI Style
 
