@@ -148,7 +148,6 @@ function visit(node) {
     }
   }
 
-  console.log(node);
   if (node.layoutMode == "VERTICAL" || node.layoutMode == "HORIZONTAL") {
     text += ind() + `layout lm${titleCase(node.layoutMode)}\n`;
     text += ind() + `counterAxisSizingMode cs${titleCase(node.counterAxisSizingMode)}\n`;

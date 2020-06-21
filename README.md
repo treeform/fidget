@@ -1,6 +1,6 @@
 <img src="docs/banner.png">
 
-👏 👏 👏 Check out video about the library: [Fidget: Let's rethink UI development with Nim (NimConf 2020)](https://www.youtube.com/watch?v=IB8Yt2dqZbo)👏 👏 👏
+👏 👏 👏 Check out video about the library: [Fidget: Let's rethink UI development with Nim (NimConf 2020)](https://www.youtube.com/watch?v=IB8Yt2dqZbo) 👏 👏 👏
 
 
 # Fidget - A cross platform UI library for nim
