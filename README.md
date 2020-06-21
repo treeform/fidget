@@ -20,7 +20,7 @@ Fidget uses plain nim-procs, nim-templates, if-statements and for-loops. As well
   <a href="http://kate.vonhouck.com/">Design done by Kate von Houck. Available for hire.</a>
 </p>
 
-See code here: [examples/basic/basic.nim](examples/basic/basic.nim)
+See code here: [examples/demo/demo.nim](examples/demo/demo.nim)
 
 ## Minimal Sample:
 
@@ -43,6 +43,9 @@ startFidget(drawMain)
   <br>
   <img src="docs/minimal.png">
 </p>
+
+See code here: [examples/minimal/minimal.nim](examples/minimal/minimal.nim)
+
 
 # Backends
 

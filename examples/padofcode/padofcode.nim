@@ -1,3 +1,5 @@
+## Shows code pad with monospace font.
+
 import fidget
 
 loadFont("Inconsolata", "Inconsolata-Regular.ttf")

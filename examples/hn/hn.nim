@@ -1,3 +1,5 @@
+## Simple Haker News clone based on httpGet.
+
 import fidget, json, strformat, uri
 
 loadFont("IBM Plex Sans", "IBMPlexSans-Regular.ttf")

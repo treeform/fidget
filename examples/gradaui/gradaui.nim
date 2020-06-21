@@ -1,13 +1,9 @@
+## A bunch of nice looking controls.
+## Based on free Figma template:
+##   https://www.figmafreebies.com/download/grada-free-figma-ui-kit/
 import fidget
 
-# import hashes
 
-# echo 1.hash
-# echo 1.0.hash
-# echo "one".hash
-# echo (1, 1.0, "one").hash
-
-# https://www.figmafreebies.com/download/grada-free-figma-ui-kit/
 
 loadFont("Montserrat", "Montserrat-Regular.ttf")
 loadFont("Montserrat Bold", "Montserrat-Bold.ttf")

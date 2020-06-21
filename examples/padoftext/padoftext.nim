@@ -1,3 +1,5 @@
+## Shows a text pad like program.
+
 import fidget
 
 loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
