@@ -35,6 +35,7 @@ proc preNode(kind: NodeKind, id: string) =
     else:
       # Big change.
       current.id = id
+    current.resetToDefault()
 
   current.kind = kind
   current.textStyle = parent.textStyle
@@ -54,15 +55,6 @@ proc preNode(kind: NodeKind, id: string) =
       current.idPath.add $g.diffIndex
 
   current.diffIndex = 0
-
-  # Reset some basic styles.
-  current.fill.a = 0
-  current.strokeWeight = 0
-  current.text.setLen(0)
-  current.imageName.setLen(0)
-  current.clipContent = false
-  current.constraintsHorizontal = cMin
-  current.constraintsVertical = cMin
 
 proc postNode() =
   ## Node drawing is done.
@@ -145,7 +137,10 @@ template rectangle*(color: string|Color) =
 
 proc mouseOverlapLogic*(): bool =
   ## Returns true if mouse overlaps the current node.
-  (not popupActive or inPopup) and mouse.pos.inside(current.screenBox)
+  (not popupActive or inPopup) and
+  current.screenBox.w > 0 and
+  current.screenBox.h > 0 and
+  mouse.pos.inside(current.screenBox)
 
 template onClick*(inner: untyped) =
   ## On click event handler.

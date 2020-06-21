@@ -266,6 +266,56 @@ iterator reversePairs*[T](a: seq[T]): (int, T) {.inline.} =
     yield (a.len - 1 - i, a[i])
     dec i
 
+proc resetToDefault*(node: Node)=
+  ## Resets the node to default state.
+  # node.id = ""
+  # node.uid = ""
+  # node.idPath = ""
+  # node.kind = nkRoot
+  node.text = ""
+  node.code = ""
+  # node.nodes = @[]
+  node.box = rect(0,0,0,0)
+  node.orgBox = rect(0,0,0,0)
+  node.rotation = 0
+  # node.screenBox = rect(0,0,0,0)
+  node.textOffset = vec2(0, 0)
+  node.fill = color(0, 0, 0, 0)
+  node.transparency = 0
+  node.strokeWeight = 0
+  node.stroke = color(0, 0, 0, 0)
+  node.zLevel = 0
+  node.resizeDone = false
+  node.htmlDone = false
+  node.textStyle.fontFamily = ""
+  node.textStyle.fontSize = 0
+  node.textStyle.fontWeight = 0
+  node.textStyle.lineHeight = 0
+  node.textStyle.textAlignHorizontal = hLeft
+  node.textStyle.textAlignVertical = vTop
+  node.textStyle.autoResize = tsNone
+  node.textPadding = 0
+  node.imageName = ""
+  node.cornerRadius = (0'f32, 0'f32, 0'f32, 0'f32)
+  node.editableText = false
+  node.multiline = false
+  node.bindingSet = false
+  node.drawable = false
+  node.cursorColor = color(0, 0, 0, 0)
+  node.highlightColor = color(0, 0, 0, 0)
+  node.shadows = @[]
+  node.constraintsHorizontal = cMin
+  node.constraintsVertical = cMin
+  node.layoutAlign = laMin
+  node.layoutMode = lmNone
+  node.counterAxisSizingMode = csAuto
+  node.horizontalPadding = 0
+  node.verticalPadding = 0
+  node.itemSpacing = 0
+  node.clipContent = false
+  node.diffIndex = 0
+  node.selectable = false
+
 proc setupRoot*() =
   if root == nil:
     root = Node()

@@ -54,10 +54,11 @@ proc removeAllChildren(dom: HTMLNode) =
     dom.removeChild(dom.firstChild)
 
 proc removeTextSelection*() {.exportc.} =
-  echo dom.window.document.getSelection()
   dom.window.document.getSelection().removeAllRanges()
 
-var computeTextBoxCache = newTable[string, Vec2]()
+var
+  computeTextBoxCache = newTable[string, Vec2]()
+  tempDiv: Element
 proc computeTextBox*(
   text: string,
   width: float,
@@ -71,20 +72,23 @@ proc computeTextBox*(
   let key = text & $width & fontName & $fontSize
   if key in computeTextBoxCache:
     return computeTextBoxCache[key]
-  var tempDiv = document.createElement("div")
-  document.body.appendChild(tempDiv)
+  if tempDiv == nil:
+    tempDiv = document.createElement("div")
+    rootDomNode.appendChild(tempDiv)
+    tempDiv.style.position = "absolute"
+    tempDiv.style.left = "-10000px"
+    tempDiv.style.top = "-10000px"
+
   tempDiv.style.fontSize = $fontSize & "px"
   tempDiv.style.lineHeight = $lineHeight & "px"
   tempDiv.style.fontFamily = fontName
   tempDiv.style.fontWeight = $fontWeight
-  tempDiv.style.position = "absolute"
-  tempDiv.style.left = "-1000"
-  tempDiv.style.top = "-1000"
   tempDiv.style.maxWidth = $width & "px"
-  tempDiv.innerHTML = text
+
+  tempDiv.innerText = text
+
   result.x = float tempDiv.clientWidth
   result.y = float tempDiv.clientHeight
-  document.body.removeChild(tempDiv)
   computeTextBoxCache[key] = result
 
 computeTextLayout = proc(node: Node) =
@@ -197,15 +201,15 @@ proc draw*(node: Node, parent: Node) =
     node.element.setAttribute("uid", node.uid)
     nodeLookup[node.uid] = node
     if parent == nil:
-      document.body.appendChild(node.element)
+      rootDomNode.appendChild(node.element)
     else:
       parent.element.appendChild(node.element)
     node.cache = Node()
+    node.cache.kind = node.kind
 
   # Remove text part of the node if we are not a text node.
   if node.kind != nkText and node.textElement != nil:
-    node.textElement.remove()
-    node.textElement = nil
+    node.textElement.style.display = "hidden"
 
   # Add the text part if this is a text node.
   if node.kind == nkText and node.textElement == nil:
@@ -213,12 +217,20 @@ proc draw*(node: Node, parent: Node) =
     node.textElement.setAttribute("uid", node.uid)
     node.textElement.style.display = "table-cell"
     node.textElement.style.position = "unset"
+    node.textElement.style.whiteSpace = "pre"
 
     node.element.appendChild(node.textElement)
 
   # Check if text should be editable by user.
   if node.hasDifferent(editableText):
-    node.textElement.setAttribute("contenteditable", $node.editableText)
+    if node.editableText:
+      node.textElement.setAttribute("contenteditable", "true")
+      node.element.style.overflowX = "hidden"
+      node.element.style.overflowY = "auto"
+    else:
+      node.textElement.setAttribute("contenteditable", "true")
+      node.element.style.overflowX = "visible"
+      node.element.style.overflowY = "visible"
 
   # Check node id.
   if node.hasDifferent(id):
@@ -250,7 +262,7 @@ proc draw*(node: Node, parent: Node) =
 
     # Check fill (text color).
     if node.hasDifferent(fill):
-      node.element.style.color = $node.fill.toHtmlRgba()
+      node.textElement.style.color = $node.fill.toHtmlRgba()
 
     if node.hasDifferent(text):
       if keyboard.focusNode != node:
@@ -456,6 +468,9 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
   dom.window.addEventListener "load", proc(event: Event) =
     ## called when html page loads and JS can start running
     rootDomNode = document.createElement("div")
+    rootDomNode.style.position = "absolute"
+    rootDomNode.style.top = "0px"
+    rootDomNode.style.left = "0px"
     document.body.appendChild(rootDomNode)
     # Add a canvas node for drawing.
     canvasNode = document.createElement("canvas")
@@ -548,7 +563,6 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     #Note: keyboard.onUnFocusNode is set by focus out.
     let node = nodeLookup[uid]
     keyboard.input = node.text
-    echo "set keyboard input to", node.text
     keyboard.onFocusNode = node
     keyboard.focusNode = node
     refresh()
