@@ -1,5 +1,11 @@
 <img src="docs/banner.png">
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/IB8Yt2dqZbo"
+frameborder="0"
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+
 # Fidget - A cross platform UI library for nim
 
 ⚠️ WARNING: This library is still in heavy development. ⚠️
