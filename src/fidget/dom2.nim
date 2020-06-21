@@ -19,29 +19,32 @@ const
 type
   EventTarget* = ref EventTargetObj
   EventTargetObj {.importc.} = object of RootObj
-    onabort*: proc (event: Event) {.nimcall.}
-    onblur*: proc (event: Event) {.nimcall.}
-    onchange*: proc (event: Event) {.nimcall.}
-    onclick*: proc (event: Event) {.nimcall.}
-    ondblclick*: proc (event: Event) {.nimcall.}
-    onerror*: proc (event: Event) {.nimcall.}
-    onfocus*: proc (event: Event) {.nimcall.}
-    onkeydown*: proc (event: Event) {.nimcall.}
-    onkeypress*: proc (event: Event) {.nimcall.}
-    onkeyup*: proc (event: Event) {.nimcall.}
-    onload*: proc (event: Event) {.nimcall.}
-    onmousedown*: proc (event: Event) {.nimcall.}
-    onmousemove*: proc (event: Event) {.nimcall.}
-    onmouseout*: proc (event: Event) {.nimcall.}
-    onmouseover*: proc (event: Event) {.nimcall.}
-    onmouseup*: proc (event: Event) {.nimcall.}
-    onreset*: proc (event: Event) {.nimcall.}
-    onselect*: proc (event: Event) {.nimcall.}
-    onsubmit*: proc (event: Event) {.nimcall.}
-    onunload*: proc (event: Event) {.nimcall.}
+    onabort*: proc (event: Event) {.closure.}
+    onblur*: proc (event: Event) {.closure.}
+    onchange*: proc (event: Event) {.closure.}
+    onclick*: proc (event: Event) {.closure.}
+    ondblclick*: proc (event: Event) {.closure.}
+    onerror*: proc (event: Event) {.closure.}
+    onfocus*: proc (event: Event) {.closure.}
+    onkeydown*: proc (event: Event) {.closure.}
+    onkeypress*: proc (event: Event) {.closure.}
+    onkeyup*: proc (event: Event) {.closure.}
+    onload*: proc (event: Event) {.closure.}
+    onmousedown*: proc (event: Event) {.closure.}
+    onmousemove*: proc (event: Event) {.closure.}
+    onmouseout*: proc (event: Event) {.closure.}
+    onmouseover*: proc (event: Event) {.closure.}
+    onmouseup*: proc (event: Event) {.closure.}
+    onreset*: proc (event: Event) {.closure.}
+    onselect*: proc (event: Event) {.closure.}
+    onsubmit*: proc (event: Event) {.closure.}
+    onunload*: proc (event: Event) {.closure.}
+    onloadstart*: proc (event: Event) {.closure.}
+    onprogress*: proc (event: Event) {.closure.}
+    onloadend*: proc (event: Event) {.closure.}
 
-  # https://developer.mozilla.org/en-US/docs/Web/Events
   DomEvent* {.pure.} = enum
+    ## see `docs<https://developer.mozilla.org/en-US/docs/Web/Events>`_
     Abort = "abort",
     BeforeInput = "beforeinput",
     Blur = "blur",
@@ -103,7 +106,7 @@ type
     memory*: PerformanceMemory
     timing*: PerformanceTiming
 
-  Selection* {.importc.} = ref object
+  Selection* {.importc.} = ref object ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/Selection>`_
     anchorNode*: Node
     anchorOffset*: int
     focusNode*: Node
@@ -175,8 +178,11 @@ type
     nodeType*: NodeType
     nodeValue*: cstring
     parentNode*: Node
+    content*: Node
     previousSibling*: Node
+    ownerDocument*: Document
     innerHTML*: cstring
+    outerHTML*: cstring
     innerText*: cstring
     textContent*: cstring
     style*: Style
@@ -227,8 +233,7 @@ type
     offsetLeft*: int
     offsetTop*: int
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/ValidityState
-  ValidityState* = ref ValidityStateObj
+  ValidityState* = ref ValidityStateObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/ValidityState>`_
   ValidityStateObj {.importc.} = object
     badInput*: bool
     customError*: bool
@@ -242,27 +247,24 @@ type
     valid*: bool
     valueMissing*: bool
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/Blob
-  Blob* = ref BlobObj
+  Blob* = ref BlobObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/Blob>`_
   BlobObj {.importc.} = object of RootObj
     size*: int
     `type`*: cstring
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/File
-  File* = ref FileObj
+  File* = ref FileObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/File>`_
   FileObj {.importc.} = object of Blob
     lastModified*: int
     name*: cstring
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/HTMLTextAreaElement
-  TextAreaElement* = ref object of ElementObj
+  TextAreaElement* = ref TextAreaElementObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/HTMLTextAreaElement>`_
+  TextAreaElementObj {.importc.} = object of Element
     value*: cstring
     selectionStart*, selectionEnd*: int
     selectionDirection*: cstring
     rows*, cols*: int
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement
-  InputElement* = ref InputElementObj
+  InputElement* = ref InputElementObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement>`_
   InputElementObj {.importc.} = object of Element
     # Properties related to the parent form
     formAction*: cstring
@@ -344,8 +346,7 @@ type
     text*: cstring
     value*: cstring
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement
-  FormElement* = ref FormObj
+  FormElement* = ref FormObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement>`_
   FormObj {.importc.} = object of ElementObj
     acceptCharset*: cstring
     action*: cstring
@@ -480,8 +481,7 @@ type
     AtTarget,
     BubblingPhase
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/Event
-  Event* = ref EventObj
+  Event* = ref EventObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/Event>`_
   EventObj {.importc.} = object of RootObj
     bubbles*: bool
     cancelBubble*: bool
@@ -494,14 +494,12 @@ type
     `type`*: cstring
     isTrusted*: bool
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/UIEvent
-  UIEvent* = ref UIEventObj
+  UIEvent* = ref UIEventObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/UIEvent>`_
   UIEventObj {.importc.} = object of Event
     detail*: int64
     view*: Window
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
-  KeyboardEvent* = ref KeyboardEventObj
+  KeyboardEvent* = ref KeyboardEventObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent>`_
   KeyboardEventObj {.importc.} = object of UIEvent
     altKey*, ctrlKey*, metaKey*, shiftKey*: bool
     code*: cstring
@@ -510,8 +508,7 @@ type
     keyCode*: int
     location*: int
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values
-  KeyboardEventKey* {.pure.} = enum
+  KeyboardEventKey* {.pure.} = enum ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values>`_
     # Modifier keys
     Alt,
     AltGraph,
@@ -865,8 +862,7 @@ type
     FourthButton = 8,
     FifthButton = 16
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
-  MouseEvent* = ref MouseEventObj
+  MouseEvent* = ref MouseEventObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent>`_
   MouseEventObj {.importc.} = object of UIEvent
     altKey*, ctrlKey*, metaKey*, shiftKey*: bool
     button*: int
@@ -884,14 +880,12 @@ type
     File = "file",
     String = "string"
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/DataTransferItem
-  DataTransferItem* = ref DataTransferItemObj
+  DataTransferItem* = ref DataTransferItemObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/DataTransferItem>`_
   DataTransferItemObj {.importc.} = object of RootObj
     kind*: cstring
     `type`*: cstring
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer
-  DataTransfer* = ref DataTransferObj
+  DataTransfer* = ref DataTransferObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer>`_
   DataTransferObj {.importc.} = object of RootObj
     dropEffect*: cstring
     effectAllowed*: cstring
@@ -926,8 +920,8 @@ type
     DragStart = "dragstart",
     Drop = "drop"
 
-  # https://developer.mozilla.org/en-US/docs/Web/API/DragEvent
   DragEvent* {.importc.} = object of MouseEvent
+    ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/DragEvent>`_
     dataTransfer*: DataTransfer
 
   TouchList* {.importc.} = ref object of RootObj
@@ -956,6 +950,7 @@ type
     port*: cstring
     protocol*: cstring
     search*: cstring
+    origin*: cstring
 
   History* = ref HistoryObj
   HistoryObj {.importc.} = object of RootObj
@@ -1033,6 +1028,7 @@ when defined(nodejs):
     result = cast[Element](x.childNodes[idx])
 
   var document* = Document(nodeType: DocumentNode)
+  document.ownerDocument = document
 
   proc getElem(x: Element; id: cstring): Element =
     if x.id == id: return x
@@ -1046,6 +1042,7 @@ when defined(nodejs):
 
   proc appendChild*(parent, n: Node) =
     n.parentNode = parent
+    n.ownerDocument = parent.ownerDocument
     parent.childNodes.add n
 
   proc replaceChild*(parent, newNode, oldNode: Node) =
@@ -1081,30 +1078,36 @@ when defined(nodejs):
       inc i
     #doAssert false, "before not in node list"
 
-  proc createElement*(d: Document; identifier: cstring): Element =
+  proc createElement*(d: Document, identifier: cstring): Element =
     new(result)
     result.nodeName = identifier
     result.nodeType = NodeType.ElementNode
 
-  proc createTextNode*(d: Document; identifier: cstring): Node =
+  proc createTextNode*(d: Document, identifier: cstring): Node =
     new(result)
     result.nodeName = "#text"
     result.nodeValue = identifier
     result.nodeType = NodeType.TextNode
 
+  proc createComment*(d: Document, data: cstring): Node =
+    new(result)
+    result.nodeName = "#comment"
+    result.nodeValue = data
+    result.nodeType = NodeType.CommentNode
+
 else:
   proc len*(x: Node): int {.importcpp: "#.childNodes.length".}
   proc `[]`*(x: Node; idx: int): Element {.importcpp: "#.childNodes[#]".}
-  proc getElementById*(id: cstring): Element {.
-      importc: "document.getElementById", nodecl.}
+  proc getElementById*(id: cstring): Element {.importc: "document.getElementById", nodecl.}
   proc appendChild*(n, child: Node) {.importcpp.}
   proc removeChild*(n, child: Node) {.importcpp.}
   proc remove*(child: Node) {.importcpp.}
   proc replaceChild*(n, newNode, oldNode: Node) {.importcpp.}
   proc insertBefore*(n, newNode, before: Node) {.importcpp.}
-  proc getElementById*(d: Document; id: cstring): Element {.importcpp.}
-  proc createElement*(d: Document; identifier: cstring): Element {.importcpp.}
-  proc createTextNode*(d: Document; identifier: cstring): Node {.importcpp.}
+  proc getElementById*(d: Document, id: cstring): Element {.importcpp.}
+  proc createElement*(d: Document, identifier: cstring): Element {.importcpp.}
+  proc createTextNode*(d: Document, identifier: cstring): Node {.importcpp.}
+  proc createComment*(d: Document, data: cstring): Node {.importcpp.}
 
 proc setTimeout*(action: proc(); ms: int): Timeout {.importc, nodecl.}
 proc clearTimeout*(t: Timeout) {.importc, nodecl.}
@@ -1112,91 +1115,91 @@ proc clearTimeout*(t: Timeout) {.importc, nodecl.}
 {.push importcpp.}
 
 # EventTarget "methods"
-proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event);
-    useCapture: bool = false)
-proc addEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event);
-    options: AddEventListenerOptions)
-proc dispatchEvent*(et: EventTarget; ev: Event)
+proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), useCapture: bool = false)
+proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), options: AddEventListenerOptions)
+proc dispatchEvent*(et: EventTarget, ev: Event)
 proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event))
 
 # Window "methods"
-proc alert*(w: Window; msg: cstring)
+proc alert*(w: Window, msg: cstring)
 proc back*(w: Window)
 proc blur*(w: Window)
-proc captureEvents*(w: Window; eventMask: int) {.deprecated.}
-proc clearInterval*(w: Window; interval: ref Interval)
-proc clearTimeout*(w: Window; timeout: ref TimeOut)
+proc captureEvents*(w: Window, eventMask: int) {.deprecated.}
+proc clearInterval*(w: Window, interval: ref Interval)
+proc clearTimeout*(w: Window, timeout: ref TimeOut)
 proc close*(w: Window)
-proc confirm*(w: Window; msg: cstring): bool
+proc confirm*(w: Window, msg: cstring): bool
 proc disableExternalCapture*(w: Window)
 proc enableExternalCapture*(w: Window)
-proc find*(w: Window; text: cstring; caseSensitive = false;
+proc find*(w: Window, text: cstring, caseSensitive = false,
            backwards = false)
 proc focus*(w: Window)
 proc forward*(w: Window)
-proc getComputedStyle*(w: Window; e: Node; pe: Node = nil): Style
-proc handleEvent*(w: Window; e: Event)
+proc getComputedStyle*(w: Window, e: Node, pe:Node = nil): Style
+proc handleEvent*(w: Window, e: Event)
 proc home*(w: Window)
-proc moveBy*(w: Window; x, y: int)
-proc moveTo*(w: Window; x, y: int)
-proc open*(w: Window; uri, windowname: cstring;
+proc moveBy*(w: Window, x, y: int)
+proc moveTo*(w: Window, x, y: int)
+proc open*(w: Window, uri, windowname: cstring,
            properties: cstring = nil): Window
 proc print*(w: Window)
-proc prompt*(w: Window; text, default: cstring): cstring
-proc releaseEvents*(w: Window; eventMask: int) {.deprecated.}
-proc resizeBy*(w: Window; x, y: int)
-proc resizeTo*(w: Window; x, y: int)
-proc routeEvent*(w: Window; event: Event)
-proc scrollBy*(w: Window; x, y: int)
-proc scrollTo*(w: Window; x, y: int)
-proc setInterval*(w: Window; code: cstring; pause: int): ref Interval
-proc setInterval*(w: Window; function: proc (); pause: int): ref Interval
-proc setTimeout*(w: Window; code: cstring; pause: int): ref TimeOut
-proc setTimeout*(w: Window; function: proc (); pause: int): ref Interval
+proc prompt*(w: Window, text, default: cstring): cstring
+proc releaseEvents*(w: Window, eventMask: int) {.deprecated.}
+proc resizeBy*(w: Window, x, y: int)
+proc resizeTo*(w: Window, x, y: int)
+proc routeEvent*(w: Window, event: Event)
+proc scrollBy*(w: Window, x, y: int)
+proc scrollTo*(w: Window, x, y: int)
+proc setInterval*(w: Window, code: cstring, pause: int): ref Interval
+proc setInterval*(w: Window, function: proc (), pause: int): ref Interval
+proc setTimeout*(w: Window, code: cstring, pause: int): ref TimeOut
+proc setTimeout*(w: Window, function: proc (), pause: int): ref Interval
 proc stop*(w: Window)
-proc requestAnimationFrame*(w: Window; function: proc (time: float)): int
-proc cancelAnimationFrame*(w: Window; id: int)
+proc requestAnimationFrame*(w: Window, function: proc (time: float)): int
+proc cancelAnimationFrame*(w: Window, id: int)
 
 # Node "methods"
-proc appendData*(n: Node; data: cstring)
-proc cloneNode*(n: Node; copyContent: bool): Node
-proc deleteData*(n: Node; start, len: int)
+proc appendData*(n: Node, data: cstring)
+proc cloneNode*(n: Node, copyContent: bool): Node
+proc deleteData*(n: Node, start, len: int)
 proc focus*(e: Node)
-proc getAttribute*(n: Node; attr: cstring): cstring
-proc getAttributeNode*(n: Node; attr: cstring): Node
+proc getAttribute*(n: Node, attr: cstring): cstring
+proc getAttributeNode*(n: Node, attr: cstring): Node
 proc hasChildNodes*(n: Node): bool
-proc insertData*(n: Node; position: int; data: cstring)
-proc removeAttribute*(n: Node; attr: cstring)
+proc insertData*(n: Node, position: int, data: cstring)
+proc removeAttribute*(n: Node, attr: cstring)
 proc removeAttributeNode*(n, attr: Node)
-proc replaceData*(n: Node; start, len: int; text: cstring)
+proc replaceData*(n: Node, start, len: int, text: cstring)
 proc scrollIntoView*(n: Node)
-proc setAttribute*(n: Node; name, value: cstring)
-proc setAttributeNode*(n: Node; attr: Node)
+proc setAttribute*(n: Node, name, value: cstring)
+proc setAttributeNode*(n: Node, attr: Node)
+proc querySelector*(n: Node, selectors: cstring): Element
+proc querySelectorAll*(n: Node, selectors: cstring): seq[Element]
 
 # Document "methods"
-proc captureEvents*(d: Document; eventMask: int) {.deprecated.}
-proc createAttribute*(d: Document; identifier: cstring): Node
-proc getElementsByName*(d: Document; name: cstring): seq[Element]
-proc getElementsByTagName*(d: Document; name: cstring): seq[Element]
-proc getElementsByClassName*(d: Document; name: cstring): seq[Element]
+proc captureEvents*(d: Document, eventMask: int) {.deprecated.}
+proc createAttribute*(d: Document, identifier: cstring): Node
+proc getElementsByName*(d: Document, name: cstring): seq[Element]
+proc getElementsByTagName*(d: Document, name: cstring): seq[Element]
+proc getElementsByClassName*(d: Document, name: cstring): seq[Element]
 proc getSelection*(d: Document): Selection
-proc handleEvent*(d: Document; event: Event)
+proc handleEvent*(d: Document, event: Event)
 proc open*(d: Document)
-proc releaseEvents*(d: Document; eventMask: int) {.deprecated.}
-proc routeEvent*(d: Document; event: Event)
-proc write*(d: Document; text: cstring)
-proc writeln*(d: Document; text: cstring)
-proc querySelector*(d: Document; selectors: cstring): Element
-proc querySelectorAll*(d: Document; selectors: cstring): seq[Element]
+proc releaseEvents*(d: Document, eventMask: int) {.deprecated.}
+proc routeEvent*(d: Document, event: Event)
+proc write*(d: Document, text: cstring)
+proc writeln*(d: Document, text: cstring)
+proc querySelector*(d: Document, selectors: cstring): Element
+proc querySelectorAll*(d: Document, selectors: cstring): seq[Element]
 
 # Element "methods"
 proc blur*(e: Element)
 proc click*(e: Element)
 proc focus*(e: Element)
-proc handleEvent*(e: Element; event: Event)
+proc handleEvent*(e: Element, event: Event)
 proc select*(e: Element)
-proc getElementsByTagName*(e: Element; name: cstring): seq[Element]
-proc getElementsByClassName*(e: Element; name: cstring): seq[Element]
+proc getElementsByTagName*(e: Element, name: cstring): seq[Element]
+proc getElementsByClassName*(e: Element, name: cstring): seq[Element]
 
 # FormElement "methods"
 proc reset*(f: FormElement)
@@ -1210,28 +1213,28 @@ proc stop*(e: EmbedElement)
 
 # Location "methods"
 proc reload*(loc: Location)
-proc replace*(loc: Location; s: cstring)
+proc replace*(loc: Location, s: cstring)
 
 # History "methods"
 proc back*(h: History)
 proc forward*(h: History)
-proc go*(h: History; pagesToJump: int)
-proc pushState*[T](h: History; stateObject: T; title, url: cstring)
+proc go*(h: History, pagesToJump: int)
+proc pushState*[T](h: History, stateObject: T, title, url: cstring)
 
 # Navigator "methods"
 proc javaEnabled*(h: Navigator): bool
 
 # ClassList "methods"
-proc add*(c: ClassList; class: cstring)
-proc remove*(c: ClassList; class: cstring)
-proc contains*(c: ClassList; class: cstring): bool
-proc toggle*(c: ClassList; class: cstring)
+proc add*(c: ClassList, class: cstring)
+proc remove*(c: ClassList, class: cstring)
+proc contains*(c: ClassList, class: cstring): bool
+proc toggle*(c: ClassList, class: cstring)
 
 # Style "methods"
-proc getPropertyValue*(s: Style; property: cstring): cstring
-proc removeProperty*(s: Style; property: cstring)
-proc setProperty*(s: Style; property, value: cstring; priority = "")
-proc getPropertyPriority*(s: Style; property: cstring): cstring
+proc getPropertyValue*(s: Style, property: cstring): cstring
+proc removeProperty*(s: Style, property: cstring)
+proc setProperty*(s: Style, property, value: cstring, priority = "")
+proc getPropertyPriority*(s: Style, property: cstring): cstring
 
 # Event "methods"
 proc preventDefault*(ev: Event)
@@ -1239,51 +1242,47 @@ proc stopImmediatePropagation*(ev: Event)
 proc stopPropagation*(ev: Event)
 
 # KeyboardEvent "methods"
-proc getModifierState*(ev: KeyboardEvent; keyArg: cstring): bool
+proc getModifierState*(ev: KeyboardEvent, keyArg: cstring): bool
 
 # MouseEvent "methods"
-proc getModifierState*(ev: MouseEvent; keyArg: cstring): bool
+proc getModifierState*(ev: MouseEvent, keyArg: cstring): bool
 
 # TouchEvent "methods"
 proc identifiedTouch*(list: TouchList): Touch
-proc item*(list: TouchList; i: int): Touch
+proc item*(list: TouchList, i: int): Touch
 
 # DataTransfer "methods"
-proc clearData*(dt: DataTransfer; format: cstring)
-proc getData*(dt: DataTransfer; format: cstring): cstring
-proc setData*(dt: DataTransfer; format: cstring; data: cstring)
-proc setDragImage*(dt: DataTransfer; img: Element; xOffset: int64;
-    yOffset: int64)
+proc clearData*(dt: DataTransfer, format: cstring)
+proc getData*(dt: DataTransfer, format: cstring): cstring
+proc setData*(dt: DataTransfer, format: cstring, data: cstring)
+proc setDragImage*(dt: DataTransfer, img: Element, xOffset: int64, yOffset: int64)
 
 # DataTransferItem "methods"
 proc getAsFile*(dti: DataTransferItem): File
 
 # InputElement "methods"
-proc setSelectionRange*(e: InputElement; selectionStart: int; selectionEnd: int;
-    selectionDirection: cstring = "none")
-proc setRangeText*(e: InputElement; replacement: cstring; startindex: int = 0;
-    endindex: int = 0; selectionMode: cstring = "preserve")
-proc setCustomValidity*(e: InputElement; error: cstring)
+proc setSelectionRange*(e: InputElement, selectionStart: int, selectionEnd: int, selectionDirection: cstring = "none")
+proc setRangeText*(e: InputElement, replacement: cstring, startindex: int = 0, endindex: int = 0, selectionMode: cstring = "preserve")
+proc setCustomValidity*(e: InputElement, error: cstring)
 proc checkValidity*(e: InputElement): bool
 
 # Blob "methods"
-proc slice*(e: Blob; startindex: int = 0; endindex: int = e.size;
-    contentType: cstring = "")
+proc slice*(e: Blob, startindex: int = 0, endindex: int = e.size, contentType: cstring = "")
 
 # Performance "methods"
 proc now*(p: Performance): float
 
 # Selection "methods"
 proc removeAllRanges*(s: Selection)
-proc toString*(s: Selection): cstring
+converter toString*(s: Selection): cstring
 proc `$`*(s: Selection): string = $(s.toString())
 
 # LocalStorage "methods"
-proc getItem*(ls: LocalStorage; key: cstring): cstring
-proc setItem*(ls: LocalStorage; key, value: cstring)
-proc hasItem*(ls: LocalStorage; key: cstring): bool
+proc getItem*(ls: LocalStorage, key: cstring): cstring
+proc setItem*(ls: LocalStorage, key, value: cstring)
+proc hasItem*(ls: LocalStorage, key: cstring): bool
 proc clear*(ls: LocalStorage)
-proc removeItem*(ls: LocalStorage; key: cstring)
+proc removeItem*(ls: LocalStorage, key: cstring)
 
 {.pop.}
 
@@ -1313,6 +1312,7 @@ proc newEvent*(name: cstring): Event {.importcpp: "new Event(@)", constructor.}
 proc getElementsByClass*(n: Node; name: cstring): seq[Node] {.
   importcpp: "#.getElementsByClassName(#)", nodecl.}
 
+
 type
   BoundingRect* {.importc.} = object
     top*, bottom*, left*, right*, x*, y*, width*, height*: float
@@ -1331,6 +1331,7 @@ proc inViewport*(el: Node): bool =
            rect.right <= clientWidth().float
 
 proc scrollTop*(e: Node): int {.importcpp: "#.scrollTop", nodecl.}
+proc `scrollTop=`*(e: Node, value: int) {.importcpp: "#.scrollTop = #", nodecl.}
 proc scrollLeft*(e: Node): int {.importcpp: "#.scrollLeft", nodecl.}
 proc scrollHeight*(e: Node): int {.importcpp: "#.scrollHeight", nodecl.}
 proc scrollWidth*(e: Node): int {.importcpp: "#.scrollWidth", nodecl.}
