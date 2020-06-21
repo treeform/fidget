@@ -1,3 +1,5 @@
+## A bunch of nice looking controls.
+
 import fidget
 
 loadFont("IBM Plex Sans Regular", "IBMPlexSans-Regular.ttf")
