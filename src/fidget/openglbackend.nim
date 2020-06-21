@@ -362,7 +362,7 @@ proc startFidget*(
       updateLoop()
     emscripten_set_main_loop(main_loop, 0, true)
   else:
-    while running:
+    while base.running:
       updateLoop()
       asyncPoll()
     exit()
