@@ -470,6 +470,7 @@ type
     verticalAlign*: cstring
     visibility*: cstring
     width*: cstring
+    whiteSpace*: cstring
     wordSpacing*: cstring
     zIndex*: int
 
