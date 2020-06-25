@@ -59,10 +59,7 @@ proc preNode(kind: NodeKind, id: string) =
 proc postNode() =
   ## Node drawing is done.
 
-  # Deal with removed nodes.
-  for i in current.diffIndex ..< current.nodes.len:
-    remove(current.nodes[i])
-  current.nodes.setLen(current.diffIndex)
+  current.removeExtraChildren()
 
   # Pop the stack.
   discard nodeStack.pop()
