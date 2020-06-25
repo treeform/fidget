@@ -221,6 +221,10 @@ proc remove*(node: Node) =
   ## Removes the node.
   discard
 
+proc removeExtraChildren*(node: Node) =
+  ## Deal with removed nodes.
+  node.nodes.setLen(node.diffIndex)
+
 proc draw*(node: Node) =
   ## Draws the node.
   ctx.saveTransform()

@@ -185,20 +185,33 @@ proc remove*(node: Node) =
   nodeLookup.del(node.uid)
   node.cache = nil
 
-proc draw*(node: Node, parent: Node) =
+proc removeExtraChildren*(node: Node) =
+  ## Deal with removed nodes.
+  if node.diffIndex != node.nodes.len:
+    for i in node.diffIndex ..< node.nodes.len:
+      remove(node.nodes[i])
+    node.nodes.setLen(node.diffIndex)
+
+proc draw*(index: int, node: Node, parent: Node) =
   ## Draws the node (diffs HTML elements).
 
-  if node.cache != nil and (node.cache.kind == nkText) != (node.kind == nkText):
-    if node.element != nil:
-      node.element.remove()
-      node.element = nil
-    if node.textElement != nil:
+  if node.cache != nil:
+    if node.cache.kind == nkText and node.kind != nkText:
+      # Remove text stuff from the node.
+      node.element.removeAttribute("style")
       node.textElement.remove()
       node.textElement = nil
+      node.cache = Node()
+      node.cache.kind = node.kind
+
+    if node.cache.kind != nkText and node.kind == nkText:
+      # Remove non-text stuff from the node.
+      node.element.removeAttribute("style")
+      node.cache = Node()
+      node.cache.kind = node.kind
 
   if node.element == nil:
     node.element = document.createElement("div")
-    node.element.setAttribute("uid", node.uid)
     nodeLookup[node.uid] = node
     if parent == nil:
       rootDomNode.appendChild(node.element)
@@ -207,18 +220,13 @@ proc draw*(node: Node, parent: Node) =
     node.cache = Node()
     node.cache.kind = node.kind
 
-  # Remove text part of the node if we are not a text node.
-  if node.kind != nkText and node.textElement != nil:
-    node.textElement.style.display = "hidden"
 
   # Add the text part if this is a text node.
   if node.kind == nkText and node.textElement == nil:
     node.textElement = document.createElement("div")
-    node.textElement.setAttribute("uid", node.uid)
     node.textElement.style.display = "table-cell"
     node.textElement.style.position = "unset"
     node.textElement.style.whiteSpace = "pre"
-
     node.element.appendChild(node.textElement)
 
   # Check if text should be editable by user.
@@ -234,7 +242,19 @@ proc draw*(node: Node, parent: Node) =
 
   # Check node id.
   if node.hasDifferent(id):
-    node.element.setAttribute("id", node.id)
+    node.element.setAttribute("class", node.id)
+
+  # Check node uid.
+  if node.hasDifferent(uid):
+    node.element.setAttribute("id", node.uid)
+
+  node.zIndex =
+    if parent != nil:
+      parent.nodes.len - index
+    else:
+      0
+  if node.hasDifferent(zIndex):
+    node.element.style.zIndex = node.zIndex
 
   # Check dimensions (always absolute positioned).
   if node.hasDifferent(box):
@@ -339,8 +359,8 @@ proc draw*(node: Node, parent: Node) =
         $node.cornerRadius[3] & "px"
       )
 
-  for n in node.nodes.reverse:
-    draw(n, node)
+  for i, n in node.nodes:
+    draw(i, n, node)
 
 var startTime: float
 var prevMouseCursorStyle: MouseCursorStyle
@@ -444,10 +464,12 @@ proc hardRedraw() =
   drawStart()
   drawMain()
 
+  root.removeExtraChildren()
+
   computeLayout(nil, root)
   computeScreenBox(nil, root)
 
-  draw(root, nil)
+  draw(0, root, nil)
 
   drawFinish()
 
@@ -559,7 +581,11 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     ## When INPUT element gets focus this is called, set the keyboard.input and
     ## the keyboard.inputFocusId
     ## Note: "focus" does not bubble, so its not used here.
-    let uid = $document.activeElement.getAttribute("uid")
+    var uid: string
+    if document.activeElement.hasAttribute("id"):
+      uid = $document.activeElement.getAttribute("id")
+    else:
+      uid = $document.activeElement.parentNode.getAttribute("id")
     #Note: keyboard.onUnFocusNode is set by focus out.
     let node = nodeLookup[uid]
     keyboard.input = node.text
