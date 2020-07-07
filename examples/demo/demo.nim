@@ -18,7 +18,7 @@ var
 
 proc basicText() =
   frame "autoLayoutText":
-    box 130, 0, parent.box.w - 130, 491
+    box 130, 0, root.box.w - 130, 491
     fill "#ffffff"
     layout lmVertical
     counterAxisSizingMode csFixed
@@ -346,7 +346,6 @@ proc drawMain() =
     group "shadow":
       orgBox 0, 0, 530, 3
       box 0, 0, root.box.w, 3
-      constraints cStretch, cMin
       rectangle "l1":
         box 0, 0, 530, 1
         constraints cStretch, cMin

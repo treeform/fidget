@@ -291,11 +291,12 @@ proc setupFidget(
   msaa: MSAA,
   mainLoopMode: MainLoopMode,
   pixelate: bool,
-  pixelScale: float32
+  forcePixelScale: float32
 ) =
+  pixelScale = forcePixelScale
+
   base.start(openglVersion, msaa, mainLoopMode)
   setWindowTitle(windowTitle)
-
   ctx = newContext(pixelate = pixelate, pixelScale = pixelScale)
   requestedFrame = true
 
@@ -308,12 +309,12 @@ proc setupFidget(
     setupRoot()
     root.box.x = float 0
     root.box.y = float 0
-    root.box.w = windowSize.x / pixelScale
-    root.box.h = windowSize.y / pixelScale
+    root.box.w = windowLogicalSize.x
+    root.box.h = windowLogicalSize.y
     scrollBox.x = float 0
     scrollBox.y = float 0
-    scrollBox.w = root.box.w / pixelScale
-    scrollBox.h = root.box.h / pixelScale
+    scrollBox.w = root.box.w
+    scrollBox.h = root.box.h
 
     if textBox != nil:
       keyboard.input = textBox.text

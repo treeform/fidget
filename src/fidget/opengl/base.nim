@@ -64,6 +64,8 @@ proc updateWindowSize() =
   monitor.getMonitorPhysicalSize(addr cwidth, addr cheight)
   dpi = mode.width.float32 / (cwidth.float32 / 25.4)
 
+  windowLogicalSize = windowSize / pixelScale * pixelRatio
+
 proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
@@ -311,7 +313,19 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
       mode = getVideoMode(monitor)
     window = createWindow(mode.width, mode.height, "", monitor, nil)
   else:
-    window = createWindow(windowSize.x.cint, windowSize.y.cint, "", nil, nil)
+    let
+      monitor = getPrimaryMonitor()
+    var dpiScale, yScale: cfloat
+    monitor.getMonitorContentScale(addr dpiScale, addr yScale)
+    assert dpiScale == yScale
+
+    window = createWindow(
+      (windowSize.x / dpiScale * pixelScale).cint,
+      (windowSize.y / dpiScale * pixelScale).cint,
+      "",
+      nil,
+      nil
+    )
 
   if window.isNil:
     quit("Failed to open window.")
