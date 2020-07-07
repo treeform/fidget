@@ -136,7 +136,6 @@ proc main(
   runList.add "examples/minimal"
   runList.add "examples/padofcode"
   runList.add "examples/padoftext"
-  # TODO: finish runList.add "examples/todo"
 
   if not(compile or native or js or run or wasm or clean):
     echo "Usage:"
