@@ -154,6 +154,11 @@ template onRightClick*(inner: untyped) =
   if buttonPress[MOUSE_RIGHT] and mouseOverlapLogic():
     inner
 
+template onMouseDown*(inner: untyped) =
+  ## On when mouse is down and overlapping the element.
+  if buttonDown[MOUSE_LEFT] and mouseOverlapLogic():
+    inner
+
 template onKey*(inner: untyped) =
   ## This is called when key is pressed.
   if keyboard.state == Press:

@@ -76,6 +76,9 @@ function visit(node) {
   if (!node.visible) {
     return;
   }
+  if (node.name.includes('.ignore')) {
+    return;
+  }
   text += ind() + node.type.toLowerCase() + " \"" + node.name + "\":\n";
   indent += 1;
   //text += ind() + `# relativeTransform ${node.relativeTransform}\n`
@@ -177,6 +180,20 @@ for (const node of figma.currentPage.selection) {
   indent = 0;
   visit(node);
   text += "\n";
+}
+if (text.trim().length == 0) {
+  text = `# Please select a node to generate fidget code for the node.
+
+# Here is want an empty fidget app looks like:
+import fidget
+
+proc drawMain() =
+  # Fidget code goes here.
+  discard
+
+startFidget(drawMain)
+`
+
 }
 figma.showUI(`
 <span style="white-space:pre-wrap;font-family:monospace">${text}</span>
