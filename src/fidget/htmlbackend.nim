@@ -565,16 +565,38 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     keyboard.state = KeyState.Up
     hardRedraw()
 
-  dom.window.addEventListener "input", proc(event: Event) =
-    ## When INPUT element has keyboard input this is called
-    keyboard.input = $document.activeElement.innerText
-    keyboard.state = Press
-    # fix keyboard input if it has \n in it
+  proc fixMultiline() =
+    ## fix keyboard input if it has \n in it
     if keyboard.focusNode != nil and not keyboard.focusNode.multiline:
       if "\n" in keyboard.input:
         keyboard.input = keyboard.input.replace("\n", "")
         document.activeElement.innerText = keyboard.input
         # TODO Keep the selection the same
+
+  dom.window.addEventListener "input", proc(event: Event) =
+    ## When INPUT element has keyboard input this is called
+    keyboard.input = $document.activeElement.innerText
+    keyboard.state = Press
+    fixMultiline()
+    refresh()
+
+  dom.window.addEventListener "paste", proc(event: ClipboardEvent) =
+    ## When text is pasted into an input a content editable tag,
+    ## it needs to have its formatting removed.
+    if keyboard.focusNode == nil:
+      return
+    var paste = $event.clipboardData.getData("text")
+    var selection = window.document.getSelection()
+    selection.deleteFromDocument()
+    if selection.rangeCount == 0:
+      return
+    selection.getRangeAt(0).insertNode(document.createTextNode(paste))
+    event.preventDefault()
+    keyboard.input = $document.activeElement.innerText
+    echo "keyboard.input"
+    echo keyboard.input
+    keyboard.state = Press
+    fixMultiline()
     refresh()
 
   dom.window.addEventListener "focusin", proc(event: Event) =

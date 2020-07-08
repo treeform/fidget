@@ -106,7 +106,17 @@ type
     memory*: PerformanceMemory
     timing*: PerformanceTiming
 
-  Selection* {.importc.} = ref object ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/Selection>`_
+  Range* {.importc.} = ref object
+    ## see `docs{https://developer.mozilla.org/en-US/docs/Web/API/Range}`_
+    collapsed*: bool
+    commonAncestorContainer*: Node
+    endContainer*: Node
+    endOffset*: int
+    startContainer*: Node
+    startOffset*: int
+
+  Selection* {.importc.} = ref object
+    ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/Selection>`_
     anchorNode*: Node
     anchorOffset*: int
     focusNode*: Node
@@ -924,6 +934,10 @@ type
     ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/DragEvent>`_
     dataTransfer*: DataTransfer
 
+  ClipboardEvent* {.importc.} = object of Event
+    ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/ClipboardEvent>`_
+    clipboardData*: DataTransfer
+
   TouchList* {.importc.} = ref object of RootObj
     length*: int
 
@@ -1115,10 +1129,11 @@ proc clearTimeout*(t: Timeout) {.importc, nodecl.}
 {.push importcpp.}
 
 # EventTarget "methods"
-proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), useCapture: bool = false)
-proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), options: AddEventListenerOptions)
-proc dispatchEvent*(et: EventTarget, ev: Event)
-proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event))
+type SomeEvent = Event | ClipboardEvent
+proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: SomeEvent), useCapture: bool = false)
+proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: SomeEvent), options: AddEventListenerOptions)
+proc dispatchEvent*(et: EventTarget, ev: SomeEvent)
+proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: SomeEvent))
 
 # Window "methods"
 proc alert*(w: Window, msg: cstring)
@@ -1183,6 +1198,7 @@ proc createAttribute*(d: Document, identifier: cstring): Node
 proc getElementsByName*(d: Document, name: cstring): seq[Element]
 proc getElementsByTagName*(d: Document, name: cstring): seq[Element]
 proc getElementsByClassName*(d: Document, name: cstring): seq[Element]
+proc insertNode*(range: Range, node: Node)
 proc getSelection*(d: Document): Selection
 proc handleEvent*(d: Document, event: Event)
 proc open*(d: Document)
@@ -1238,9 +1254,9 @@ proc setProperty*(s: Style, property, value: cstring, priority = "")
 proc getPropertyPriority*(s: Style, property: cstring): cstring
 
 # Event "methods"
-proc preventDefault*(ev: Event)
-proc stopImmediatePropagation*(ev: Event)
-proc stopPropagation*(ev: Event)
+proc preventDefault*(ev: SomeEvent)
+proc stopImmediatePropagation*(ev: SomeEvent)
+proc stopPropagation*(ev: SomeEvent)
 
 # KeyboardEvent "methods"
 proc getModifierState*(ev: KeyboardEvent, keyArg: cstring): bool
@@ -1275,6 +1291,8 @@ proc now*(p: Performance): float
 
 # Selection "methods"
 proc removeAllRanges*(s: Selection)
+proc deleteFromDocument*(s: Selection)
+proc getRangeAt*(s: Selection, index: int): Range
 converter toString*(s: Selection): cstring
 proc `$`*(s: Selection): string = $(s.toString())
 
