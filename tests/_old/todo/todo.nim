@@ -50,12 +50,12 @@ proc drawMain() =
             box 281, 6, 28, 31
             rectangle "bg":
               box 0, 0, 28, 31
-              constraints cScale, cScale
+              # constraints cScale, cScale
               fill "#fd7476"
               cornerRadius 10
             text "minusText":
               box 0, 0, 28, 31
-              constraints cScale, cScale
+              # constraints cScale, cScale
               fill "#ffffff"
               font "IBM Plex Sans Regular", 22, 200, 0, hCenter, vCenter
               characters "-"
@@ -64,14 +64,14 @@ proc drawMain() =
 
           rectangle "textBg":
             box 0, 0, 261, 44
-            constraints cScale, cScale
+            # constraints cScale, cScale
             fill "#ffffff"
             stroke "#d3d3d3"
             cornerRadius 0
             strokeWeight 2
           text "text":
             box 0, 0, 261, 44
-            constraints cScale, cScale
+            # constraints cScale, cScale
             fill "#000000"
             font "IBM Plex Sans Regular", 16, 200, 0, hCenter, vCenter
             characters todoItem
@@ -109,7 +109,7 @@ proc drawMain() =
           strokeWeight 2
         text "addText":
           box 0, 0, 261, 44
-          constraints cScale, cScale
+          # constraints cScale, cScale
           fill "#000000", 0.20000000298023224
           font "IBM Plex Sans Regular", 16, 200, 0, hCenter, vCenter
           #placeholder "add new item..."
