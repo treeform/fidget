@@ -254,7 +254,7 @@ proc draw*(index: int, node: Node, parent: Node) =
     else:
       0
   if node.hasDifferent(zIndex):
-    node.element.style.zIndex = node.zIndex
+    node.element.style.zIndex = $node.zIndex
 
   # Check dimensions (always absolute positioned).
   if node.hasDifferent(box):
