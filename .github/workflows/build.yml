@@ -30,7 +30,7 @@ jobs:
         sudo apt update
         sudo apt install -y  build-essential libalut-dev libasound2-dev libc6-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev mesa-utils pkg-config xorg-dev xvfb
 
-    - run:
+    - run: |
       cd tests\autolayouttext
       nim c --hints:off --verbosity:0 -d:testOneFrame autolayouttext.nim
       xvfb-run autolayouttext
