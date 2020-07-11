@@ -39,4 +39,4 @@ jobs:
       run: |
         cd tests/autolayouttext
         nim c --hints:off --verbosity:0 -d:testOneFrame autolayouttext.nim
-        xvfb-run autolayouttext
+        xvfb-run ./autolayouttext
