@@ -28,5 +28,8 @@ jobs:
     - name: "nimble test"
       run: nimble test
 
+    - name: "check for supported openGL versions"
+      run: nim c -r tests/opengltester.nim
+
     - name: "all screenshots"
       run: nim c -r tests/run.nim --compile --testOneFrame --native
