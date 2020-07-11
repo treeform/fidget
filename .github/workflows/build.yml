@@ -37,6 +37,6 @@ jobs:
 
     - name: autolayouttext
       run: |
-        cd tests\autolayouttext
+        cd tests/autolayouttext
         nim c --hints:off --verbosity:0 -d:testOneFrame autolayouttext.nim
         xvfb-run autolayouttext
