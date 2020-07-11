@@ -1,6 +1,6 @@
 import cligen, os, strformat, osproc
 
-let examplesDir = getCurrentDir()
+let projectDir = getCurrentDir()
 
 var runList: seq[string]
 
@@ -16,13 +16,15 @@ proc compileNative() =
 
 proc compileTestOneFrame() =
   for folder in runList:
+    setCurrentDir(folder)
     let file = folder.lastPathPart
-    let cmd = &"nim c --hints:off --verbosity:0 -d:testOneFrame {folder}/{file}.nim"
+    let cmd = &"nim c -r --hints:off --verbosity:0 -d:testOneFrame {file}.nim"
     echo cmd
     if execShellCmd(cmd) != 0:
       quit "[error] " & folder
     else:
       echo "[ok] " & folder
+    setCurrentDir(projectDir)
 
 proc runNative() =
   for folder in runList:
@@ -37,7 +39,7 @@ proc runNative() =
     else:
       if execShellCmd("./" & exeUrl) != 0:
         quit "[error] Starting " & exeUrl
-    setCurrentDir(examplesDir)
+    setCurrentDir(projectDir)
 
 proc compileJS() =
   for folder in runList:

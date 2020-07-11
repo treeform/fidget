@@ -330,7 +330,6 @@ proc setupFidget(
     ctx.restoreTransform()
     ctx.endFrame()
 
-    #dumpTree(root)
     when defined(testOneFrame):
       ## This is used for test only
       ## Take a screen shot of the first frame and exit.
