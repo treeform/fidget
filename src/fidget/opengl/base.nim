@@ -328,7 +328,7 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
     )
 
   if window.isNil:
-    quit("Failed to open window.")
+    quit("Failed to open window. version:" & $openglVersion)
 
   window.makeContextCurrent()
 

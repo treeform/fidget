@@ -38,5 +38,5 @@ jobs:
     - name: autolayouttext
       run: |
         cd tests/autolayouttext
-        nim c --hints:off --verbosity:0 -d:testOneFrame autolayouttext.nim
+        nim c --hints:off --verbosity:0 -d:testOneFrame -d:printGLVersion autolayouttext.nim
         xvfb-run ./autolayouttext
