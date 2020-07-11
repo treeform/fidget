@@ -1,40 +1,32 @@
 name: Run tests
-on: [push]
+on: [push, pull_request]
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
+    - name: "install choosenim"
+      id: cache-choosenim
+      run: curl -OL https://github.com/dom96/choosenim/releases/download/v0.6.0/choosenim-0.6.0_windows_amd64_debug.exe
+
+    - name: "install nim"
+      id: cache-nim
+      run: .\choosenim-0.6.0_windows_amd64_debug.exe -y devel
+
+    - name: "setup nim path"
+      id: cache-nim-path
+      run: echo "::add-path::C:\Users\runneradmin\.nimble\bin"
+
+    - name: "show nim version"
+      run: nim -v
+
+    - name: "setup nimble"
+      run: nimble refresh
+
     - uses: actions/checkout@v1
 
-    - name: Cache choosenim
-      id: cache-choosenim
-      uses: actions/cache@v1
-      with:
-        path: ~/.choosenim
-        key: ${{ runner.os }}-choosenim-stable
+    - name: "nimble test"
+      run: nimble test
 
-    - name: Cache nimble
-      id: cache-nimble
-      uses: actions/cache@v1
-      with:
-        path: ~/.nimble
-        key: ${{ runner.os }}-nimble-stable
-
-    - uses: jiro4989/setup-nim-action@v1.0.2
-
-    - run: nimble test
-
-    # - uses: openrndr/setup-opengl@v1
-
-    # - name: Install GUI
-    #   run: |
-    #     sudo apt update
-    #     sudo apt install -y  build-essential libalut-dev libasound2-dev libc6-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev mesa-utils pkg-config xorg-dev xvfb
-
-    # - run: xvfb-run nimble test
-    # - run: nim c -r tests/run.nim --compile --js
-    # - run: nim c -r tests/run.nim --compile --testOneFrame --native
-    # - run: |
-    #     cd /home/runner/work/fidget/fidget/tests/autolayouttext/
-    #     xvfb-run /home/runner/work/fidget/fidget/tests/autolayouttext/autolayouttext
+    - name: "all screenshots"
+      run: nim c -r tests/run.nim --compile --testOneFrame --native
