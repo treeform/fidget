@@ -32,10 +32,11 @@ jobs:
 
     - name: test
       run: |
-      nim c --hints:off --verbosity:0 tests/opengltester.nim
-      xvfb-run tests/opengltester
+        nim c --hints:off --verbosity:0 tests/opengltester.nim
+        xvfb-run tests/opengltester
 
-    - run: |
-      cd tests\autolayouttext
-      nim c --hints:off --verbosity:0 -d:testOneFrame autolayouttext.nim
-      xvfb-run autolayouttext
+    - name: autolayouttext
+      run: |
+        cd tests\autolayouttext
+        nim c --hints:off --verbosity:0 -d:testOneFrame autolayouttext.nim
+        xvfb-run autolayouttext
