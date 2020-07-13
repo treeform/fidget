@@ -220,13 +220,12 @@ proc draw*(index: int, node: Node, parent: Node) =
     node.cache = Node()
     node.cache.kind = node.kind
 
-
   # Add the text part if this is a text node.
   if node.kind == nkText and node.textElement == nil:
     node.textElement = document.createElement("div")
     node.textElement.style.display = "table-cell"
     node.textElement.style.position = "unset"
-    node.textElement.style.whiteSpace = "pre"
+    node.textElement.style.whiteSpace = "pre-wrap"
     node.element.appendChild(node.textElement)
 
   # Check if text should be editable by user.
@@ -580,9 +579,10 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     fixMultiline()
     refresh()
 
-  dom.window.addEventListener "paste", proc(event: ClipboardEvent) =
+  dom.window.addEventListener "paste", proc(ev: Event) =
     ## When text is pasted into an input a content editable tag,
     ## it needs to have its formatting removed.
+    let event = cast[ClipboardEvent](ev)
     if keyboard.focusNode == nil:
       return
     var paste = $event.clipboardData.getData("text")
@@ -591,7 +591,7 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     if selection.rangeCount == 0:
       return
     selection.getRangeAt(0).insertNode(document.createTextNode(paste))
-    event.preventDefault()
+    ev.preventDefault()
     keyboard.input = $document.activeElement.innerText
     echo "keyboard.input"
     echo keyboard.input

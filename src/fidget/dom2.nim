@@ -1432,12 +1432,10 @@ proc clearTimeout*(t: Timeout) {.importc, nodecl.}
 {.push importcpp.}
 
 # EventTarget "methods"
-type SomeEvent = Event | ClipboardEvent
-proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: SomeEvent), useCapture: bool = false)
-proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: SomeEvent), options: AddEventListenerOptions)
-proc dispatchEvent*(et: EventTarget, ev: SomeEvent)
-proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: SomeEvent))
-
+proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), useCapture: bool = false)
+proc addEventListener*(et: EventTarget, ev: cstring, cb: proc(ev: Event), options: AddEventListenerOptions)
+proc dispatchEvent*(et: EventTarget, ev: Event)
+proc removeEventListener*(et: EventTarget; ev: cstring; cb: proc(ev: Event))
 # Window "methods"
 proc alert*(w: Window, msg: cstring)
 proc back*(w: Window)
@@ -1481,7 +1479,7 @@ proc deleteData*(n: Node, start, len: int)
 proc focus*(e: Node)
 proc getAttribute*(n: Node, attr: cstring): cstring
 proc getAttributeNode*(n: Node, attr: cstring): Node
-proc hasAttribute*(n: Node; attr: cstring): bool
+proc hasAttribute*(n: Node, attr: cstring): bool
 proc hasChildNodes*(n: Node): bool
 proc insertData*(n: Node, position: int, data: cstring)
 proc removeAttribute*(n: Node, attr: cstring)
@@ -1553,9 +1551,9 @@ proc setProperty*(s: Style, property, value: cstring, priority = "")
 proc getPropertyPriority*(s: Style, property: cstring): cstring
 
 # Event "methods"
-proc preventDefault*(ev: SomeEvent)
-proc stopImmediatePropagation*(ev: SomeEvent)
-proc stopPropagation*(ev: SomeEvent)
+proc preventDefault*(ev: Event)
+proc stopImmediatePropagation*(ev: Event)
+proc stopPropagation*(ev: Event)
 
 # KeyboardEvent "methods"
 proc getModifierState*(ev: KeyboardEvent, keyArg: cstring): bool
