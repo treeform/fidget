@@ -67,7 +67,7 @@ template timeIt*(tag: string, body: untyped) =
   else:
     echo tag, " not timed, perf disabled"
 
-proc `$`*(buffer: seq[PerfEntry]): string =
+func `$`*(buffer: seq[PerfEntry]): string =
   if len(buffer) == 0:
     return
 
@@ -98,7 +98,7 @@ proc perfDump*(buffer: seq[PerfEntry] = defaultBuffer) =
     echo $defaultBuffer
     defaultBuffer.setLen(0)
 
-proc newTimeSeries*(max: Natural = 1000): TimeSeries =
+func newTimeSeries*(max: Natural = 1000): TimeSeries =
   result = TimeSeries()
   result.data = newSeq[float64](max)
 
@@ -122,7 +122,7 @@ proc avg*(timeSeries: TimeSeries, inLastSeconds: float32 = 1.0): float32 =
   ## Example: 1/fps or average frame time.
   return inLastSeconds / float32(timeSeries.num(inLastSeconds))
 
-proc byteFmt*(bytes: int): string =
+func byteFmt*(bytes: int): string =
   ## Formats computer sizes in B, KB, MB, GB etc...
   if bytes < 0:
     result.add "-"
@@ -154,7 +154,7 @@ when defined(nimTypeNames):
     diffSizes: int
     dead: bool
   var prevDump = newTable[string, CountSize]()
-  proc dumpHeapDiff*(top = 10): string =
+  func dumpHeapDiff*(top = 10): string =
     ## Takes a diff of the heap and prints out top 10 memory growers.
     # Example output:
     # HEAP total:276.95MB occupied:115.34MB free:148.76MB
@@ -201,12 +201,12 @@ when defined(nimTypeNames):
         it.sizes = 0
     # sort
     var arr = toSeq(prevDump.values())
-    arr.sort proc(a, b: CountSize): int =
+    arr.sort func(a, b: CountSize): int =
       abs(b.sizes) + abs(b.diffSizes) - abs(a.sizes) - abs(a.diffSizes)
     for it in arr[0 .. min(len(arr)-1, top)]:
       result.add &"[Heap] #{it.count:>10}({it.diffCount:>10})"
       result.add &" {byteFmt(it.sizes):>10}({byteFmt(it.diffSizes):>10})"
       result.add &" {it.name}\n"
 else:
-  proc dumpHeapDiff*(top = 10): string =
+  func dumpHeapDiff*(top = 10): string =
     return "dumpHeapDiff disabled"
