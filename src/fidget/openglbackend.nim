@@ -1,6 +1,6 @@
 import chroma, common, flippy, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
-    typography/textboxes, unicode, vmath
+    typography/textboxes, unicode, vmath, staticglfw
 
 when not defined(emscripten):
   import httpClient, asyncdispatch, asyncfutures, json
@@ -354,7 +354,8 @@ proc startFidget*(
   msaa = msaaDisabled,
   mainLoopMode: MainLoopMode = RepaintOnEvent,
   pixelate = false,
-  pixelScale = 1.0
+  pixelScale = 1.0,
+  fixedWindowSize = false
 ) =
   ## Starts Fidget UI library
   common.fullscreen = fullscreen
@@ -364,6 +365,8 @@ proc startFidget*(
   tickMain = tick
   setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale)
   mouse.pixelScale = pixelScale
+  if fixedWindowSize:
+    window.setWindowSizeLimits(w, h, w, h)
   when defined(emscripten):
     # Emscripten can't block so it will call this callback instead.
     proc emscripten_set_main_loop(f: proc() {.cdecl.}, a: cint, b: bool) {.importc.}

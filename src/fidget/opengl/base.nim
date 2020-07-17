@@ -27,7 +27,7 @@ const
   deltaTick: int64 = 1_000_000_000 div 240
 
 var
-  window: staticglfw.Window
+  window*: staticglfw.Window
   loopMode*: MainLoopMode
   dpi*: float32
   drawFrame*: proc()
