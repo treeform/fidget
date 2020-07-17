@@ -2,7 +2,7 @@ import chroma, common, flippy, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
     typography/textboxes, unicode, vmath
 
-when not defined(emscripten):
+when not defined(emscripten) and not defined(fidgetNoAsync):
   import httpClient, asyncdispatch, asyncfutures, json
 
 export input
@@ -340,7 +340,7 @@ proc setupFidget(
   useDepthBuffer(false)
 
 proc asyncPoll() =
-  when not defined(emscripten):
+  when not defined(emscripten) and not defined(fidgetNoAsync):
     var haveCalls = false
     for call in httpCalls.values:
       if call.status == Loading:
@@ -420,7 +420,7 @@ proc getItem*(key: string): string =
   ## Gets a value into local storage or file.
   readFile(&"{key}.data")
 
-when not defined(emscripten):
+when not defined(emscripten) and not defined(fidgetNoAsync):
   proc httpGetCb(future: Future[string]) =
     refresh()
 
