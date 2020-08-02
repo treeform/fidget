@@ -401,7 +401,7 @@ proc loadFont*(name: string, pathOrUrl: string) =
     fonts[name] = readFontSvg(dataDir / pathOrUrl)
   elif pathOrUrl.endsWith(".ttf"):
     fonts[name] = readFontTtf(dataDir / pathOrUrl)
-  elif pathOrUrl.endsWith(".oft"):
+  elif pathOrUrl.endsWith(".otf"):
     fonts[name] = readFontOtf(dataDir / pathOrUrl)
   else:
     raise newException(Exception, "Unsupported font format")
