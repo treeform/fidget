@@ -146,6 +146,7 @@ assert byteFmt(-12) == "-12B"
 assert byteFmt(-1000) == "-1000B"
 
 when defined(nimTypeNames):
+  import sequtils, algorithm
   type CountSize = object
     name: string
     count: int
