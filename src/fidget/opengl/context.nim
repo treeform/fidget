@@ -397,7 +397,7 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
     if not fileExists(filePath):
       raise newException(Exception, &"Image '{filePath}' not found")
     let flippyFilePath = filePath.changeFileExt(".flippy")
-    if not existsFile(flippyFilePath):
+    if not fileExists(flippyFilePath):
       # No Flippy file generate new one
       pngToFlippy(filePath, flippyFilePath)
     else:
