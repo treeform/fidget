@@ -104,7 +104,7 @@ nim c -r minimal
 
 First `cd` to each folder then compile and run.
 
-```
+```sh
 nim c -r bars.nim
 nim c -r fonts.nim
 nim c -r hovers.nim
@@ -118,7 +118,7 @@ nim c -r basic.nim
 
 First `cd` to each folder then run `js` compile command then open the `.html` file in a browser.
 
-```
+```sh
 nim js bars.nim
 nim js fonts.nim
 nim js hovers.nim
@@ -128,11 +128,17 @@ nim js padofcode.nim
 nim js basic.nim
 ```
 
+## Run all tests and save a screenshot
+
+```sh
+nim c -r tests/run --compile --native --testOneFrame
+```
+
 ## Figma Plug
 
 To compile the figma plug run TypeScript in the figma_plugin folder.
 
-```
+```sh
 tsc
 ```
 
