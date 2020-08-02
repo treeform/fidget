@@ -400,6 +400,9 @@ proc releaseMouse*() =
 proc hideMouse*() =
   setInputMode(window, CURSOR, CURSOR_HIDDEN)
 
+proc setWindowBounds*(min, max: Vec2) =
+  window.setWindowSizeLimits(min.x.cint, min.y.cint, max.x.cint, max.y.cint)
+
 proc takeScreenshot*(
   frame = rect(0, 0, windowFrame.x, windowFrame.y)
 ): flippy.Image =
