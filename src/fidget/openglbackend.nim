@@ -339,6 +339,9 @@ proc setupFidget(
 
   useDepthBuffer(false)
 
+  if loadMain != nil:
+    loadMain()
+
 proc asyncPoll() =
   when not defined(emscripten) and not defined(fidgetNoAsync):
     var haveCalls = false
@@ -352,6 +355,7 @@ proc asyncPoll() =
 proc startFidget*(
   draw: proc(),
   tick: proc() = nil,
+  load: proc() = nil,
   fullscreen = false,
   w: Positive = 1280,
   h: Positive = 800,
@@ -367,6 +371,7 @@ proc startFidget*(
     windowSize = vec2(w.float32, h.float32)
   drawMain = draw
   tickMain = tick
+  loadMain = load
   setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale)
   mouse.pixelScale = pixelScale
   when defined(emscripten):
@@ -393,6 +398,9 @@ proc setTitle*(title: string) =
     windowTitle = title
     setWindowTitle(title)
     refresh()
+
+proc setWindowBounds*(min, max: Vec2) =
+  base.setWindowBounds(min, max)
 
 proc getUrl*(): string =
   windowUrl

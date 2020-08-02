@@ -421,7 +421,7 @@ proc drawStart() =
 
   canvas.style.display = "block"
   canvas.style.position = "absolute"
-  canvas.style.zIndex = -1
+  canvas.style.zIndex = "-1"
   canvas.style.left = cstring($scrollBox.x & "px")
   canvas.style.top = cstring($scrollBox.y & "px")
   canvas.style.width = cstring($width & "px")
@@ -481,10 +481,11 @@ proc refresh*() =
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
 
-proc startFidget*(draw: proc(), w = 0, h = 0) =
+proc startFidget*(draw: proc(), load: proc(), w = 0, h = 0) =
   ## Start the HTML backend
   ## NOTE: returns instantly!
   drawMain = draw
+  loadMain = load
 
   dom.window.addEventListener "load", proc(event: Event) =
     ## called when html page loads and JS can start running
@@ -637,6 +638,9 @@ proc startFidget*(draw: proc(), w = 0, h = 0) =
     hardRedraw()
     forceTextReLayout = false
 
+  if loadMain != nil:
+    loadMain()
+
 proc openBrowser*(url: string) =
   ## Opens a URL in a browser
   discard dom.window.open(url, "_blank")
@@ -689,6 +693,10 @@ proc loadGoogleFontUrl*(url: string) =
   link.setAttribute("href", url)
   link.setAttribute("rel", "stylesheet")
   document.head.appendChild(link)
+
+proc setWindowBounds*(min, max: Vec2) =
+  ## setWindowBounds does not work in JS mode.
+  discard
 
 proc httpGet*(url: string): HttpCall =
   if url notin httpCalls:
