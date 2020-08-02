@@ -396,15 +396,21 @@ proc setUrl*(url: string) =
   windowUrl = url
   refresh()
 
-proc loadFont*(name: string, pathOrUrl: string) =
+proc loadFontAbsolute*(name: string, pathOrUrl: string) =
+  ## Loads fonts anywhere in the system.
+  ## Not supported on js, emscripten, ios or android.
   if pathOrUrl.endsWith(".svg"):
-    fonts[name] = readFontSvg(dataDir / pathOrUrl)
+    fonts[name] = readFontSvg(pathOrUrl)
   elif pathOrUrl.endsWith(".ttf"):
-    fonts[name] = readFontTtf(dataDir / pathOrUrl)
+    fonts[name] = readFontTtf(pathOrUrl)
   elif pathOrUrl.endsWith(".otf"):
-    fonts[name] = readFontOtf(dataDir / pathOrUrl)
+    fonts[name] = readFontOtf(pathOrUrl)
   else:
     raise newException(Exception, "Unsupported font format")
+
+proc loadFont*(name: string, pathOrUrl: string) =
+  ## Loads the font from the dataDir.
+  loadFontAbsolute(name, dataDir / pathOrUrl)
 
 proc setItem*(key, value: string) =
   ## Saves value into local storage or file.
