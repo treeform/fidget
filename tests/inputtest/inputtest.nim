@@ -140,7 +140,8 @@ proc drawMain() =
       box 0, 0, 200, 500
       fill "#F8F8F8"
       var y: int
-      for button in Button:
+      for buttonIdx in 0 ..< buttonDown.len:
+        let button = Button(buttonIdx)
         if buttonDown[button]:
           text "text-" & $button:
             box 10, y*20, 150, 20
