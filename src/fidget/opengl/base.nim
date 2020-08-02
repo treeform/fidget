@@ -1,5 +1,5 @@
 import ../common, ../input, ../internal, chroma, flippy, opengl, os, perf,
-    staticglfw, times, typography/textboxes, unicode, vmath
+    staticglfw, times, typography/textboxes, unicode, vmath, strformat
 
 when defined(glDebugMessageCallback):
   import strformat, strutils
@@ -328,7 +328,10 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
     )
 
   if window.isNil:
-    quit("Failed to open window.")
+    quit(
+      "Failed to open window. GL version:" &
+      &"{openglVersion[0]}.{$openglVersion[1]}"
+    )
 
   window.makeContextCurrent()
 
