@@ -1,5 +1,5 @@
-import fidget, flippy, chroma, random, tables, hashes
-import fidget/opengl/context, fidget/opengl/base
+import chroma, fidget, fidget/opengl/base, fidget/opengl/context, flippy,
+    hashes, random, tables
 
 # Generate an image.
 var f = newImage(600, 300, 4)
