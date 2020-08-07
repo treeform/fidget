@@ -9,7 +9,7 @@ type
 
   PerfEntry* = object
     tag: string
-    ticks: int64
+    ticks: int
     kind: EntryKind
 
   TimeSeries* = ref object
@@ -21,8 +21,8 @@ var
   perfEnabled* = true
   defaultBuffer: seq[PerfEntry]
 
-proc getTicks*(): int64 =
-  getMonoTime().ticks
+proc getTicks*(): int =
+  getMonoTime().ticks.int
 
 proc addEntry(tag: string, kind: EntryKind, buffer: var seq[PerfEntry]) =
   var entry = PerfEntry()
