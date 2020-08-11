@@ -17,7 +17,7 @@ func size*(componentType: GLenum): Positive =
       1
     of cGL_SHORT, cGL_UNSIGNED_SHORT:
       2
-    of GL_UNSIGNED_INT, cGL_FLOAT:
+    of cGL_INT, GL_UNSIGNED_INT, cGL_FLOAT:
       4
     else:
       raise newException(Exception, "Unexpected componentType")
