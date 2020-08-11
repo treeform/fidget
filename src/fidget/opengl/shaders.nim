@@ -216,8 +216,8 @@ template newShaderStatic*(computePath: string): Shader =
   ## so it is compiled into the binary.
   const
     computeCode = staticRead(computePath)
-    dir = currentSourcePath()
-    computePathFull = dir.parentDir() / computePath
+    dir = currentSourcePath().parentDir()
+    computePathFull = dir / computePath
   newShader((computePathFull, computeCode))
 
 proc newShader*(vert, frag: (string, string)): Shader =
@@ -241,9 +241,9 @@ template newShaderStatic*(vertPath, fragPath: string): Shader =
   const
     vertCode = staticRead(vertPath)
     fragCode = staticRead(fragPath)
-    dir = currentSourcePath()
-    vertPathFull = dir.parentDir() / vertPath
-    fragPathFull = dir.parentDir() / fragPath
+    dir = currentSourcePath().parentDir()
+    vertPathFull = dir / vertPath
+    fragPathFull = dir / fragPath
   newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
 
 proc hasUniform*(shader: Shader, name: string): bool =
@@ -429,6 +429,14 @@ proc bindUniforms*(shader: Shader) =
         raiseUniformKindException(uniform.name, uniform.kind)
 
     uniform.changed = false
+
+proc bindUniformBuffer*(
+  shader: Shader, name: string, buffer: Buffer, binding: GLuint
+) =
+  assert buffer.target == GL_UNIFORM_BUFFER
+  let index = glGetUniformBlockIndex(shader.programId, name)
+  glBindBufferBase(GL_UNIFORM_BUFFER, binding, buffer.bufferId)
+  glUniformBlockBinding(shader.programId, index, binding)
 
 proc bindAttrib*(
   shader: Shader,
