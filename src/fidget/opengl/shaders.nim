@@ -430,6 +430,14 @@ proc bindUniforms*(shader: Shader) =
 
     uniform.changed = false
 
+proc bindUniformBuffer*(
+  shader: Shader, name: string, buffer: Buffer, binding: GLuint
+) =
+  assert buffer.target == GL_UNIFORM_BUFFER
+  let index = glGetUniformBlockIndex(shader.programId, name)
+  glBindBufferBase(GL_UNIFORM_BUFFER, binding, buffer.bufferId)
+  glUniformBlockBinding(shader.programId, index, binding)
+
 proc bindAttrib*(
   shader: Shader,
   name: string,
