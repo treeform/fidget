@@ -421,7 +421,7 @@ proc drawStart() =
 
   canvas.style.display = "block"
   canvas.style.position = "absolute"
-  canvas.style.zIndex = -1
+  canvas.style.zIndex = "-1"
   canvas.style.left = cstring($scrollBox.x & "px")
   canvas.style.top = cstring($scrollBox.y & "px")
   canvas.style.width = cstring($width & "px")
@@ -481,7 +481,7 @@ proc refresh*() =
     requestedFrame = true
     discard dom.window.requestAnimationFrame(requestHardRedraw)
 
-proc startFidget*(draw: proc(), load: proc(), w = 0, h = 0) =
+proc startFidget*(draw: proc(), load: proc() = nil, w = 0, h = 0) =
   ## Start the HTML backend
   ## NOTE: returns instantly!
   drawMain = draw
