@@ -421,7 +421,10 @@ proc drawStart() =
 
   canvas.style.display = "block"
   canvas.style.position = "absolute"
-  canvas.style.zIndex = "-1"
+  when type(canvas.style.zIndex) is cstring:
+    canvas.style.zIndex = "-1"
+  else:
+    canvas.style.zIndex = -1
   canvas.style.left = cstring($scrollBox.x & "px")
   canvas.style.top = cstring($scrollBox.y & "px")
   canvas.style.width = cstring($width & "px")
