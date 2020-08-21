@@ -382,15 +382,11 @@ proc bindUniforms*(shader: Shader) =
     if uniform.componentType == 0.GLenum:
       continue
 
-    if uniform.componentType != cGL_INT and uniform.componentType != cGL_FLOAT:
-      raiseUniformComponentTypeException(uniform.name, uniform.componentType)
-
     if not uniform.changed:
       continue
 
     if uniform.componentType == cGL_INT:
       let values = cast[array[16, GLint]](uniform.values)
-
       case uniform.kind:
       of bkSCALAR:
         glUniform1i(uniform.location, values[0])
@@ -408,7 +404,7 @@ proc bindUniforms*(shader: Shader) =
         )
       else:
         raiseUniformKindException(uniform.name, uniform.kind)
-    else:
+    elif uniform.componentType == cGL_FLOAT:
       let values = cast[array[16, float32]](uniform.values)
       case uniform.kind:
       of bkSCALAR:
@@ -434,6 +430,8 @@ proc bindUniforms*(shader: Shader) =
         )
       else:
         raiseUniformKindException(uniform.name, uniform.kind)
+    else:
+      raiseUniformComponentTypeException(uniform.name, uniform.componentType)
 
     uniform.changed = false
 
