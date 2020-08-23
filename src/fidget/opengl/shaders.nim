@@ -1,4 +1,4 @@
-import buffers, opengl, os, strformat, strutils, vmath
+import buffers, opengl, os, strformat, strutils, vmath, macros
 
 type
   ShaderAttrib = object
@@ -216,7 +216,7 @@ template newShaderStatic*(computePath: string): Shader =
   ## so it is compiled into the binary.
   const
     computeCode = staticRead(computePath)
-    dir = currentSourcePath().parentDir()
+    dir = getProjectPath()
     computePathFull = dir / computePath
   newShader((computePathFull, computeCode))
 
@@ -241,7 +241,7 @@ template newShaderStatic*(vertPath, fragPath: string): Shader =
   const
     vertCode = staticRead(vertPath)
     fragCode = staticRead(fragPath)
-    dir = currentSourcePath().parentDir()
+    dir = getProjectPath()
     vertPathFull = dir / vertPath
     fragPathFull = dir / fragPath
   newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
