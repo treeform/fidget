@@ -306,6 +306,8 @@ proc setupFidget(
     ctx.saveTransform()
     ctx.scale(ctx.pixelScale)
 
+    mouse.cursorStyle = Default
+
     setupRoot()
     root.box.x = float 0
     root.box.y = float 0
@@ -329,6 +331,20 @@ proc setupFidget(
 
     ctx.restoreTransform()
     ctx.endFrame()
+
+    # Only set mouse style when it changes.
+    if mouse.prevCursorStyle != mouse.cursorStyle:
+      mouse.prevCursorStyle = mouse.cursorStyle
+      echo mouse.cursorStyle
+      case mouse.cursorStyle:
+        of Default:
+          setCursor(cursorDefault)
+        of Pointer:
+          setCursor(cursorPointer)
+        of Grab:
+          setCursor(cursorGrab)
+        of NSResize:
+          setCursor(cursorNSResize)
 
     when defined(testOneFrame):
       ## This is used for test only

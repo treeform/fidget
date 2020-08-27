@@ -362,7 +362,6 @@ proc draw*(index: int, node: Node, parent: Node) =
     draw(i, n, node)
 
 var startTime: float
-var prevMouseCursorStyle: MouseCursorStyle
 
 proc drawStart() =
   startTime = dom.window.performance.now()
@@ -443,8 +442,8 @@ proc drawFinish() =
   # echo perf.numLowLevelCalls
 
   # Only set mouse style when it changes.
-  if prevMouseCursorStyle != mouse.cursorStyle:
-    prevMouseCursorStyle = mouse.cursorStyle
+  if mouse.prevCursorStyle != mouse.cursorStyle:
+    mouse.prevCursorStyle = mouse.cursorStyle
     case mouse.cursorStyle:
       of Default:
         rootDomNode.style.cursor = "default"
