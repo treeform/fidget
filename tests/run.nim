@@ -146,6 +146,7 @@ proc main(
   runList.add "tests/textalignexpand"
   runList.add "tests/textalignfixed"
   runList.add "tests/textandinputs"
+  runList.add "tests/cursorstyle"
 
   runList.add "examples/areas"
   runList.add "examples/demo"

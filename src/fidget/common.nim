@@ -161,6 +161,7 @@ type
     pixelScale*: float32
     wheelDelta*: float32
     cursorStyle*: MouseCursorStyle ## Sets the mouse cursor icon
+    prevCursorStyle*: MouseCursorStyle
 
   Keyboard* = ref object
     state*: KeyState

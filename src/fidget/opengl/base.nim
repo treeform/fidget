@@ -41,6 +41,16 @@ var
   frameCount*, tickCount*: int
   lastDraw, lastTick: int64
 
+var
+  cursorDefault*: CursorHandle
+  cursorPointer*: CursorHandle
+  cursorGrab*: CursorHandle
+  cursorNSResize*: CursorHandle
+
+proc setCursor*(cursor: CursorHandle) =
+  echo "set cursor"
+  window.setCursor(cursor)
+
 proc updateWindowSize() =
   requestedFrame = true
 
@@ -334,6 +344,11 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
     )
 
   window.makeContextCurrent()
+
+  cursorDefault = createStandardCursor(ARROW_CURSOR)
+  cursorPointer = createStandardCursor(HAND_CURSOR)
+  cursorGrab = createStandardCursor(HAND_CURSOR)
+  cursorNSResize = createStandardCursor(HRESIZE_CURSOR)
 
   when not defined(emscripten):
     swapInterval(1)
