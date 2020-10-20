@@ -87,8 +87,8 @@ proc computeTextBox*(
 
   tempDiv.innerText = text
 
-  result.x = float tempDiv.clientWidth
-  result.y = float tempDiv.clientHeight
+  result.x = float(tempDiv.clientWidth) + 1.0
+  result.y = float(tempDiv.clientHeight)
   computeTextBoxCache[key] = result
 
 computeTextLayout = proc(node: Node) =
@@ -124,7 +124,7 @@ proc measureText(
 ): TextMetrics {.importcpp.}
 
 var baseLineCache = newTable[string, float]()
-proc getBaseLine *(
+proc getBaseLine*(
   fontName: string,
   fontSize: float,
   fontWeight: float,
