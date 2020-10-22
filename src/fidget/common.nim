@@ -371,23 +371,6 @@ proc computeLayout*(parent, node: Node) =
   for n in node.nodes:
     computeLayout(node, n)
 
-  # Typeset text
-  if node.kind == nkText:
-    computeTextLayout(node)
-    print node.textLayoutWidth
-    print node.textLayoutHeight
-    case node.textStyle.autoResize:
-      of tsNone:
-        # Fixed sized text node.
-        discard
-      of tsHeight:
-        # Text will grow down.
-        node.box.h = node.textLayoutHeight
-      of tsWidthAndHeight:
-        # Text will grow down and wide.
-        node.box.w = node.textLayoutWidth
-        node.box.h = node.textLayoutHeight
-
   # Constraints code.
   case node.constraintsVertical:
     of cMin: discard
@@ -420,6 +403,21 @@ proc computeLayout*(parent, node: Node) =
     of cCenter:
       let offset = floor((node.orgBox.h - parent.orgBox.h) / 2.0 + node.orgBox.y)
       node.box.y = floor((parent.box.h - node.box.h) / 2.0) + offset
+
+  # Typeset text
+  if node.kind == nkText:
+    computeTextLayout(node)
+    case node.textStyle.autoResize:
+      of tsNone:
+        # Fixed sized text node.
+        discard
+      of tsHeight:
+        # Text will grow down.
+        node.box.h = node.textLayoutHeight
+      of tsWidthAndHeight:
+        # Text will grow down and wide.
+        node.box.w = node.textLayoutWidth
+        node.box.h = node.textLayoutHeight
 
   # Auto-layout code.
   if node.layoutMode == lmVertical:
