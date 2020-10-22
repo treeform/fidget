@@ -365,7 +365,7 @@ proc consume*(keyboard: Keyboard) =
 proc consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.
   buttonPress[MOUSE_LEFT] = false
-import print
+
 proc computeLayout*(parent, node: Node) =
   ## Computes constraints and auto-layout.
   for n in node.nodes:
