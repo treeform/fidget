@@ -365,11 +365,28 @@ proc consume*(keyboard: Keyboard) =
 proc consume*(mouse: Mouse) =
   ## Reset the mouse state consuming any event information.
   buttonPress[MOUSE_LEFT] = false
-
+import print
 proc computeLayout*(parent, node: Node) =
   ## Computes constraints and auto-layout.
   for n in node.nodes:
     computeLayout(node, n)
+
+  # Typeset text
+  if node.kind == nkText:
+    computeTextLayout(node)
+    print node.textLayoutWidth
+    print node.textLayoutHeight
+    case node.textStyle.autoResize:
+      of tsNone:
+        # Fixed sized text node.
+        discard
+      of tsHeight:
+        # Text will grow down.
+        node.box.h = node.textLayoutHeight
+      of tsWidthAndHeight:
+        # Text will grow down and wide.
+        node.box.w = node.textLayoutWidth
+        node.box.h = node.textLayoutHeight
 
   # Constraints code.
   case node.constraintsVertical:
@@ -385,7 +402,8 @@ proc computeLayout*(parent, node: Node) =
       let xDiff = parent.box.w - parent.orgBox.w
       node.box.w += xDiff
     of cCenter:
-      node.box.x = floor((parent.box.w - node.box.w) / 2.0)
+      let offset = floor((node.orgBox.w - parent.orgBox.w) / 2.0 + node.orgBox.x)
+      node.box.x = floor((parent.box.w - node.box.w) / 2.0) + offset
 
   case node.constraintsHorizontal:
     of cMin: discard
@@ -400,23 +418,8 @@ proc computeLayout*(parent, node: Node) =
       let yDiff = parent.box.h - parent.orgBox.h
       node.box.h += yDiff
     of cCenter:
-      node.box.y = floor((parent.box.h - node.box.h) / 2.0)
-
-  # Typeset text
-  if node.kind == nkText:
-    computeTextLayout(node)
-
-    case node.textStyle.autoResize:
-      of tsNone:
-        # Fixed sized text node.
-        discard
-      of tsHeight:
-        # Text will grow down.
-        node.box.h = node.textLayoutHeight
-      of tsWidthAndHeight:
-        # Text will grow down and wide.
-        node.box.w = node.textLayoutWidth
-        node.box.h = node.textLayoutHeight
+      let offset = floor((node.orgBox.h - parent.orgBox.h) / 2.0 + node.orgBox.y)
+      node.box.y = floor((parent.box.h - node.box.h) / 2.0) + offset
 
   # Auto-layout code.
   if node.layoutMode == lmVertical:
