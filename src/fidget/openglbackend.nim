@@ -27,7 +27,7 @@ computeTextLayout = proc(node: Node) =
     boundsMax: Vec2
     size = node.box.wh
   if node.textStyle.autoResize == tsWidthAndHeight:
-    size = vec2(0, 0)
+    size.x = 0
   node.textLayout = font.typeset(
     node.text.toRunes(),
     pos = vec2(0, 0),
