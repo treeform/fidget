@@ -558,6 +558,45 @@ proc strokeRoundedRect*(
     color
   )
 
+proc line*(
+  ctx: Context, a: Vec2, b: Vec2, color: Color
+) =
+  let hash = hash((
+    2345,
+    a,
+    b
+  ))
+
+  let
+    w = ceil(abs(b.x - a.x)).int
+    h = ceil(abs(a.y - b.y)).int
+    pos = vec2(min(a.x, b.x), min(a.y, b.y))
+
+  if hash notin ctx.entries:
+    var image = newImage(w, h, 4)
+    image.fill(rgba(255, 255, 255, 0))
+    image.line(
+      a-pos, b-pos,
+      rgba(255, 255, 255, 255)
+    )
+    ctx.putImage(hash, image)
+  let
+    uvRect = ctx.entries[hash]
+    wh = vec2(w.float32, h.float32) * ctx.atlasSize.float32
+  ctx.drawUvRect(
+    pos,
+    pos + vec2(w.float32, h.float32),
+    uvRect.xy,
+    uvRect.xy + uvRect.wh,
+    color
+  )
+
+proc linePolygon*(
+  ctx: Context, poly: seq[Vec2], color: Color
+) =
+  for i in 0 ..< poly.len:
+    ctx.line(poly[i], poly[(i+1) mod poly.len], color)
+
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
   assert ctx.frameBegun == true, "ctx.beginFrame has not been called."
