@@ -335,8 +335,34 @@ proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
   buf[i * 4 + 2] = color.b
   buf[i * 4 + 3] = color.a
 
-func `*`(m: Mat4, v: Vec2): Vec2 =
+func `*`*(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v, 0.0)).xy
+
+proc drawQuad*(
+  ctx: Context,
+  verts: array[4, Vec2],
+  uvs: array[4, Vec2],
+  colors: array[4, ColorRGBA],
+) =
+  ctx.checkBatch()
+
+  let offset = ctx.quadCount * 4
+  ctx.positions.data.setVert2(offset + 0, verts[0])
+  ctx.positions.data.setVert2(offset + 1, verts[1])
+  ctx.positions.data.setVert2(offset + 2, verts[2])
+  ctx.positions.data.setVert2(offset + 3, verts[3])
+
+  ctx.uvs.data.setVert2(offset + 0, uvs[0])
+  ctx.uvs.data.setVert2(offset + 1, uvs[1])
+  ctx.uvs.data.setVert2(offset + 2, uvs[2])
+  ctx.uvs.data.setVert2(offset + 3, uvs[3])
+
+  ctx.colors.data.setVertColor(offset + 0, colors[0])
+  ctx.colors.data.setVertColor(offset + 1, colors[1])
+  ctx.colors.data.setVertColor(offset + 2, colors[2])
+  ctx.colors.data.setVertColor(offset + 3, colors[3])
+
+  inc ctx.quadCount
 
 proc drawUvRect(ctx: Context, at, to: Vec2, uvAt, uvTo: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
