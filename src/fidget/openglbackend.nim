@@ -51,9 +51,12 @@ proc focus*(keyboard: Keyboard, node: Node) =
     keyboard.onFocusNode = node
     keyboard.focusNode = node
 
+    var font = fonts[node.textStyle.fontFamily]
+    font.size = node.textStyle.fontSize
+    font.lineHeight = node.textStyle.lineHeight
     keyboard.input = node.text
     textBox = newTextBox(
-      fonts[node.textStyle.fontFamily],
+      font,
       int node.screenBox.w,
       int node.screenBox.h,
       node.text,
@@ -116,8 +119,8 @@ proc drawText(node: Node) =
   let editing = keyboard.focusNode == node
 
   if editing:
-    if textBox.size != node.box.wh:
-      textBox.resize(node.box.wh)
+    if textBox.size != node.screenBox.wh:
+      textBox.resize(node.screenBox.wh)
     node.textLayout = textBox.layout
     ctx.saveTransform()
     ctx.translate(-textBox.scroll)
@@ -128,7 +131,7 @@ proc drawText(node: Node) =
 
   # draw characters
   for glyphIdx, pos in node.textLayout:
-    if pos.character notin font.glyphs:
+    if pos.character notin font.typeface.glyphs:
       continue
     if pos.rune == Rune(32):
       # Don't draw space, even if font has a char for it.
@@ -162,7 +165,7 @@ proc drawText(node: Node) =
 
     if hashFill notin ctx.entries:
       var
-        glyph = font.glyphs[pos.character]
+        glyph = font.typeface.glyphs[pos.character]
         glyphOffset: Vec2
       let glyphFill = font.getGlyphImage(
         glyph,
@@ -174,7 +177,7 @@ proc drawText(node: Node) =
 
     if node.strokeWeight > 0 and hashStroke notin ctx.entries:
       var
-        glyph = font.glyphs[pos.character]
+        glyph = font.typeface.glyphs[pos.character]
         glyphOffset: Vec2
       let glyphFill = font.getGlyphImage(
         glyph,
@@ -322,6 +325,8 @@ proc setupFidget(
       keyboard.input = textBox.text
 
     drawMain()
+
+    root.removeExtraChildren()
 
     computeLayout(nil, root)
     computeScreenBox(nil, root)
