@@ -266,6 +266,13 @@ proc image*(imageName: string) =
   ## Sets image fill.
   current.imageName = imageName
 
+proc orgBox*(x, y, w, h: int|float32|float32) =
+  ## Sets the box dimensions of the original element for constraints.
+  current.orgBox.x = float32 x
+  current.orgBox.y = float32 y
+  current.orgBox.w = float32 w
+  current.orgBox.h = float32 h
+
 proc box*(x, y, w, h: float32) =
   ## Sets the box dimensions.
   current.box.x = x
@@ -280,18 +287,13 @@ proc box*(
   h: int|float32|float64
 ) =
   ## Sets the box dimensions with integers
+  ## Always set box before orgBox when doing constraints.
   box(float32 x, float32 y, float32 w, float32 h)
+  orgBox(float32 x, float32 y, float32 w, float32 h)
 
 proc box*(rect: Rect) =
   ## Sets the box dimensions with integers
   box(rect.x, rect.y, rect.w, rect.h)
-
-proc orgBox*(x, y, w, h: int|float32|float32) =
-  ## Sets the box dimensions of the original element for constraints.
-  current.orgBox.x = float32 x
-  current.orgBox.y = float32 y
-  current.orgBox.w = float32 w
-  current.orgBox.h = float32 h
 
 proc rotation*(rotationInDeg: float32) =
   ## Sets rotation in degrees.

@@ -385,7 +385,8 @@ proc computeLayout*(parent, node: Node) =
       let xDiff = parent.box.w - parent.orgBox.w
       node.box.w += xDiff
     of cCenter:
-      node.box.x = floor((parent.box.w - node.box.w) / 2.0)
+      let offset = floor((node.orgBox.w - parent.orgBox.w) / 2.0 + node.orgBox.x)
+      node.box.x = floor((parent.box.w - node.box.w) / 2.0) + offset
 
   case node.constraintsHorizontal:
     of cMin: discard
@@ -400,12 +401,12 @@ proc computeLayout*(parent, node: Node) =
       let yDiff = parent.box.h - parent.orgBox.h
       node.box.h += yDiff
     of cCenter:
-      node.box.y = floor((parent.box.h - node.box.h) / 2.0)
+      let offset = floor((node.orgBox.h - parent.orgBox.h) / 2.0 + node.orgBox.y)
+      node.box.y = floor((parent.box.h - node.box.h) / 2.0) + offset
 
   # Typeset text
   if node.kind == nkText:
     computeTextLayout(node)
-
     case node.textStyle.autoResize:
       of tsNone:
         # Fixed sized text node.
