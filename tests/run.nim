@@ -126,6 +126,8 @@ proc main(
   #   runList.add "tests/imagegen"
   #   runList.add "tests/imagestatic"
 
+  runList.add "tests/centercentertext"
+  runList.add "tests/constrantscenteroffset"
   runList.add "tests/autolayouttext"
   runList.add "tests/autolayoutcomplex"
   runList.add "tests/autolayouthorizontal"

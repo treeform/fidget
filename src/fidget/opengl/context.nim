@@ -335,8 +335,34 @@ proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
   buf[i * 4 + 2] = color.b
   buf[i * 4 + 3] = color.a
 
-func `*`(m: Mat4, v: Vec2): Vec2 =
+func `*`*(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v, 0.0)).xy
+
+proc drawQuad*(
+  ctx: Context,
+  verts: array[4, Vec2],
+  uvs: array[4, Vec2],
+  colors: array[4, ColorRGBA],
+) =
+  ctx.checkBatch()
+
+  let offset = ctx.quadCount * 4
+  ctx.positions.data.setVert2(offset + 0, verts[0])
+  ctx.positions.data.setVert2(offset + 1, verts[1])
+  ctx.positions.data.setVert2(offset + 2, verts[2])
+  ctx.positions.data.setVert2(offset + 3, verts[3])
+
+  ctx.uvs.data.setVert2(offset + 0, uvs[0])
+  ctx.uvs.data.setVert2(offset + 1, uvs[1])
+  ctx.uvs.data.setVert2(offset + 2, uvs[2])
+  ctx.uvs.data.setVert2(offset + 3, uvs[3])
+
+  ctx.colors.data.setVertColor(offset + 0, colors[0])
+  ctx.colors.data.setVertColor(offset + 1, colors[1])
+  ctx.colors.data.setVertColor(offset + 2, colors[2])
+  ctx.colors.data.setVertColor(offset + 3, colors[3])
+
+  inc ctx.quadCount
 
 proc drawUvRect(ctx: Context, at, to: Vec2, uvAt, uvTo: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
@@ -557,6 +583,45 @@ proc strokeRoundedRect*(
     uvRect.xy + uvRect.wh,
     color
   )
+
+proc line*(
+  ctx: Context, a: Vec2, b: Vec2, color: Color
+) =
+  let hash = hash((
+    2345,
+    a,
+    b
+  ))
+
+  let
+    w = ceil(abs(b.x - a.x)).int
+    h = ceil(abs(a.y - b.y)).int
+    pos = vec2(min(a.x, b.x), min(a.y, b.y))
+
+  if hash notin ctx.entries:
+    var image = newImage(w, h, 4)
+    image.fill(rgba(255, 255, 255, 0))
+    image.line(
+      a-pos, b-pos,
+      rgba(255, 255, 255, 255)
+    )
+    ctx.putImage(hash, image)
+  let
+    uvRect = ctx.entries[hash]
+    wh = vec2(w.float32, h.float32) * ctx.atlasSize.float32
+  ctx.drawUvRect(
+    pos,
+    pos + vec2(w.float32, h.float32),
+    uvRect.xy,
+    uvRect.xy + uvRect.wh,
+    color
+  )
+
+proc linePolygon*(
+  ctx: Context, poly: seq[Vec2], color: Color
+) =
+  for i in 0 ..< poly.len:
+    ctx.line(poly[i], poly[(i+1) mod poly.len], color)
 
 proc clearMask*(ctx: Context) =
   ## Sets mask off (actually fills the mask with white).
