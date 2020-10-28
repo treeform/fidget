@@ -188,6 +188,11 @@ template onHover*(inner: untyped) =
   if mouseOverlapLogic():
     inner
 
+template onHoverOut*(inner: untyped) =
+  ## Code in the block will run when hovering outside the box.
+  if not mouseOverlapLogic():
+    inner
+
 template onDown*(inner: untyped) =
   ## Code in the block will run when this mouse is dragging.
   if mouse.down and mouseOverlapLogic():
