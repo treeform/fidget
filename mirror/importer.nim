@@ -1,26 +1,11 @@
-# ## Fidget importer.
-# ##
-# import httpclient, asyncdispatch
-# import print
-
-# var figmaKey = readFile(".figmakey")
-# var pageId = readFile(".fidget")
-
-# print figmaKey, pageId
-
-# #client.headers["User-Agent"] = "curl/7.55.1"
-# #client.headers["Content-Type"] = "application/json"
-# #client.headers["X-FIGMA-TOKEN"] = "138594-4937286f-1a1d-4c58-8656-213b22caf788"
-# echo client.headers
-
-# var client = newAsyncHttpClient()
-# echo client.getContent("https://api.figma.com/v1/files/lm9EyvvPSanY7qZeuAyfES")
-
-
-
-import httpclient2, asyncdispatch, json
+import httpclient2, json, strutils
 var client = newHttpClient()
 client.headers = newHttpHeaders({"Accept": "*/*"})
 client.headers["User-Agent"] = "curl/7.58.0"
-client.headers["X-FIGMA-TOKEN"] = "138594-4937286f-1a1d-4c58-8656-213b22caf788"
-writeFile("import.json", pretty parseJson(client.getContent("https://api.figma.com/v1/files/lm9EyvvPSanY7qZeuAyfES")))
+client.headers["X-FIGMA-TOKEN"] = readFile(".figmakey")
+
+let url = "https://www.figma.com/file/TQOSRucXGFQpuOpyTkDYj1/Fidget-Mirror-Test?node-id=0%3A1&viewport=952%2C680%2C1"
+
+let fileKey = url.split("/")[4]
+echo fileKey
+writeFile("import.json", pretty parseJson(client.getContent("https://api.figma.com/v1/files/" & fileKey)))
