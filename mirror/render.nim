@@ -9,6 +9,7 @@ var
   ctx: Image
   fillCtx: Image
   maskCtx: Image
+  maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
   at: Vec2
@@ -31,8 +32,33 @@ proc drawNode*(node: Node)
 proc drawChildren(node: Node) =
   parentNode = node
   nodeStack.add(node)
+
+  # Is there a mask?
+  var haveMask = false
   for child in node.children:
-    drawNode(child)
+    if child.isMask:
+      haveMask = true
+
+  if haveMask:
+    var tmpCtx = ctx
+    ctx = newImage(tmpCtx.width, tmpCtx.height, 4)
+
+    # Draw masked children first:
+    for child in node.children:
+      if child.isMask:
+        drawNode(child)
+
+    maskStack.add(ctx)
+    ctx = tmpCtx
+
+  # Draw regular children:
+  for child in node.children:
+    if not child.isMask:
+      drawNode(child)
+
+  if haveMask:
+    discard maskStack.pop()
+
   discard nodeStack.pop()
   if nodeStack.len > 0:
     parentNode = nodeStack[^1]
@@ -54,10 +80,8 @@ proc applyPaint(fill: Paint, node: Node) =
       let center = node.absoluteBoundingBox.wh
       let topRight = pos + center/2 - vec2(image.width/2, image.height/2)
       fillCtx.blit(image, topRight)
+
     elif fill.scaleMode == "FIT":
-
-      #fillCtx.fill(rgba(255, 255, 255, 255))
-
       let
         ratioW = image.width.float32 / node.absoluteBoundingBox.width
         ratioH = image.height.float32 / node.absoluteBoundingBox.height
@@ -66,41 +90,33 @@ proc applyPaint(fill: Paint, node: Node) =
       let center = node.absoluteBoundingBox.wh
       let topRight = pos + center/2 - vec2(image.width/2, image.height/2)
       fillCtx.blit(image, topRight)
-    elif fill.scaleMode == "STRETCH":
-      # Figma ui calls this crop.
 
+    elif fill.scaleMode == "STRETCH": # Figma ui calls this "crop".
       var mat: Mat4
       mat[ 0] = fill.imageTransform[0][0]
       mat[ 1] = fill.imageTransform[0][1]
       mat[ 2] = 0
       mat[ 3] = 0
-
       mat[ 4] = fill.imageTransform[1][0]
       mat[ 5] = fill.imageTransform[1][1]
       mat[ 6] = 0
       mat[ 7] = 0
-
       mat[ 8] = 0
       mat[ 9] = 0
       mat[10] = 1
       mat[11] = 0
-
       mat[12] = fill.imageTransform[0][2]
       mat[13] = fill.imageTransform[1][2]
       mat[14] = 0
       mat[15] = 1
-
       mat = mat.inverse()
-
       mat[12] = pos.x + mat[12] * node.absoluteBoundingBox.width
       mat[13] = pos.y + mat[13] * node.absoluteBoundingBox.height
-
       let
         ratioW = image.width.float32 / node.absoluteBoundingBox.width
         ratioH = image.height.float32 / node.absoluteBoundingBox.height
         scale = min(ratioW, ratioH)
       image = image.resize(int(image.width.float32 / scale), int(image.height.float32 / scale))
-
       fillCtx.blitWithAlpha(image, mat)
 
     elif fill.scaleMode == "TILE":
@@ -117,6 +133,9 @@ proc applyPaint(fill: Paint, node: Node) =
 
   elif fill.`type` == "SOLID":
     fillCtx.fill(fill.color.rgba)
+
+  if maskStack.len > 0:
+    maskCtx.blitMaskStack(maskStack)
 
   ctx.blitMasked(fillCtx, maskCtx)
 
@@ -139,13 +158,17 @@ proc roundRectRev(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   path.closePath()
 
 proc drawNode*(node: Node) =
+
+  if maskCtx != nil:
+    maskCtx.fill(clear)
+
   case node.`type`
   of "DOCUMENT", "CANVAS", "GROUP":
     drawChildren(node)
 
   of "FRAME":
     if parentNode.`type` == "CANVAS":
-      #if node.name != "stroke_rect": return
+      #if node.name != "masking": return
       ctx = newImage(
         node.absoluteBoundingBox.width.int,
         node.absoluteBoundingBox.height.int,
@@ -168,7 +191,6 @@ proc drawNode*(node: Node) =
   of "RECTANGLE":
 
     if node.fills.len > 0:
-      maskCtx.fill(clear)
 
       if node.cornerRadius > 0:
         # Rectangle with common corners.
@@ -220,7 +242,6 @@ proc drawNode*(node: Node) =
         applyPaint(fill, node)
 
     if node.strokes.len > 0:
-      maskCtx.fill(clear)
 
       let
         x = node.absoluteBoundingBox.x + at.x

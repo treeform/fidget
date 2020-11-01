@@ -62,7 +62,7 @@ type
   Node* = ref object
     id*: string ## A string uniquely identifying this node within the document.
     name*: string ## The name given to the node by the user in the tool.
-    visible*: bool ## default true,  Whether or not the node is visible on the canvas.
+    visible*: bool ## default true, Whether or not the node is visible on the canvas.
     `type`*: string ## The type of the node, refer to table below for details.
     #pluginData: JsonNode ## Data written by plugins that is visible only to the plugin that wrote it. Requires the `pluginData` to include the ID of the plugin.
     #sharedPluginData: JsonNode ##  Data written by plugins that is visible to all plugins. Requires the `pluginData` parameter to include the string "shared".
@@ -84,6 +84,7 @@ type
     layoutMode*: string
     itemSpacing*: float32
     effects*: seq[Effect]
+    isMask*: bool
     cornerRadius*: float32
     rectangleCornerRadii*: seq[float32]
     characters*: string
