@@ -68,7 +68,7 @@ proc applyPaint(fill: Paint, node: Node) =
       fillCtx.blit(image, topRight)
     elif fill.scaleMode == "STRETCH":
       # Figma ui calls this crop.
-      # TODO figure out the matrix:
+
       var mat: Mat4
       mat[ 0] = fill.imageTransform[0][0]
       mat[ 1] = fill.imageTransform[0][1]
@@ -89,6 +89,18 @@ proc applyPaint(fill: Paint, node: Node) =
       mat[13] = fill.imageTransform[1][2]
       mat[14] = 0
       mat[15] = 1
+
+      mat = mat.inverse()
+
+      mat[12] = pos.x + mat[12] * node.absoluteBoundingBox.width
+      mat[13] = pos.y + mat[13] * node.absoluteBoundingBox.height
+
+      let
+        ratioW = image.width.float32 / node.absoluteBoundingBox.width
+        ratioH = image.height.float32 / node.absoluteBoundingBox.height
+        scale = min(ratioW, ratioH)
+      image = image.resize(int(image.width.float32 / scale), int(image.height.float32 / scale))
+
       fillCtx.blitWithAlpha(image, mat)
 
     elif fill.scaleMode == "TILE":
@@ -223,6 +235,11 @@ proc drawNode*(node: Node) =
         inner = node.strokeWeight
       elif node.strokeAlign == "OUTSIDE":
         outer = node.strokeWeight
+      elif node.strokeAlign == "CENTER":
+        inner = node.strokeWeight / 2
+        outer = node.strokeWeight / 2
+      else:
+        quit("invalid strokeWeight")
 
       if node.cornerRadius > 0:
         # Rectangle with common corners.
@@ -235,6 +252,7 @@ proc drawNode*(node: Node) =
         path = newPath()
         path.roundRect(x-outer,y-outer,w+outer*2,h+outer*2,r+outer,r+outer,r+outer,r+outer)
         path.roundRectRev(x+inner,y+inner,w-inner*2,h-inner*2,r-inner,r-inner,r-inner,r-inner)
+
       elif node.rectangleCornerRadii.len == 4:
         # Rectangle with different corners.
         path = newPath()
