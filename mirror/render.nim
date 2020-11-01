@@ -108,6 +108,24 @@ proc applyPaint(fill: Paint, node: Node) =
 
   ctx.blitMasked(fillCtx, maskCtx)
 
+proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
+  path.moveTo(x+nw, y)
+  path.arcTo(x+w, y,   x+w, y+h, ne)
+  path.arcTo(x+w, y+h, x,   y+h, se)
+  path.arcTo(x,   y+h, x,   y,   sw)
+  path.arcTo(x,   y,   x+w, y,   nw)
+  path.closePath()
+
+proc roundRectRev(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
+  path.moveTo(x+w+ne, y)
+
+  path.arcTo(x,   y,   x,   y+h,   nw)
+  path.arcTo(x,   y+h, x+w, y+h,   sw)
+  path.arcTo(x+w, y+h, x+w, y, se)
+  path.arcTo(x+w, y,   x,   y, ne)
+
+  path.closePath()
+
 proc drawNode*(node: Node) =
   case node.`type`
   of "DOCUMENT", "CANVAS", "GROUP":
@@ -115,7 +133,7 @@ proc drawNode*(node: Node) =
 
   of "FRAME":
     if parentNode.`type` == "CANVAS":
-      #if node.name != "image_tile": return
+      #if node.name != "stroke_rect": return
       ctx = newImage(
         node.absoluteBoundingBox.width.int,
         node.absoluteBoundingBox.height.int,
@@ -137,85 +155,149 @@ proc drawNode*(node: Node) =
 
   of "RECTANGLE":
 
-    maskCtx.fill(clear)
+    if node.fills.len > 0:
+      maskCtx.fill(clear)
 
-    if node.cornerRadius > 0:
-      # Rectangle with common corners.
+      if node.cornerRadius > 0:
+        # Rectangle with common corners.
+        var path = newPath()
+        path.roundRect(
+          x = node.absoluteBoundingBox.x + at.x,
+          y = node.absoluteBoundingBox.y + at.y,
+          w = node.absoluteBoundingBox.width,
+          h = node.absoluteBoundingBox.height,
+          nw = node.cornerRadius,
+          ne = node.cornerRadius,
+          se = node.cornerRadius,
+          sw = node.cornerRadius
+        )
+        maskCtx.fillPolygon(
+          path,
+          white
+        )
+      elif node.rectangleCornerRadii.len == 4:
+        # Rectangle with different corners.
+        var path = newPath()
+        path.roundRect(
+          x = node.absoluteBoundingBox.x + at.x,
+          y = node.absoluteBoundingBox.y + at.y,
+          w = node.absoluteBoundingBox.width,
+          h = node.absoluteBoundingBox.height,
+          nw = node.rectangleCornerRadii[0],
+          ne = node.rectangleCornerRadii[1],
+          se = node.rectangleCornerRadii[2],
+          sw = node.rectangleCornerRadii[3],
+        )
+        maskCtx.fillPolygon(
+          path,
+          white
+        )
+      else:
+        # Basic rectangle.
+        maskCtx.fillRect(
+          rect(
+            node.absoluteBoundingBox.x + at.x,
+            node.absoluteBoundingBox.y + at.y,
+            node.absoluteBoundingBox.width,
+            node.absoluteBoundingBox.height,
+          ),
+          white
+        )
+
+      for fill in node.fills:
+        applyPaint(fill, node)
+
+    if node.strokes.len > 0:
+      maskCtx.fill(clear)
+
       let
         x = node.absoluteBoundingBox.x + at.x
         y = node.absoluteBoundingBox.y + at.y
         w = node.absoluteBoundingBox.width
         h = node.absoluteBoundingBox.height
-        r = node.cornerRadius
-      var path = newPath()
-      path.moveTo(x+r, y)
-      path.arcTo(x+w, y,   x+w, y+h, r)
-      path.arcTo(x+w, y+h, x,   y+h, r)
-      path.arcTo(x,   y+h, x,   y,   r)
-      path.arcTo(x,   y,   x+w, y,   r)
+      var
+        inner = 0.0
+        outer = 0.0
+        path: Path
+      if node.strokeAlign == "INSIDE":
+        inner = node.strokeWeight
+      elif node.strokeAlign == "OUTSIDE":
+        outer = node.strokeWeight
+
+      if node.cornerRadius > 0:
+        # Rectangle with common corners.
+        let
+          x = node.absoluteBoundingBox.x + at.x
+          y = node.absoluteBoundingBox.y + at.y
+          w = node.absoluteBoundingBox.width
+          h = node.absoluteBoundingBox.height
+          r = node.cornerRadius
+        path = newPath()
+        path.roundRect(x-outer,y-outer,w+outer*2,h+outer*2,r+outer,r+outer,r+outer,r+outer)
+        path.roundRectRev(x+inner,y+inner,w-inner*2,h-inner*2,r-inner,r-inner,r-inner,r-inner)
+      elif node.rectangleCornerRadii.len == 4:
+        # Rectangle with different corners.
+        path = newPath()
+        let
+          x = node.absoluteBoundingBox.x + at.x
+          y = node.absoluteBoundingBox.y + at.y
+          w = node.absoluteBoundingBox.width
+          h = node.absoluteBoundingBox.height
+          nw = node.rectangleCornerRadii[0]
+          ne = node.rectangleCornerRadii[1]
+          se = node.rectangleCornerRadii[2]
+          sw = node.rectangleCornerRadii[3]
+        path.roundRect(x-outer,y-outer,w+outer*2,h+outer*2,nw+outer,ne+outer,se+outer,sw+outer)
+        path.roundRectRev(x+inner,y+inner,w-inner*2,h-inner*2,nw-inner,ne-inner,se-inner,sw-inner)
+
+      else:
+        path = newPath()
+        path.moveTo(x-outer, y-outer)
+        path.lineTo(x+w+outer, y-outer,  )
+        path.lineTo(x+w+outer, y+h+outer,)
+        path.lineTo(x-outer,   y+h+outer,)
+        path.lineTo(x-outer,   y-outer,  )
+        path.closePath()
+
+        path.moveTo(x+inner, y+inner)
+        path.lineTo(x+inner,   y+h-inner)
+        path.lineTo(x+w-inner, y+h-inner)
+        path.lineTo(x+w-inner, y+inner)
+        path.lineTo(x+inner,   y+inner)
+        path.closePath()
+
       maskCtx.fillPolygon(
         path,
-        white
-      )
-    elif node.rectangleCornerRadii.len == 4:
-      # Rectangle with different corners.
-      let
-        x = node.absoluteBoundingBox.x + at.x
-        y = node.absoluteBoundingBox.y + at.y
-        w = node.absoluteBoundingBox.width
-        h = node.absoluteBoundingBox.height
-        nw = node.rectangleCornerRadii[0]
-        ne = node.rectangleCornerRadii[1]
-        se = node.rectangleCornerRadii[2]
-        sw = node.rectangleCornerRadii[3]
-      var path = newPath()
-      path.moveTo(x+nw, y)
-      path.arcTo(x+w, y,   x+w, y+h, ne)
-      path.arcTo(x+w, y+h, x,   y+h, se)
-      path.arcTo(x,   y+h, x,   y,   sw)
-      path.arcTo(x,   y,   x+w, y,   nw)
-      maskCtx.fillPolygon(
-        path,
-        white
-      )
-    else:
-      # Basic rectangle.
-      maskCtx.fillRect(
-        rect(
-          node.absoluteBoundingBox.x + at.x,
-          node.absoluteBoundingBox.y + at.y,
-          node.absoluteBoundingBox.width,
-          node.absoluteBoundingBox.height,
-        ),
         white
       )
 
-    for fill in node.fills:
-      applyPaint(fill, node)
+      for stroke in node.strokes:
+        applyPaint(stroke, node)
 
   of "VECTOR":
-    for fill in node.fills:
-      if fill.`type` == "IMAGE":
-        print "image fill", fill.imageRef
-      elif fill.`type` == "SOLID":
-        for geometry in node.fillGeometry:
-          let pos = node.absoluteBoundingBox.xy + at
-          ctx.fillPolygon(
-            geometry.path,
-            fill.color.rgba,
-            pos
-          )
-    for stroke in node.strokes:
-      if stroke.`type` == "IMAGE":
-        print "image stroke", stroke.imageRef
-      elif stroke.`type` == "SOLID":
-        for geometry in node.strokeGeometry:
-          let pos = node.absoluteBoundingBox.xy + at
-          ctx.fillPolygon(
-            geometry.path,
-            stroke.color.rgba,
-            pos
-          )
+    if node.fills.len > 0:
+      maskCtx.fill(clear)
+      for geometry in node.fillGeometry:
+        let pos = node.absoluteBoundingBox.xy + at
+        maskCtx.fillPolygon(
+          geometry.path,
+          white,
+          pos
+        )
+      for fill in node.fills:
+        applyPaint(fill, node)
+
+    if node.strokes.len > 0:
+      maskCtx.fill(clear)
+      for geometry in node.strokeGeometry:
+        let pos = node.absoluteBoundingBox.xy + at
+        maskCtx.fillPolygon(
+          geometry.path,
+          white,
+          pos
+        )
+      for stroke in node.strokes:
+        applyPaint(stroke, node)
 
   of "TEXT":
 
