@@ -1,5 +1,5 @@
-import json, jsons, print, tables, chroma, vmath, cairo
-import httpclient2, json, strutils
+import json, jsons, print, tables, chroma, vmath, flippy,
+    httpclient2, json, strutils, os
 
 type
   Component* = ref object
@@ -18,6 +18,10 @@ type
     vertical*: string
     horizontal*: string
 
+  GradientStops* = ref object
+    color*: Color
+    position*: float32
+
   Paint* = ref object
     blendMode*: string
     `type`*: string
@@ -26,6 +30,8 @@ type
     imageRef*: string
     imageTransform*: seq[seq[float32]]
     scalingFactor*: float32
+    gradientHandlePositions*: seq[Vec2]
+    gradientStops*: seq[GradientStops]
 
   Effect* = ref object
     `type`*: string
@@ -71,6 +77,8 @@ type
     prototypeStartNodeID*: string
     prototypeDevice*: Device
     absoluteBoundingBox*: Box
+    size: Vec2
+    relativeTransform*: seq[seq[float32]]
     constraints*: Constraints
     layoutAlign*: string
     clipsContent*: bool
@@ -93,6 +101,13 @@ type
     #styleOverrideTable:
     fillGeometry*: seq[Geometry]
     strokeGeometry*: seq[Geometry]
+
+    # Non figma parameters:
+    dirty*: bool     ## Do the pixels need redrawing?
+    pixels*: Image   ## Pixel image cache.
+    pixelBox*: Rect ## Pixel position and size.
+    editable*: bool  ## Can the user edit the text?
+
 
   FigmaFile* = ref object
     document*: Node
@@ -119,7 +134,7 @@ proc downloadImageRef*(fileKey: string) =
   var client = newHttpClient()
   client.headers = newHttpHeaders({"Accept": "*/*"})
   client.headers["User-Agent"] = "curl/7.58.0"
-  client.headers["X-FIGMA-TOKEN"] = readFile(".figmakey")
+  client.headers["X-FIGMA-TOKEN"] = readFile(getHomeDir() / ".figmakey")
 
   let data = client.getContent("https://api.figma.com/v1/files/" & fileKey & "/images")
   let json = parseJson(data)
@@ -133,7 +148,7 @@ proc download(url, filePath: string) =
   var client = newHttpClient()
   client.headers = newHttpHeaders({"Accept": "*/*"})
   client.headers["User-Agent"] = "curl/7.58.0"
-  client.headers["X-FIGMA-TOKEN"] = readFile(".figmakey")
+  client.headers["X-FIGMA-TOKEN"] = readFile(getHomeDir() / ".figmakey")
 
   #let url = "https://www.figma.com/file/TQOSRucXGFQpuOpyTkDYj1/Fidget-Mirror-Test?node-id=0%3A1&viewport=952%2C680%2C1"
 

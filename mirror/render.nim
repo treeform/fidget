@@ -1,11 +1,12 @@
 
-import flippy, flippy/paths, chroma, math, vmath, schema, print, typography
+import flippy, flippy/paths, chroma, chroma/blends, math, vmath, schema, print, typography, bumpy
 
 const
   white = rgba(255, 255, 255, 255)
   clear = rgba(0, 0, 0, 0)
 
 var
+  mainCtx*: Image
   ctx*: Image
   fillMaskCtx: Image
   strokeMaskCtx: Image
@@ -13,20 +14,20 @@ var
   maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
-  at: Vec2
+  framePos*: Vec2
 
-proc frameFills(node: Node) =
-  if node.fills.len > 0:
-    for fill in node.fills:
-      ctx.fillRect(
-        rect(
-          node.absoluteBoundingBox.x + at.x,
-          node.absoluteBoundingBox.y + at.y,
-          node.absoluteBoundingBox.width,
-          node.absoluteBoundingBox.height,
-        ),
-        fill.color.rgba
-      )
+# proc frameFills(node: Node) =
+#   if node.fills.len > 0:
+#     for fill in node.fills:
+#       mainCtx.fillRect(
+#         rect(
+#           node.absoluteBoundingBox.x + framePos.x,
+#           node.absoluteBoundingBox.y + framePos.y,
+#           node.absoluteBoundingBox.width,
+#           node.absoluteBoundingBox.height,
+#         ),
+#         fill.color.rgba
+#       )
 
 proc drawNode*(node: Node)
 
@@ -64,8 +65,46 @@ proc drawChildren(node: Node) =
   if nodeStack.len > 0:
     parentNode = nodeStack[^1]
 
-proc applyPaint(maskCtx: Image, fill: Paint, node: Node) =
-  let pos = node.absoluteBoundingBox.xy + at
+proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
+  var
+    index = -1
+  for i, stop in fill.gradientStops:
+    if stop.position < a:
+      index = i
+    if stop.position > a:
+      break
+  var color: Color
+  if index == -1:
+    # first stop solid
+    color = fill.gradientStops[0].color
+  elif index + 1 >= fill.gradientStops.len:
+    # last stop solid
+    color = fill.gradientStops[index].color
+  else:
+    let
+      gs1 = fill.gradientStops[index]
+      gs2 = fill.gradientStops[index+1]
+    color = mix(
+      gs1.color,
+      gs2.color,
+      (a - gs1.position) / (gs2.position - gs1.position)
+    )
+  effectsCtx.putRgbaUnsafe(x, y, color.rgba)
+
+proc applyPaint(maskCtx: Image, fill: Paint, node: Node, orgPos: Vec2) =
+  let pos = node.absoluteBoundingBox.xy + orgPos
+
+  proc toImageSpace(handle: Vec2): Vec2 =
+    vec2(
+      handle.x * node.absoluteBoundingBox.width + pos.x,
+      handle.y * node.absoluteBoundingBox.height + pos.y,
+    )
+
+  proc toLineSpace(at, to, point: Vec2): float32 =
+    let
+      d = to - at
+      det = d.x*d.x + d.y*d.y
+    return (d.y*(point.y-at.y)+d.x*(point.x-at.x))/det
 
   effectsCtx.fill(clear)
 
@@ -117,6 +156,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node) =
         ratioW = image.width.float32 / node.absoluteBoundingBox.width
         ratioH = image.height.float32 / node.absoluteBoundingBox.height
         scale = min(ratioW, ratioH)
+      # TODO: Don't scale the image, just scale the matrix.
       image = image.resize(int(image.width.float32 / scale), int(image.height.float32 / scale))
       effectsCtx.blitWithAlpha(image, mat)
 
@@ -132,11 +172,61 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node) =
           y += image.height.float32
         x += image.width.float32
 
+  elif fill.`type` == "GRADIENT_LINEAR":
+    let
+      at = fill.gradientHandlePositions[0].toImageSpace()
+      to = fill.gradientHandlePositions[1].toImageSpace()
+    for y in 0 ..< effectsCtx.height:
+      for x in 0 ..< effectsCtx.width:
+        let xy = vec2(x.float32, y.float32)
+        let a = toLineSpace(at, to, xy)
+        effectsCtx.gradientPut(x, y, a, fill)
+
+  elif fill.`type` == "GRADIENT_RADIAL":
+    let
+      at = fill.gradientHandlePositions[0].toImageSpace()
+      to = fill.gradientHandlePositions[1].toImageSpace()
+      distance = dist(at, to)
+    for y in 0 ..< effectsCtx.height:
+      for x in 0 ..< effectsCtx.width:
+        let xy = vec2(x.float32, y.float32)
+        let a = (at - xy).length() / distance
+        effectsCtx.gradientPut(x, y, a, fill)
+
+  elif fill.`type` == "GRADIENT_ANGULAR":
+    let
+      at = fill.gradientHandlePositions[0].toImageSpace()
+      to = fill.gradientHandlePositions[1].toImageSpace()
+      gradientAngle = normalize(to - at).angle().fixAngle()
+    for y in 0 ..< effectsCtx.height:
+      for x in 0 ..< effectsCtx.width:
+        let
+          xy = vec2(x.float32, y.float32)
+          angle = normalize(xy - at).angle()
+          a = (angle + gradientAngle + PI/2).fixAngle() / 2 / PI + 0.5
+        effectsCtx.gradientPut(x, y, a, fill)
+
+  elif fill.`type` == "GRADIENT_DIAMOND":
+    # TODO: implement GRADIENT_DIAMOND, now will just do GRADIENT_RADIAL
+    let
+      at = fill.gradientHandlePositions[0].toImageSpace()
+      to = fill.gradientHandlePositions[1].toImageSpace()
+      distance = dist(at, to)
+    for y in 0 ..< effectsCtx.height:
+      for x in 0 ..< effectsCtx.width:
+        let xy = vec2(x.float32, y.float32)
+        let a = (at - xy).length() / distance
+        effectsCtx.gradientPut(x, y, a, fill)
+
   elif fill.`type` == "SOLID":
     effectsCtx.fill(fill.color.rgba)
 
-  if maskStack.len > 0:
-    maskCtx.blitMaskStack(maskStack)
+  # TODO: Fix masking.
+  #if maskStack.len > 0:
+  #  maskCtx.blitMaskStack(maskStack)
+
+  #effectsCtx.save("nodes/" & node.name & ".effectsCtx.png")
+  #maskCtx.save("nodes/" & node.name & "maskCtx.png")
 
   ctx.blitMasked(effectsCtx, maskCtx)
 
@@ -181,62 +271,115 @@ proc roundRectRev(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
 
   path.closePath()
 
-proc drawCompleteFrame*(node: Node) =
-  ## Draws full frame that is ready to be displayed.
-  ctx = newImage(
-    node.absoluteBoundingBox.width.int,
-    node.absoluteBoundingBox.height.int,
-    4)
-  fillMaskCtx = newImage(ctx.width, ctx.height, 4)
-  strokeMaskCtx = newImage(ctx.width, ctx.height, 4)
-  effectsCtx = newImage(ctx.width, ctx.height, 4)
+proc checkDirty(node: Node) =
+  ## Makes sure if children are dirty, parents are dirty too!
+  for c in node.children:
+    checkDirty(c)
+    if c.dirty == true:
+      node.dirty = true
 
-  at = vec2(
+proc drawCompleteFrame*(node: Node): Image =
+  ## Draws full frame that is ready to be displayed.
+  if mainCtx == nil:
+    mainCtx = newImage(
+      node.absoluteBoundingBox.width.int,
+      node.absoluteBoundingBox.height.int,
+      4)
+    fillMaskCtx = newImage(mainCtx.width, mainCtx.height, 4)
+    strokeMaskCtx = newImage(mainCtx.width, mainCtx.height, 4)
+    effectsCtx = newImage(mainCtx.width, mainCtx.height, 4)
+  else:
+    mainCtx.fill(clear)
+    fillMaskCtx.fill(clear)
+    effectsCtx.fill(clear)
+
+  framePos = vec2(
     -node.absoluteBoundingBox.x,
     -node.absoluteBoundingBox.y
   )
-  frameFills(node)
-  drawChildren(node)
+  checkDirty(node)
+  drawNode(node)
+
+  assert mainCtx != nil
+  assert node.pixels != nil
+
+  mainCtx.blitWithBlendMode(
+    node.pixels, parseBlendMode(node.blendMode), vec2(0, 0))
+
+  return mainCtx
+
+proc `and`(a, b: Rect): Rect =
+  ## Take a and b bounding Rectangles and return a bounding rectangle that
+  ## overlaps them both.
+  result.x = min(a.x, b.x)
+  result.y = min(a.y, b.y)
+  result.w = max(a.x + a.w, b.x + b.w) - result.x
+  result.h = max(a.y + a.h, b.y + b.h) - result.y
+
+proc computePixelBox*(node: Node) =
+  ## Computes pixel bounds.
+  ## Takes into account width, height and shadow extent, and children.
+  node.pixelBox.xy = node.absoluteBoundingBox.xy + framePos
+  node.pixelBox.wh = node.absoluteBoundingBox.wh
+
+  # Take drop shadow into account:
+  var s = 0.0
+  for effect in node.effects:
+    if effect.`type` == "DROP_SHADOW":
+      s = max(s, effect.radius + effect.spread)
+  node.pixelBox.xy = node.pixelBox.xy + vec2(s, s)
+  node.pixelBox.wh = node.pixelBox.wh + vec2(s, s)
+
+  # Take children into account:
+  for child in node.children:
+    child.computePixelBox()
+    node.pixelBox = node.pixelBox and child.pixelBox
 
 proc drawNode*(node: Node) =
   ## Draws a node.
   ## Note: Must be called inside drawCompleteFrame.
 
+  if node.pixels != nil and node.dirty == false:
+    # Nothing to do, node.pixels contains the cached version.
+    return
+
+  node.computePixelBox()
+
+  # Make sure node.pixels is there and is the right size:
+  let
+    w = ceil(node.pixelBox.w).int
+    h = ceil(node.pixelBox.w).int
+  if node.pixels == nil or node.pixels.width != w or node.pixels.height != h:
+    node.pixels = newImage(w, h, 4)
+  else:
+    node.pixels.fill(clear)
+
+  # TODO: make sure we need the supporting images.
+  fillMaskCtx = newImage(w, h, 4)
+  strokeMaskCtx = newImage(w, h, 4)
+  effectsCtx = newImage(w, h, 4)
+  ctx = node.pixels
+  var orgPos = framePos - node.pixelBox.xy
+
   case node.`type`
   of "DOCUMENT", "CANVAS":
     quit(node.`type` & " can't be drawn.")
 
-  of "FRAME", "GROUP":
-    parentNode = node
-    frameFills(node)
-    drawChildren(node)
+  # of "FRAME", "GROUP", "COMPONENT", "INSTANCE":
+  #   parentNode = node
+  #   frameFills(node)
+  #   drawChildren(node)
+  #   return
 
-  of "RECTANGLE":
-
-    # if node.effects.len > 0 or node.fills.len:
-    #   # Basic rectangle.
-    #   maskCtx.fill(clear)
-    #   maskCtx.fillRect(
-    #     rect(
-    #       node.absoluteBoundingBox.x + at.x,
-    #       node.absoluteBoundingBox.y + at.y,
-    #       node.absoluteBoundingBox.width,
-    #       node.absoluteBoundingBox.height,
-    #     ),
-    #     white
-    #   )
-    #   for effect in node.effects:
-    #     applyEffect(effect, node)
-    #   maskCtx.fill(clear)
-
+  of "RECTANGLE", "FRAME", "GROUP", "COMPONENT", "INSTANCE":
     if node.fills.len > 0:
       fillMaskCtx.fill(clear)
       if node.cornerRadius > 0:
         # Rectangle with common corners.
         var path = newPath()
         path.roundRect(
-          x = node.absoluteBoundingBox.x + at.x,
-          y = node.absoluteBoundingBox.y + at.y,
+          x = node.absoluteBoundingBox.x + orgPos.x,
+          y = node.absoluteBoundingBox.y + orgPos.y,
           w = node.absoluteBoundingBox.width,
           h = node.absoluteBoundingBox.height,
           nw = node.cornerRadius,
@@ -252,8 +395,8 @@ proc drawNode*(node: Node) =
         # Rectangle with different corners.
         var path = newPath()
         path.roundRect(
-          x = node.absoluteBoundingBox.x + at.x,
-          y = node.absoluteBoundingBox.y + at.y,
+          x = node.absoluteBoundingBox.x + orgPos.x,
+          y = node.absoluteBoundingBox.y + orgPos.y,
           w = node.absoluteBoundingBox.width,
           h = node.absoluteBoundingBox.height,
           nw = node.rectangleCornerRadii[0],
@@ -269,8 +412,8 @@ proc drawNode*(node: Node) =
         # Basic rectangle.
         fillMaskCtx.fillRect(
           rect(
-            node.absoluteBoundingBox.x + at.x,
-            node.absoluteBoundingBox.y + at.y,
+            node.absoluteBoundingBox.x + orgPos.x,
+            node.absoluteBoundingBox.y + orgPos.y,
             node.absoluteBoundingBox.width,
             node.absoluteBoundingBox.height,
           ),
@@ -280,8 +423,8 @@ proc drawNode*(node: Node) =
     if node.strokes.len > 0:
       strokeMaskCtx.fill(clear)
       let
-        x = node.absoluteBoundingBox.x + at.x
-        y = node.absoluteBoundingBox.y + at.y
+        x = node.absoluteBoundingBox.x + orgPos.x
+        y = node.absoluteBoundingBox.y + orgPos.y
         w = node.absoluteBoundingBox.width
         h = node.absoluteBoundingBox.height
       var
@@ -301,8 +444,8 @@ proc drawNode*(node: Node) =
       if node.cornerRadius > 0:
         # Rectangle with common corners.
         let
-          x = node.absoluteBoundingBox.x + at.x
-          y = node.absoluteBoundingBox.y + at.y
+          x = node.absoluteBoundingBox.x + orgPos.x
+          y = node.absoluteBoundingBox.y + orgPos.y
           w = node.absoluteBoundingBox.width
           h = node.absoluteBoundingBox.height
           r = node.cornerRadius
@@ -314,8 +457,8 @@ proc drawNode*(node: Node) =
         # Rectangle with different corners.
         path = newPath()
         let
-          x = node.absoluteBoundingBox.x + at.x
-          y = node.absoluteBoundingBox.y + at.y
+          x = node.absoluteBoundingBox.x + orgPos.x
+          y = node.absoluteBoundingBox.y + orgPos.y
           w = node.absoluteBoundingBox.width
           h = node.absoluteBoundingBox.height
           nw = node.rectangleCornerRadii[0]
@@ -346,11 +489,11 @@ proc drawNode*(node: Node) =
         white
       )
 
-  of "VECTOR":
+  of "VECTOR", "STAR":
     if node.fills.len > 0:
       fillMaskCtx.fill(clear)
       for geometry in node.fillGeometry:
-        let pos = node.absoluteBoundingBox.xy + at
+        let pos = node.absoluteBoundingBox.xy + orgPos
         fillMaskCtx.fillPolygon(
           geometry.path,
           white,
@@ -360,7 +503,7 @@ proc drawNode*(node: Node) =
     if node.strokes.len > 0:
       strokeMaskCtx.fill(clear)
       for geometry in node.strokeGeometry:
-        let pos = node.absoluteBoundingBox.xy + at
+        let pos = node.absoluteBoundingBox.xy + orgPos
         strokeMaskCtx.fillPolygon(
           geometry.path,
           white,
@@ -383,7 +526,7 @@ proc drawNode*(node: Node) =
       of "BOTTOM": return Bottom
       else: Top
 
-    let pos = node.absoluteBoundingBox.xy + at
+    let pos = node.absoluteBoundingBox.xy + orgPos
     var font = readFontTtf("fonts/" & node.style.fontFamily & ".ttf")
     font.size = node.style.fontSize
     font.lineHeight = node.style.lineHeightPx
@@ -403,11 +546,29 @@ proc drawNode*(node: Node) =
       applyDropShadowEffect(effect, node)
 
   for fill in node.fills:
-    applyPaint(fillMaskCtx, fill, node)
+    applyPaint(fillMaskCtx, fill, node, orgPos)
 
   for stroke in node.strokes:
-    applyPaint(strokeMaskCtx, stroke, node)
+    applyPaint(strokeMaskCtx, stroke, node, orgPos)
 
-  for effect in node.effects:
-    if effect.`type` == "INNER_SHADOW":
-      applyInnerShadowEffect(effect, node)
+  # TODO: fix INNER_SHADOW
+  # for effect in node.effects:
+  #   if effect.`type` == "INNER_SHADOW":
+  #     applyInnerShadowEffect(effect, node)
+
+  drawChildren(node)
+  for child in node.children:
+    node.pixels.blitWithBlendMode(
+      child.pixels,
+      parseBlendMode(child.blendMode),
+      child.pixelBox.xy - node.pixelBox.xy
+    )
+
+  print "  draw", node.name, node.pixelBox
+  node.dirty = false
+  assert node.pixels != nil
+
+  #node.pixels.save("nodes/" & node.name & ".pixels.png")
+
+  #mainCtx.blitWithBlendMode(node.pixels, parseBlendMode(node.blendMode))
+  #mainCtx.save("nodes/" & node.name & ".mainCtx.png")
