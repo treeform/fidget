@@ -77,7 +77,7 @@ type
     prototypeStartNodeID*: string
     prototypeDevice*: Device
     absoluteBoundingBox*: Box
-    size: Vec2
+    size*: Vec2
     relativeTransform*: seq[seq[float32]]
     constraints*: Constraints
     layoutAlign*: string
@@ -138,6 +138,10 @@ proc downloadImageRef*(fileKey: string) =
 
   let data = client.getContent("https://api.figma.com/v1/files/" & fileKey & "/images")
   let json = parseJson(data)
+
+  if not existsDir("images"):
+    createDir("images")
+
   for imageRef, url in json["meta"]["images"].pairs:
     var client = newHttpClient()
     let data = client.getContent(url.getStr())
@@ -168,5 +172,6 @@ proc parseFigma*(file: JsonNode): FigmaFile =
 
 
 proc use*(url: string) =
-  download(url, "import.json")
+  #if not existsFile("import.json"):
+  # download(url, "import.json")
   figmaFile = parseFigma(parseJson(readFile("import.json")))

@@ -1,5 +1,6 @@
 
-import flippy, flippy/paths, chroma, chroma/blends, math, vmath, schema, print, typography, bumpy
+import flippy, flippy/paths, chroma, chroma/blends, math, vmath, schema, print,
+    typography, bumpy, strutils
 
 const
   white = rgba(255, 255, 255, 255)
@@ -8,13 +9,15 @@ const
 var
   mainCtx*: Image
   ctx*: Image
-  fillMaskCtx: Image
-  strokeMaskCtx: Image
-  effectsCtx: Image
+  # fillMaskCtx: Image
+  # strokeMaskCtx: Image
+  # effectsCtx: Image
   maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
   framePos*: Vec2
+
+  matStack: seq[Mat3]
 
 # proc frameFills(node: Node) =
 #   if node.fills.len > 0:
@@ -92,6 +95,9 @@ proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
   effectsCtx.putRgbaUnsafe(x, y, color.rgba)
 
 proc applyPaint(maskCtx: Image, fill: Paint, node: Node, orgPos: Vec2) =
+
+  assert maskCtx != nil, "Mask is nil for id: " & node.id & "."
+
   let pos = node.absoluteBoundingBox.xy + orgPos
 
   proc toImageSpace(handle: Vec2): Vec2 =
@@ -106,7 +112,8 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, orgPos: Vec2) =
       det = d.x*d.x + d.y*d.y
     return (d.y*(point.y-at.y)+d.x*(point.x-at.x))/det
 
-  effectsCtx.fill(clear)
+  #effectsCtx.fill(clear)
+  var effectsCtx = newImage(maskCtx.width, maskCtx.height, 4)
 
   if fill.`type` == "IMAGE":
     var image = loadImage("images/" & fill.imageRef)
@@ -230,7 +237,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, orgPos: Vec2) =
 
   ctx.blitMasked(effectsCtx, maskCtx)
 
-proc applyDropShadowEffect(effect: Effect, node: Node) =
+proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the drop shadow.
   var shadowCtx = fillMaskCtx.blur(effect.radius)
   shadowCtx.colorAlpha(effect.color)
@@ -241,7 +248,7 @@ proc applyDropShadowEffect(effect: Effect, node: Node) =
     maskingCtx.blitMaskStack(maskStack)
   ctx.blitMasked(shadowCtx, maskingCtx)
 
-proc applyInnerShadowEffect(effect: Effect, node: Node) =
+proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
   var shadowCtx = fillMaskCtx.copy()
   shadowCtx.invertColor()
@@ -263,12 +270,10 @@ proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
 
 proc roundRectRev(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   path.moveTo(x+w+ne, y)
-
   path.arcTo(x,   y,   x,   y+h,   nw)
   path.arcTo(x,   y+h, x+w, y+h,   sw)
   path.arcTo(x+w, y+h, x+w, y, se)
   path.arcTo(x+w, y,   x,   y, ne)
-
   path.closePath()
 
 proc checkDirty(node: Node) =
@@ -278,37 +283,29 @@ proc checkDirty(node: Node) =
     if c.dirty == true:
       node.dirty = true
 
-proc drawCompleteFrame*(node: Node): Image =
-  ## Draws full frame that is ready to be displayed.
-  if mainCtx == nil:
-    mainCtx = newImage(
-      node.absoluteBoundingBox.width.int,
-      node.absoluteBoundingBox.height.int,
-      4)
-    fillMaskCtx = newImage(mainCtx.width, mainCtx.height, 4)
-    strokeMaskCtx = newImage(mainCtx.width, mainCtx.height, 4)
-    effectsCtx = newImage(mainCtx.width, mainCtx.height, 4)
-  else:
-    mainCtx.fill(clear)
-    fillMaskCtx.fill(clear)
-    effectsCtx.fill(clear)
+proc transform(node: Node): Mat4 =
+  result[0] = node.relativeTransform[0][0]
+  result[1] = node.relativeTransform[1][0]
+  result[2] = 0
+  result[3] = 0
 
-  framePos = vec2(
-    -node.absoluteBoundingBox.x,
-    -node.absoluteBoundingBox.y
-  )
-  checkDirty(node)
-  drawNode(node)
+  result[4] = node.relativeTransform[0][1]
+  result[5] = node.relativeTransform[1][1]
+  result[6] = 0
+  result[7] = 0
 
-  assert mainCtx != nil
-  assert node.pixels != nil
+  result[8] = 0
+  result[9] = 0
+  result[10] = 1
+  result[11] = 0
 
-  mainCtx.blitWithBlendMode(
-    node.pixels, parseBlendMode(node.blendMode), vec2(0, 0))
+  result[12] = node.relativeTransform[0][2]
+  result[13] = node.relativeTransform[1][2]
+  result[14] = 0
+  result[15] = 1
 
-  return mainCtx
 
-proc `and`(a, b: Rect): Rect =
+proc `or`(a, b: Rect): Rect =
   ## Take a and b bounding Rectangles and return a bounding rectangle that
   ## overlaps them both.
   result.x = min(a.x, b.x)
@@ -317,23 +314,78 @@ proc `and`(a, b: Rect): Rect =
   result.h = max(a.y + a.h, b.y + b.h) - result.y
 
 proc computePixelBox*(node: Node) =
-  ## Computes pixel bounds.
-  ## Takes into account width, height and shadow extent, and children.
-  node.pixelBox.xy = node.absoluteBoundingBox.xy + framePos
-  node.pixelBox.wh = node.absoluteBoundingBox.wh
+  node.pixelBox.xy = vec2(0, 0)
+  node.pixelBox.wh = vec2(mainCtx.width.float32, mainCtx.height.float32)
 
-  # Take drop shadow into account:
-  var s = 0.0
-  for effect in node.effects:
-    if effect.`type` == "DROP_SHADOW":
-      s = max(s, effect.radius + effect.spread)
-  node.pixelBox.xy = node.pixelBox.xy + vec2(s, s)
-  node.pixelBox.wh = node.pixelBox.wh + vec2(s, s)
+  # ## Computes pixel bounds.
+  # ## Takes into account width, height and shadow extent, and children.
+  # node.pixelBox.xy = node.absoluteBoundingBox.xy + framePos
+  # node.pixelBox.wh = node.absoluteBoundingBox.wh
 
-  # Take children into account:
-  for child in node.children:
-    child.computePixelBox()
-    node.pixelBox = node.pixelBox and child.pixelBox
+  # var s = 0.0
+
+  # # Takes stroke into account:
+  # if node.strokes.len > 0:
+  #   s = max(s, node.strokeWeight)
+
+  # # Take drop shadow into account:
+  # for effect in node.effects:
+  #   if effect.`type` == "DROP_SHADOW" or effect.`type` == "INNER_SHADOW":
+  #     # Note: INNER_SHADOW needs just as much area around as drop shadow
+  #     # because it needs to blur in.
+  #     s = max(s, effect.radius + effect.spread)
+
+  # node.pixelBox.xy = node.pixelBox.xy - vec2(s, s)
+  # node.pixelBox.wh = node.pixelBox.wh + vec2(s, s) * 2
+
+  # # Take children into account:
+  # for child in node.children:
+  #   child.computePixelBox()
+
+  #   if not node.clipsContent:
+  #     # TODO: clips content should still respect shadows.
+  #     node.pixelBox = node.pixelBox or child.pixelBox
+
+
+
+
+proc drawCompleteFrame*(node: Node): Image =
+  ## Draws full frame that is ready to be displayed.
+  if mainCtx == nil:
+    mainCtx = newImage(
+      node.absoluteBoundingBox.width.int,
+      node.absoluteBoundingBox.height.int,
+      4)
+    # fillMaskCtx = newImage(mainCtx.width, mainCtx.height, 4)
+    # strokeMaskCtx = newImage(mainCtx.width, mainCtx.height, 4)
+    # effectsCtx = newImage(mainCtx.width, mainCtx.height, 4)
+  else:
+    mainCtx.fill(clear)
+    # fillMaskCtx.fill(clear)
+    # effectsCtx.fill(clear)
+
+  # framePos = vec2(
+  #   -node.absoluteBoundingBox.x,
+  #   -node.absoluteBoundingBox.y
+  # )
+
+  var mat = node.transform()
+  # mat[2, 0] = -mat[2, 0]
+  # mat[2, 1] = -mat[2, 1]
+  # matStack.add(mat)
+
+  checkDirty(node)
+  drawNode(node)
+
+  #discard matStack.pop()
+
+  assert mainCtx != nil
+  assert node.pixels != nil
+
+  mainCtx.blitWithBlendMode(
+    node.pixels, parseBlendMode(node.blendMode), vec2(0, 0))
+
+  return mainCtx
 
 proc drawNode*(node: Node) =
   ## Draws a node.
@@ -348,85 +400,108 @@ proc drawNode*(node: Node) =
   # Make sure node.pixels is there and is the right size:
   let
     w = ceil(node.pixelBox.w).int
-    h = ceil(node.pixelBox.w).int
+    h = ceil(node.pixelBox.h).int
   if node.pixels == nil or node.pixels.width != w or node.pixels.height != h:
     node.pixels = newImage(w, h, 4)
   else:
     node.pixels.fill(clear)
 
-  # TODO: make sure we need the supporting images.
-  fillMaskCtx = newImage(w, h, 4)
-  strokeMaskCtx = newImage(w, h, 4)
-  effectsCtx = newImage(w, h, 4)
+  var
+    fillMaskCtx: Image
+    strokeMaskCtx: Image
+
+  # fillMaskCtx = newImage(w, h, 4)
+  # strokeMaskCtx = newImage(w, h, 4)
+  # effectsCtx = newImage(w, h, 4)
+
   ctx = node.pixels
   var orgPos = framePos - node.pixelBox.xy
+
+  #let mat = matStack[^1] * node.transform()
+
+  var mat = mat4()
+  for i, node in nodeStack:
+    var transform = node.transform()
+    if i == 0:
+      # root node
+      transform = mat4()
+
+    mat = mat * transform
+
+  mat = mat * node.transform()
+
+  var s = ""
+  for node in nodeStack:
+    s.add(" ")
+  echo s, node.name, "|", repr(node.transform()).strip()
+  echo s, node.name, ":", repr(mat).strip()
 
   case node.`type`
   of "DOCUMENT", "CANVAS":
     quit(node.`type` & " can't be drawn.")
 
-  # of "FRAME", "GROUP", "COMPONENT", "INSTANCE":
-  #   parentNode = node
-  #   frameFills(node)
-  #   drawChildren(node)
-  #   return
-
-  of "RECTANGLE", "FRAME", "GROUP", "COMPONENT", "INSTANCE":
+  of "RECTANGLE", "FRAME", "GROUP", "COMPONENT", "INSTANCE", "BOOLEAN_OPERATION":
     if node.fills.len > 0:
-      fillMaskCtx.fill(clear)
+      fillMaskCtx = newImage(w, h, 4)
+
       if node.cornerRadius > 0:
         # Rectangle with common corners.
         var path = newPath()
         path.roundRect(
-          x = node.absoluteBoundingBox.x + orgPos.x,
-          y = node.absoluteBoundingBox.y + orgPos.y,
-          w = node.absoluteBoundingBox.width,
-          h = node.absoluteBoundingBox.height,
+          x = 0,
+          y = 0,
+          w = node.size.x,
+          h = node.size.y,
           nw = node.cornerRadius,
           ne = node.cornerRadius,
           se = node.cornerRadius,
           sw = node.cornerRadius
         )
-        fillMaskCtx.fillPolygon(
+        fillMaskCtx.fillPath(
           path,
-          white
+          white,
+          mat
         )
       elif node.rectangleCornerRadii.len == 4:
         # Rectangle with different corners.
         var path = newPath()
         path.roundRect(
-          x = node.absoluteBoundingBox.x + orgPos.x,
-          y = node.absoluteBoundingBox.y + orgPos.y,
-          w = node.absoluteBoundingBox.width,
-          h = node.absoluteBoundingBox.height,
+          x = 0,
+          y = 0,
+          w = node.size.x,
+          h = node.size.y,
           nw = node.rectangleCornerRadii[0],
           ne = node.rectangleCornerRadii[1],
           se = node.rectangleCornerRadii[2],
           sw = node.rectangleCornerRadii[3],
         )
-        fillMaskCtx.fillPolygon(
+        fillMaskCtx.fillPath(
           path,
-          white
+          white,
+          mat,
         )
       else:
         # Basic rectangle.
-        fillMaskCtx.fillRect(
-          rect(
-            node.absoluteBoundingBox.x + orgPos.x,
-            node.absoluteBoundingBox.y + orgPos.y,
-            node.absoluteBoundingBox.width,
-            node.absoluteBoundingBox.height,
-          ),
-          white
+        var path = newPath()
+        path.rect(
+          x = 0,
+          y = 0,
+          w = node.size.x,
+          h = node.size.y,
+        )
+        fillMaskCtx.fillPath(
+          path,
+          white,
+          mat,
         )
 
     if node.strokes.len > 0:
-      strokeMaskCtx.fill(clear)
+      strokeMaskCtx = newImage(w, h, 4)
       let
         x = node.absoluteBoundingBox.x + orgPos.x
         y = node.absoluteBoundingBox.y + orgPos.y
-        w = node.absoluteBoundingBox.width
-        h = node.absoluteBoundingBox.height
+        w = node.size.x
+        h = node.size.y
       var
         inner = 0.0
         outer = 0.0
@@ -444,10 +519,6 @@ proc drawNode*(node: Node) =
       if node.cornerRadius > 0:
         # Rectangle with common corners.
         let
-          x = node.absoluteBoundingBox.x + orgPos.x
-          y = node.absoluteBoundingBox.y + orgPos.y
-          w = node.absoluteBoundingBox.width
-          h = node.absoluteBoundingBox.height
           r = node.cornerRadius
         path = newPath()
         path.roundRect(x-outer,y-outer,w+outer*2,h+outer*2,r+outer,r+outer,r+outer,r+outer)
@@ -457,10 +528,6 @@ proc drawNode*(node: Node) =
         # Rectangle with different corners.
         path = newPath()
         let
-          x = node.absoluteBoundingBox.x + orgPos.x
-          y = node.absoluteBoundingBox.y + orgPos.y
-          w = node.absoluteBoundingBox.width
-          h = node.absoluteBoundingBox.height
           nw = node.rectangleCornerRadii[0]
           ne = node.rectangleCornerRadii[1]
           se = node.rectangleCornerRadii[2]
@@ -484,30 +551,28 @@ proc drawNode*(node: Node) =
         path.lineTo(x+inner,   y+inner)
         path.closePath()
 
-      strokeMaskCtx.fillPolygon(
+      strokeMaskCtx.fillPath(
         path,
         white
       )
 
-  of "VECTOR", "STAR":
+  of "VECTOR", "STAR", "REGULAR_POLYGON":
     if node.fills.len > 0:
-      fillMaskCtx.fill(clear)
+      fillMaskCtx = newImage(w, h, 4)
       for geometry in node.fillGeometry:
-        let pos = node.absoluteBoundingBox.xy + orgPos
-        fillMaskCtx.fillPolygon(
+        fillMaskCtx.fillPath(
           geometry.path,
           white,
-          pos
+          mat
         )
 
     if node.strokes.len > 0:
-      strokeMaskCtx.fill(clear)
+      strokeMaskCtx = newImage(w, h, 4)
       for geometry in node.strokeGeometry:
-        let pos = node.absoluteBoundingBox.xy + orgPos
-        strokeMaskCtx.fillPolygon(
+        strokeMaskCtx.fillPath(
           geometry.path,
           white,
-          pos
+          mat
         )
 
   of "TEXT":
@@ -538,37 +603,48 @@ proc drawNode*(node: Node) =
       hAlign = hAlignCase(node.style.textAlignHorizontal),
       vAlign = vAlignCase(node.style.textAlignVertical)
     )
-    fillMaskCtx.fill(clear)
+    fillMaskCtx = newImage(w, h, 4)
     fillMaskCtx.drawText(layout)
 
   for effect in node.effects:
     if effect.`type` == "DROP_SHADOW":
-      applyDropShadowEffect(effect, node)
+      applyDropShadowEffect(effect, node, fillMaskCtx)
 
   for fill in node.fills:
     applyPaint(fillMaskCtx, fill, node, orgPos)
 
-  for stroke in node.strokes:
-    applyPaint(strokeMaskCtx, stroke, node, orgPos)
+  #for stroke in node.strokes:
+  #  applyPaint(strokeMaskCtx, stroke, node, orgPos)
 
-  # TODO: fix INNER_SHADOW
-  # for effect in node.effects:
-  #   if effect.`type` == "INNER_SHADOW":
-  #     applyInnerShadowEffect(effect, node)
+  for effect in node.effects:
+    if effect.`type` == "INNER_SHADOW":
+      applyInnerShadowEffect(effect, node, fillMaskCtx)
 
-  drawChildren(node)
-  for child in node.children:
-    node.pixels.blitWithBlendMode(
-      child.pixels,
-      parseBlendMode(child.blendMode),
-      child.pixelBox.xy - node.pixelBox.xy
-    )
+  if node.children.len > 0:
+    # if node.`type` == "FRAME":
+    #   echo " +++ mat"
+    #   matStack.add(mat)
+    # else:
+    #   echo " +++ matXY"
+    #   var matXY = mat3()
+    #   matXY[2, 0] = mat[2, 0]
+    #   matXY[2, 1] = mat[2, 1]
+    #   matStack.add(matXY)
 
-  print "  draw", node.name, node.pixelBox
+    drawChildren(node)
+    for child in node.children:
+      node.pixels.blitWithBlendMode(
+        child.pixels,
+        parseBlendMode(child.blendMode),
+        vec2(0, 0)#child.pixelBox.xy - node.pixelBox.xy
+      )
+    # if node.`type` == "FRAME":
+    #   echo " +++ pop"
+    #   discard matStack.pop()
+
   node.dirty = false
   assert node.pixels != nil
 
   #node.pixels.save("nodes/" & node.name & ".pixels.png")
-
   #mainCtx.blitWithBlendMode(node.pixels, parseBlendMode(node.blendMode))
   #mainCtx.save("nodes/" & node.name & ".mainCtx.png")

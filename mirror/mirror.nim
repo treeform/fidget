@@ -24,7 +24,7 @@ template onClick*(name: string, body: untyped) =
   onFrame:
     if mouseButton:
       let node = findByName(mainFrame).findByName(name)
-      if node.rect.overlap(mousePos):
+      if node != nil and node.rect.overlap(mousePos):
         body
         mouseButton = false
 
@@ -79,7 +79,7 @@ proc startFidget*() =
 
   if windowSizeFixed:
     let frameNode = findByName(mainFrame)
-    assert frameNode != nil
+    assert frameNode != nil, "Frame " & mainFrame & " not found!"
     w = frameNode.absoluteBoundingBox.width.int32
     h = frameNode.absoluteBoundingBox.height.int32
 
