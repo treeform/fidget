@@ -354,6 +354,10 @@ proc clipContent*(clipContent: bool) =
   ## Causes the parent to clip the children.
   current.clipContent = clipContent
 
+proc scrollBars*(scrollBars: bool) =
+  ## Causes the parent to clip the children and draw scroll bars.
+  current.scrollBars = scrollBars
+
 proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.
   current.cursorColor = color
