@@ -270,11 +270,17 @@ proc draw*(index: int, node: Node, parent: Node) =
   if node.hasDifferent(transparency):
     node.element.style.opacity = $node.transparency
 
+  if node.hasDifferent(scrollBars):
+    if node.scrollBars:
+      node.element.style.overflow = "auto"
+    else:
+      node.element.style.overflow = "visible"
+
   if node.hasDifferent(clipContent):
     if node.clipContent:
       node.element.style.overflow = "hidden"
     else:
-      node.element.style.overflow = "visable"
+      node.element.style.overflow = "visible"
 
   if node.kind == nkText:
     # In a text node many params apply to the text (not the fill).
@@ -669,11 +675,14 @@ proc getUrl*(): string =
     $dom.window.location.search &
     $dom.window.location.hash
 
-proc setUrl*(url: string) =
-  ## Goes to a new URL, inserts it into history so that back button works
+proc setUrl*(url: string, scrollToTop = true) =
+  ## Goes to a new URL, inserts it into history so that back button works.
+  ## Also scrolls to the top of the page to mimic how an HTML reload would look.
   if getUrl() != url:
     type Dummy = object
     dom.window.history.pushState(Dummy(), "", url)
+    if scrollToTop:
+      document.documentElement.scrollTop = 0
     refresh()
 
 proc loadFont*(name: string, pathOrUrl: string) =

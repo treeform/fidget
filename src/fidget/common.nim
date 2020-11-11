@@ -142,6 +142,7 @@ type
     textLayoutWidth*: float32
     ## Can the text be selected.
     selectable*: bool
+    scrollBars*: bool ## Should it have scroll bars if children are clipped.
 
   KeyState* = enum
     Empty
