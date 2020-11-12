@@ -1,5 +1,5 @@
 import json, jsons, print, tables, chroma, vmath, flippy,
-    httpclient2, json, strutils, os
+    httpclient2, json, strutils, os, typography
 
 type
   Component* = ref object
@@ -25,6 +25,7 @@ type
   Paint* = ref object
     blendMode*: string
     `type`*: string
+    visible*: bool
     color*: Color
     scaleMode*: string
     imageRef*: string
@@ -108,7 +109,6 @@ type
     pixelBox*: Rect ## Pixel position and size.
     editable*: bool  ## Can the user edit the text?
 
-
   FigmaFile* = ref object
     document*: Node
     components*: Table[string, Component]
@@ -143,9 +143,10 @@ proc downloadImageRef*(fileKey: string) =
     createDir("images")
 
   for imageRef, url in json["meta"]["images"].pairs:
-    var client = newHttpClient()
-    let data = client.getContent(url.getStr())
-    writeFile("images/" & imageRef, data)
+    if not existsFile("images/" & imageRef):
+      var client = newHttpClient()
+      let data = client.getContent(url.getStr())
+      writeFile("images/" & imageRef, data)
 
 proc download(url, filePath: string) =
 
@@ -160,18 +161,15 @@ proc download(url, filePath: string) =
   let data = client.getContent("https://api.figma.com/v1/files/" & figmaFileKey & "?geometry=paths")
   let json = parseJson(data)
   writeFile(filePath, pretty(json))
-
   downloadImageRef(figmaFileKey)
 
 proc parseFigma*(file: JsonNode): FigmaFile =
   if "schemaVersion" in file:
     doAssert file["schemaVersion"].getInt() == 0
   result = file.fromJson(FigmaFile)
-
   writeFile("generate.json", pretty(%result))
-
 
 proc use*(url: string) =
   #if not existsFile("import.json"):
-  # download(url, "import.json")
+  download(url, "import.json")
   figmaFile = parseFigma(parseJson(readFile("import.json")))
