@@ -196,9 +196,6 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
   elif fill.`type` == "SOLID":
     effectsCtx.fill(fill.color.rgba)
 
-  # TODO: Fix masking.
-  # maskCtx.blitMaskStack(maskStack)
-  # ctx.blitMasked(effectsCtx, maskCtx)
   effectsCtx.draw(maskCtx, blendMode = Mask)
   ctx.draw(effectsCtx)
 
@@ -207,22 +204,20 @@ proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   var shadowCtx = fillMaskCtx.blur(effect.radius)
   shadowCtx.colorAlpha(effect.color)
   # Draw it back.
-  #var maskingCtx = newImage(ctx.width, ctx.height, 4)
-  #maskingCtx.fill(white)
-  #maskingCtx.blitMaskStack(maskStack)
-  #ctx.blitMasked(shadowCtx, maskingCtx)
   ctx.draw(shadowCtx)
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
   var shadowCtx = fillMaskCtx.copy()
+  # Invert colors of the fill mask.
   shadowCtx.invertColor()
+  # Blur the inverted fill.
   shadowCtx = shadowCtx.blur(effect.radius)
+  # Color the inverted blurred fill.
   shadowCtx.colorAlpha(effect.color)
+  # Only have the shadow be on the fill.
+  shadowCtx.draw(fillMaskCtx, blendMode = Mask)
   # Draw it back.
-  # var maskingCtx = fillMaskCtx.copy()
-  # maskingCtx.blitMaskStack(maskStack)
-  # ctx.blitMasked(shadowCtx, maskingCtx)
   ctx.draw(shadowCtx)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
