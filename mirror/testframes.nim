@@ -12,8 +12,9 @@ proc main(r = "", l = 10000) =
   for frame in figmaFile.document.children[0].children:
     if count >= l: continue
     if r != "" and not frame.name.startsWith(r): continue
+
+    echo " *** ", frame.name, " *** "
     let image = drawCompleteFrame(frame)
-    print "write frame", frame.name
     image.save("frames/" & frame.name & ".png")
 
     if existsFile(&"frames/masters/{frame.name}.png"):

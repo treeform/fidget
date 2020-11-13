@@ -9,7 +9,7 @@ const
 var
   mainCtx*: Image
   ctx*: Image
-  maskStack: seq[Image]
+  # maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
   framePos*: Vec2
@@ -22,31 +22,9 @@ proc drawChildren(node: Node) =
   parentNode = node
   nodeStack.add(node)
 
-  # # Is there a mask?
-  # var haveMask = false
-  # for child in node.children:
-  #   if child.isMask:
-  #     haveMask = true
-
-  # if haveMask:
-  #   var tmpCtx = ctx
-  #   ctx = newImage(tmpCtx.width, tmpCtx.height, 4)
-
-  #   # Draw masked children first:
-  #   for child in node.children:
-  #     if child.isMask:
-  #       drawNode(child)
-
-  #   maskStack.add(ctx)
-  #   ctx = tmpCtx
-
   # Draw regular children:
   for child in node.children:
-    #if not child.isMask:
     drawNode(child)
-
-  # if haveMask:
-  #   discard maskStack.pop()
 
   discard nodeStack.pop()
   if nodeStack.len > 0:
@@ -112,7 +90,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = min(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effectsCtx.blitWithAlpha(
+      effectsCtx.draw(
         image,
         mat.mat4 * translate(vec3(topRight, 0)) * scale(vec3(1/scale))
       )
@@ -123,7 +101,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = max(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effectsCtx.blitWithAlpha(
+      effectsCtx.draw(
         image,
         mat.mat4 * translate(vec3(topRight, 0)) * scale(vec3(1/scale))
       )
@@ -155,7 +133,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         scale = min(ratioW, ratioH)
       # TODO: Don't scale the image, just scale the matrix.
       image = image.resize(int(image.width.float32 / scale), int(image.height.float32 / scale))
-      effectsCtx.blitWithAlpha(image, mat)
+      effectsCtx.draw(image, mat)
 
     elif fill.scaleMode == "TILE":
       image = image.resize(
@@ -165,7 +143,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
       while x < node.absoluteBoundingBox.width:
         var y = 0.0
         while y < node.absoluteBoundingBox.height:
-          effectsCtx.blit(image, vec2(x, y))
+          effectsCtx.draw(image, vec2(x, y))
           y += image.height.float32
         x += image.width.float32
 
@@ -219,19 +197,21 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
     effectsCtx.fill(fill.color.rgba)
 
   # TODO: Fix masking.
-  maskCtx.blitMaskStack(maskStack)
-
-  ctx.blitMasked(effectsCtx, maskCtx)
+  # maskCtx.blitMaskStack(maskStack)
+  # ctx.blitMasked(effectsCtx, maskCtx)
+  effectsCtx.draw(maskCtx, blendMode = Mask)
+  ctx.draw(effectsCtx)
 
 proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the drop shadow.
   var shadowCtx = fillMaskCtx.blur(effect.radius)
   shadowCtx.colorAlpha(effect.color)
   # Draw it back.
-  var maskingCtx = newImage(ctx.width, ctx.height, 4)
-  maskingCtx.fill(white)
-  maskingCtx.blitMaskStack(maskStack)
-  ctx.blitMasked(shadowCtx, maskingCtx)
+  #var maskingCtx = newImage(ctx.width, ctx.height, 4)
+  #maskingCtx.fill(white)
+  #maskingCtx.blitMaskStack(maskStack)
+  #ctx.blitMasked(shadowCtx, maskingCtx)
+  ctx.draw(shadowCtx)
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
@@ -240,9 +220,10 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   shadowCtx = shadowCtx.blur(effect.radius)
   shadowCtx.colorAlpha(effect.color)
   # Draw it back.
-  var maskingCtx = fillMaskCtx.copy()
-  maskingCtx.blitMaskStack(maskStack)
-  ctx.blitMasked(shadowCtx, maskingCtx)
+  # var maskingCtx = fillMaskCtx.copy()
+  # maskingCtx.blitMaskStack(maskStack)
+  # ctx.blitMasked(shadowCtx, maskingCtx)
+  ctx.draw(shadowCtx)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
@@ -288,15 +269,6 @@ proc transform(node: Node): Mat3 =
   result[2, 0] = node.relativeTransform[0][2]
   result[2, 1] = node.relativeTransform[1][2]
   result[2, 2] = 1
-
-
-proc `or`(a, b: Rect): Rect =
-  ## Take a and b bounding Rectangles and return a bounding rectangle that
-  ## overlaps them both.
-  result.x = min(a.x, b.x)
-  result.y = min(a.y, b.y)
-  result.w = max(a.x + a.w, b.x + b.w) - result.x
-  result.h = max(a.y + a.h, b.y + b.h) - result.y
 
 const pixelBounds = true
 
@@ -359,8 +331,7 @@ proc drawCompleteFrame*(node: Node): Image =
   assert mainCtx != nil
   assert node.pixels != nil
 
-  mainCtx.blitWithBlendMode(
-    node.pixels, parseBlendMode(node.blendMode), vec2(0, 0))
+  mainCtx.draw(node.pixels, blendMode = parseBlendMode(node.blendMode))
 
   return mainCtx
 
@@ -609,39 +580,38 @@ proc drawNode*(node: Node) =
       var nodeMaskLayer = newImage(node.pixels.width, node.pixels.height, 4)
       for child in node.children:
         if child.isMask:
-          nodeMaskLayer.blitWithBlendMode(
+          nodeMaskLayer.draw(
             child.pixels,
-            Normal,
             child.pixelBox.xy - node.pixelBox.xy,
+            Normal
           )
       var childLayer = newImage(node.pixels.width, node.pixels.height, 4)
       for child in node.children:
         if not child.isMask:
-          childLayer.blitWithBlendMode(
+          childLayer.draw(
             child.pixels,
-            parseBlendMode(child.blendMode),
             child.pixelBox.xy - node.pixelBox.xy,
+            parseBlendMode(child.blendMode),
           )
-      childLayer.blitWithBlendMode(
+      childLayer.draw(
         nodeMaskLayer,
-        Mask,
-        vec2(0, 0),
+        blendMode = Mask,
       )
-      node.pixels.blitWithBlendMode(
+      node.pixels.draw(
         childLayer,
-        Normal,
-        vec2(0, 0),
+        blendMode = Normal,
       )
 
     elif haveChildren:
       # If its just children.
       for child in node.children:
-        node.pixels.blitWithBlendMode(
+        assert node.pixels != nil
+        assert child.pixels != nil
+        node.pixels.draw(
           child.pixels,
-          parseBlendMode(child.blendMode),
           child.pixelBox.xy - node.pixelBox.xy,
+          parseBlendMode(child.blendMode),
         )
-
 
   node.dirty = false
   assert node.pixels != nil
