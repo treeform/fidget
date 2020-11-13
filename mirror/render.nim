@@ -9,31 +9,12 @@ const
 var
   mainCtx*: Image
   ctx*: Image
-  # fillMaskCtx: Image
-  # strokeMaskCtx: Image
-  # effectsCtx: Image
   maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
   framePos*: Vec2
-
-  matStack: seq[Mat3]
-
   imageCache: Table[string, Image]
   typefaceCache: Table[string, Typeface]
-
-# proc frameFills(node: Node) =
-#   if node.fills.len > 0:
-#     for fill in node.fills:
-#       mainCtx.fillRect(
-#         rect(
-#           node.absoluteBoundingBox.x + framePos.x,
-#           node.absoluteBoundingBox.y + framePos.y,
-#           node.absoluteBoundingBox.width,
-#           node.absoluteBoundingBox.height,
-#         ),
-#         fill.color.rgba
-#       )
 
 proc drawNode*(node: Node)
 
@@ -41,31 +22,31 @@ proc drawChildren(node: Node) =
   parentNode = node
   nodeStack.add(node)
 
-  # Is there a mask?
-  var haveMask = false
-  for child in node.children:
-    if child.isMask:
-      haveMask = true
+  # # Is there a mask?
+  # var haveMask = false
+  # for child in node.children:
+  #   if child.isMask:
+  #     haveMask = true
 
-  if haveMask:
-    var tmpCtx = ctx
-    ctx = newImage(tmpCtx.width, tmpCtx.height, 4)
+  # if haveMask:
+  #   var tmpCtx = ctx
+  #   ctx = newImage(tmpCtx.width, tmpCtx.height, 4)
 
-    # Draw masked children first:
-    for child in node.children:
-      if child.isMask:
-        drawNode(child)
+  #   # Draw masked children first:
+  #   for child in node.children:
+  #     if child.isMask:
+  #       drawNode(child)
 
-    maskStack.add(ctx)
-    ctx = tmpCtx
+  #   maskStack.add(ctx)
+  #   ctx = tmpCtx
 
   # Draw regular children:
   for child in node.children:
-    if not child.isMask:
-      drawNode(child)
+    #if not child.isMask:
+    drawNode(child)
 
-  if haveMask:
-    discard maskStack.pop()
+  # if haveMask:
+  #   discard maskStack.pop()
 
   discard nodeStack.pop()
   if nodeStack.len > 0:
@@ -101,8 +82,6 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
   assert maskCtx != nil, "Mask is nil for id: " & node.id & "."
 
-  #let pos = node.absoluteBoundingBox.xy + orgPos
-
   let pos = vec2(mat[2, 0], mat[2, 1])
 
   proc toImageSpace(handle: Vec2): Vec2 =
@@ -133,7 +112,6 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = min(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      #echo mat.mat4 * translate(vec3(topRight, 0)) * scale(vec3(1/scale))
       effectsCtx.blitWithAlpha(
         image,
         mat.mat4 * translate(vec3(topRight, 0)) * scale(vec3(1/scale))
@@ -241,11 +219,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
     effectsCtx.fill(fill.color.rgba)
 
   # TODO: Fix masking.
-  #if maskStack.len > 0:
-  #  maskCtx.blitMaskStack(maskStack)
-
-  #effectsCtx.save("nodes/" & node.name & ".effectsCtx.png")
-  #maskCtx.save("nodes/" & node.name & "maskCtx.png")
+  maskCtx.blitMaskStack(maskStack)
 
   ctx.blitMasked(effectsCtx, maskCtx)
 
@@ -256,8 +230,7 @@ proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   # Draw it back.
   var maskingCtx = newImage(ctx.width, ctx.height, 4)
   maskingCtx.fill(white)
-  if maskStack.len > 0:
-    maskingCtx.blitMaskStack(maskStack)
+  maskingCtx.blitMaskStack(maskStack)
   ctx.blitMasked(shadowCtx, maskingCtx)
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
@@ -268,11 +241,11 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   shadowCtx.colorAlpha(effect.color)
   # Draw it back.
   var maskingCtx = fillMaskCtx.copy()
-  if maskStack.len > 0:
-    maskingCtx.blitMaskStack(maskStack)
+  maskingCtx.blitMaskStack(maskStack)
   ctx.blitMasked(shadowCtx, maskingCtx)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
+  ## Draw a round rectangle with different radius corners.
   path.moveTo(x+nw, y)
   path.arcTo(x+w, y,   x+w, y+h, ne)
   path.arcTo(x+w, y+h, x,   y+h, se)
@@ -281,6 +254,7 @@ proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   path.closePath()
 
 proc roundRectRev(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
+  ## Same as roundRect but in reverse order so that you can cut out a hole.
   path.moveTo(x+w+ne, y)
   path.arcTo(x,   y,   x,   y+h,   nw)
   path.arcTo(x,   y+h, x+w, y+h,   sw)
@@ -302,26 +276,7 @@ proc checkDirty(node: Node) =
       node.dirty = true
 
 proc transform(node: Node): Mat3 =
-  # result[0] = node.relativeTransform[0][0]
-  # result[1] = node.relativeTransform[1][0]
-  # result[2] = 0
-  # result[3] = 0
-
-  # result[4] = node.relativeTransform[0][1]
-  # result[5] = node.relativeTransform[1][1]
-  # result[6] = 0
-  # result[7] = 0
-
-  # result[8] = 0
-  # result[9] = 0
-  # result[10] = 1
-  # result[11] = 0
-
-  # result[12] = node.relativeTransform[0][2]
-  # result[13] = node.relativeTransform[1][2]
-  # result[14] = 0
-  # result[15] = 1
-
+  ## Returns Mat3 transform of the node.
   result[0, 0] = node.relativeTransform[0][0]
   result[0, 1] = node.relativeTransform[1][0]
   result[0, 2] = 0
@@ -620,8 +575,6 @@ proc drawNode*(node: Node) =
     fillMaskCtx.drawText(layout)
 
     if node.strokes.len > 0:
-      # strokeMaskCtx.fill(clear)
-      # TODO: do a grow fx
       strokeMaskCtx = fillMaskCtx.outlineBorder2(node.strokeWeight.int)
 
   for effect in node.effects:
@@ -640,30 +593,55 @@ proc drawNode*(node: Node) =
       applyInnerShadowEffect(effect, node, fillMaskCtx)
 
   if node.children.len > 0:
-    # if node.`type` == "FRAME":
-    #   echo " +++ mat"
-    #   matStack.add(mat)
-    # else:
-    #   echo " +++ matXY"
-    #   var matXY = mat3()
-    #   matXY[2, 0] = mat[2, 0]
-    #   matXY[2, 1] = mat[2, 1]
-    #   matStack.add(matXY)
-
     drawChildren(node)
+
+    var
+      haveMask = false
+      haveChildren = false
     for child in node.children:
-      node.pixels.blitWithBlendMode(
-        child.pixels,
-        parseBlendMode(child.blendMode),
-        child.pixelBox.xy - node.pixelBox.xy, #  vec2(0, 0)
+      if child.isMask:
+        haveMask = true
+      else:
+        haveChildren = true
+
+    if haveMask and haveChildren:
+      # If there are children and a mask.
+      var nodeMaskLayer = newImage(node.pixels.width, node.pixels.height, 4)
+      for child in node.children:
+        if child.isMask:
+          nodeMaskLayer.blitWithBlendMode(
+            child.pixels,
+            Normal,
+            child.pixelBox.xy - node.pixelBox.xy,
+          )
+      var childLayer = newImage(node.pixels.width, node.pixels.height, 4)
+      for child in node.children:
+        if not child.isMask:
+          childLayer.blitWithBlendMode(
+            child.pixels,
+            parseBlendMode(child.blendMode),
+            child.pixelBox.xy - node.pixelBox.xy,
+          )
+      childLayer.blitWithBlendMode(
+        nodeMaskLayer,
+        Mask,
+        vec2(0, 0),
       )
-    # if node.`type` == "FRAME":
-    #   echo " +++ pop"
-    #   discard matStack.pop()
+      node.pixels.blitWithBlendMode(
+        childLayer,
+        Normal,
+        vec2(0, 0),
+      )
+
+    elif haveChildren:
+      # If its just children.
+      for child in node.children:
+        node.pixels.blitWithBlendMode(
+          child.pixels,
+          parseBlendMode(child.blendMode),
+          child.pixelBox.xy - node.pixelBox.xy,
+        )
+
 
   node.dirty = false
   assert node.pixels != nil
-
-  #node.pixels.save("nodes/" & node.name & ".pixels.png")
-  #mainCtx.blitWithBlendMode(node.pixels, parseBlendMode(node.blendMode))
-  #mainCtx.save("nodes/" & node.name & ".mainCtx.png")
