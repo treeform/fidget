@@ -468,14 +468,14 @@ proc drawNode*(node: Node) =
 
       else:
         path = newPath()
-        path.moveTo(x-outer, y-outer)
+        path.moveTo(x-outer,   y-outer)
         path.lineTo(x+w+outer, y-outer,  )
         path.lineTo(x+w+outer, y+h+outer,)
         path.lineTo(x-outer,   y+h+outer,)
         path.lineTo(x-outer,   y-outer,  )
         path.closePath()
 
-        path.moveTo(x+inner, y+inner)
+        path.moveTo(x+inner,   y+inner)
         path.lineTo(x+inner,   y+h-inner)
         path.lineTo(x+w-inner, y+h-inner)
         path.lineTo(x+w-inner, y+inner)
