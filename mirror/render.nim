@@ -196,15 +196,18 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
   elif fill.`type` == "SOLID":
     effectsCtx.fill(fill.color.rgba)
 
+
   effectsCtx.draw(maskCtx, blendMode = Mask)
   ctx.draw(effectsCtx)
 
 proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the drop shadow.
   var shadowCtx = fillMaskCtx.blur(effect.radius)
-  shadowCtx.colorAlpha(effect.color)
+  var colorCtx = newImage(shadowCtx.width, shadowCtx.height, 4)
+  colorCtx.fill(effect.color.rgba)
+  colorCtx.draw(shadowCtx, blendMode = Mask)
   # Draw it back.
-  ctx.draw(shadowCtx)
+  ctx.draw(colorCtx)
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
@@ -214,11 +217,13 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   # Blur the inverted fill.
   shadowCtx = shadowCtx.blur(effect.radius)
   # Color the inverted blurred fill.
-  shadowCtx.colorAlpha(effect.color)
+  var colorCtx = newImage(shadowCtx.width, shadowCtx.height, 4)
+  colorCtx.fill(effect.color.rgba)
+  colorCtx.draw(shadowCtx, blendMode = Mask)
   # Only have the shadow be on the fill.
-  shadowCtx.draw(fillMaskCtx, blendMode = Mask)
+  colorCtx.draw(fillMaskCtx, blendMode = Mask)
   # Draw it back.
-  ctx.draw(shadowCtx)
+  ctx.draw(colorCtx)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
