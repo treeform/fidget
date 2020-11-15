@@ -58,7 +58,14 @@ proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
 
 proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
-  assert maskCtx != nil, "Mask is nil for id: " & node.id & "."
+  if fill.visible == false:
+    return
+
+  if maskCtx == nil:
+    echo "maskCtx == nil:", node.name
+    return
+
+  #assert maskCtx != nil, "Mask is nil for id: " & node.id & "."
 
   let pos = vec2(mat[2, 0], mat[2, 1])
 
@@ -194,7 +201,11 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         effectsCtx.gradientPut(x, y, a, fill)
 
   elif fill.`type` == "SOLID":
-    effectsCtx.fill(fill.color.rgba)
+    var color = fill.color
+    color.a *= fill.opacity
+    effectsCtx.fill(color.rgba)
+  else:
+    echo "Not supported paint: ", fill.`type`
 
 
   effectsCtx.draw(maskCtx, blendMode = Mask)
@@ -227,6 +238,12 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
+  let
+    maxRaidus = min(w/2, h/2)
+    nw = min(nw, maxRaidus)
+    ne = min(ne, maxRaidus)
+    se = min(se, maxRaidus)
+    sw = min(sw, maxRaidus)
   path.moveTo(x+nw, y)
   path.arcTo(x+w, y,   x+w, y+h, ne)
   path.arcTo(x+w, y+h, x,   y+h, se)
@@ -236,6 +253,12 @@ proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
 
 proc roundRectRev(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Same as roundRect but in reverse order so that you can cut out a hole.
+  let
+    maxRaidus = min(w/2, h/2)
+    nw = min(nw, maxRaidus)
+    ne = min(ne, maxRaidus)
+    se = min(se, maxRaidus)
+    sw = min(sw, maxRaidus)
   path.moveTo(x+w+ne, y)
   path.arcTo(x,   y,   x,   y+h,   nw)
   path.arcTo(x,   y+h, x+w, y+h,   sw)
@@ -488,15 +511,17 @@ proc drawNode*(node: Node) =
         mat
       )
 
-  of "VECTOR", "STAR", "REGULAR_POLYGON":
+  of "VECTOR", "STAR", "ELLIPSE", "LINE", "REGULAR_POLYGON":
     if node.fills.len > 0:
       fillMaskCtx = newImage(w, h, 4)
+      var geometryCtx = newImage(w, h, 4)
       for geometry in node.fillGeometry:
-        fillMaskCtx.fillPath(
+        geometryCtx.fillPath(
           geometry.path,
           white,
           mat
         )
+        fillMaskCtx.draw(geometryCtx)
 
     if node.strokes.len > 0:
       strokeMaskCtx = newImage(w, h, 4)
@@ -526,12 +551,13 @@ proc drawNode*(node: Node) =
     let pos = vec2(mat[2, 0], mat[2, 1])
 
     var font: Font
-    if node.style.fontFamily notin typefaceCache:
-      font = readFontTtf("fonts/" & node.style.fontFamily & ".ttf")
-      typefaceCache[node.style.fontFamily] = font.typeface
+    if node.style.fontPostScriptName notin typefaceCache:
+      downloadFont(node.style.fontPostScriptName)
+      font = readFontTtf("fonts/" & node.style.fontPostScriptName & ".ttf")
+      typefaceCache[node.style.fontPostScriptName] = font.typeface
     else:
       font = Font()
-      font.typeface = typefaceCache[node.style.fontFamily]
+      font.typeface = typefaceCache[node.style.fontPostScriptName]
     font.size = node.style.fontSize
     font.lineHeight = node.style.lineHeightPx
 
@@ -540,13 +566,18 @@ proc drawNode*(node: Node) =
       pos = pos,
       size = node.size,
       hAlign = hAlignCase(node.style.textAlignHorizontal),
-      vAlign = vAlignCase(node.style.textAlignVertical)
+      vAlign = vAlignCase(node.style.textAlignVertical),
+      clip = false,
+      wrap = false
     )
     fillMaskCtx = newImage(w, h, 4)
     fillMaskCtx.drawText(layout)
 
     if node.strokes.len > 0:
       strokeMaskCtx = fillMaskCtx.outlineBorder2(node.strokeWeight.int)
+
+  else:
+    echo "Not supported node type: ", node.`type`
 
   for effect in node.effects:
     if effect.`type` == "DROP_SHADOW":

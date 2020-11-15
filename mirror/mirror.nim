@@ -83,7 +83,6 @@ proc startFidget*() =
     w = frameNode.absoluteBoundingBox.width.int32
     h = frameNode.absoluteBoundingBox.height.int32
 
-
   var
     window: Window
     frameIndex = 0
@@ -104,7 +103,8 @@ proc startFidget*() =
     let mainNode = figmaFile.document.children[0].findByName(mainFrame)
     let image = drawCompleteFrame(mainNode)
 
-    #image.save("frame.png")
+    # image.save("frame.png")
+    # if true: quit()
 
     # update texture with new pixels from surface
     var dataPtr = addr image.data[0]

@@ -1,5 +1,5 @@
 import json, jsons, print, tables, chroma, vmath, flippy,
-    httpclient2, json, strutils, os, typography
+    httpclient2, json, strutils, os, typography, strformat
 
 type
   Component* = ref object
@@ -26,6 +26,7 @@ type
     blendMode*: string
     `type`*: string
     visible*: bool
+    opacity*: float32
     color*: Color
     scaleMode*: string
     imageRef*: string
@@ -69,8 +70,9 @@ type
   Node* = ref object
     id*: string ## A string uniquely identifying this node within the document.
     name*: string ## The name given to the node by the user in the tool.
-    visible*: bool ## default true, Whether or not the node is visible on the canvas.
     `type`*: string ## The type of the node, refer to table below for details.
+    opacity*: float32
+    visible*: bool ## default true, Whether or not the node is visible on the canvas.
     #pluginData: JsonNode ## Data written by plugins that is visible only to the plugin that wrote it. Requires the `pluginData` to include the ID of the plugin.
     #sharedPluginData: JsonNode ##  Data written by plugins that is visible to all plugins. Requires the `pluginData` parameter to include the string "shared".
     blendMode*: string
@@ -123,6 +125,10 @@ var
   figmaFile*: FigmaFile
   figmaFileKey*: string
 
+proc newNode*(): Node =
+  result = Node()
+  result.visible = true
+
 func xy*(b: Box): Vec2 =
   vec2(b.x, b.y)
 
@@ -147,6 +153,34 @@ proc downloadImageRef*(fileKey: string) =
       var client = newHttpClient()
       let data = client.getContent(url.getStr())
       writeFile("images/" & imageRef, data)
+
+proc downloadFont*(fontPSName: string) =
+  if existsFile("fonts/" & fontPSName & ".ttf"):
+    return
+
+  if not existsDir("fonts"):
+    createDir("fonts")
+
+  if not fileExists("fonts/fonts.csv"):
+    var client = newHttpClient()
+    let data = client.getContent("https://raw.githubusercontent.com/treeform/freefrontfinder/master/fonts.csv")
+    writeFile("fonts/fonts.csv", data)
+
+  for line in readFile("fonts/fonts.csv").split("\n"):
+    var line = line.split(",")
+    if line[0] == fontPSName:
+      let url = line[1][1 .. ^2]
+      echo "Downloading ", url
+      try:
+        var client = newHttpClient()
+        let data = client.getContent(url)
+        writeFile("fonts/" & fontPSName & ".ttf", data)
+      except HttpRequestError:
+        echo getCurrentExceptionMsg()
+        echo &"Please download fonts/{fontPSName}.ttf"
+      return
+
+  echo &"Please download fonts/{fontPSName}.ttf"
 
 proc download(url, filePath: string) =
 

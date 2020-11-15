@@ -86,11 +86,29 @@ proc fromJson*(root: JsonNode, x: var object) =
     for name, value in x.fieldPairs:
       root.getOrDefault(name).fromJson(value)
 
-proc fromJson*(root: JsonNode, x: var ref object) =
+proc fromJson*[T](root: JsonNode, x: var ref T) =
   if root.notNilAndValid(JObject):
+    # x = `new T`()
+    # when compiles(`new typeOfX`()):
+    #   echo "using construction!"
+    #   x = `new typeOfX`()
+    # else:
     x = type(x)()
     for name, value in x[].fieldPairs:
-      root.getOrDefault(name).fromJson(value)
+      if name == "visible":
+        when compiles(x.visible):
+          if "visible" in root:
+            x.visible = root["visible"].getBool()
+          else:
+            x.visible = true
+      elif name == "opacity":
+        when compiles(x.opacity):
+          if "opacity" in root:
+            x.opacity = root["opacity"].getFloat()
+          else:
+            x.opacity = 1.0
+      else:
+        root.getOrDefault(name).fromJson(value)
 
 proc fromJson*(root: JsonNode, x: var JsonNode) =
   x = root
