@@ -211,14 +211,12 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
   effectsCtx.draw(maskCtx, blendMode = Mask)
   ctx.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
 
-proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
+proc applyDropShadowEffect(effect: Effect, node: Node) =
   ## Draws the drop shadow.
-  var shadowCtx = fillMaskCtx.blur(effect.radius)
-  var colorCtx = newImage(shadowCtx.width, shadowCtx.height, 4)
-  colorCtx.fill(effect.color.rgba)
-  colorCtx.draw(shadowCtx, blendMode = Mask)
-  # Draw it back.
-  ctx.draw(colorCtx)
+  var shadow = node.pixels.shadow(
+    effect.offset, effect.spread, effect.radius, effect.color)
+  shadow.draw(node.pixels)
+  node.pixels = shadow
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
@@ -318,7 +316,13 @@ proc computePixelBox*(node: Node) =
     if effect.`type` == "DROP_SHADOW" or effect.`type` == "INNER_SHADOW":
       # Note: INNER_SHADOW needs just as much area around as drop shadow
       # because it needs to blur in.
-      s = max(s, effect.radius + effect.spread)
+      s = max(
+        s,
+        effect.radius +
+        effect.spread +
+        abs(effect.offset.x) +
+        abs(effect.offset.y)
+      )
 
   node.pixelBox.xy = node.pixelBox.xy - vec2(s, s)
   node.pixelBox.wh = node.pixelBox.wh + vec2(s, s) * 2
@@ -598,11 +602,6 @@ proc drawNode*(node: Node) =
   else:
     echo "Not supported node type: ", node.`type`
 
-  for effect in node.effects:
-    if effect.`type` == "DROP_SHADOW":
-      if fillMaskCtx != nil:
-        applyDropShadowEffect(effect, node, fillMaskCtx)
-
   for fill in node.fills:
     applyPaint(fillMaskCtx, fill, node, mat)
 
@@ -664,6 +663,11 @@ proc drawNode*(node: Node) =
             child.pixelBox.xy - node.pixelBox.xy,
             parseBlendMode(child.blendMode),
           )
+
+  for effect in node.effects:
+    if effect.`type` == "DROP_SHADOW":
+      if node.pixels != nil:
+        applyDropShadowEffect(effect, node)
 
   # Apply node.opacity to alpha
   if node.opacity != 1.0:

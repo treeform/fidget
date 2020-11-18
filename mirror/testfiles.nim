@@ -2,18 +2,18 @@ import chroma, os, schema, render, print, flippy, strutils, strformat, cligen,
     mirror
 
 var files = @[
-  (
-    "https://www.figma.com/file/livQgJR90bQW8KREsMigrX",
-    "Driving - Navigation"
-  )
+  # (
+  #   "https://www.figma.com/file/livQgJR90bQW8KREsMigrX",
+  #   "Driving - Navigation"
+  # )
   # (
   #   "https://www.figma.com/file/7leI8PHWQjsj5VwPpF7MsW",
   #   "Grada UI Widgets"
   # ),
-  # (
-  #   "https://www.figma.com/file/Cto22A31tUso9On23AIpM7",
-  #   "Crew Dragon Flight Control UI"
-  # ),
+  (
+    "https://www.figma.com/file/Cto22A31tUso9On23AIpM7",
+    "Crew Dragon Flight Control UI"
+  ),
   # (
   #   "https://www.figma.com/file/2Xx3HqDhwVy4EuI68PjM2D",
   #   "TeamBuilder"
