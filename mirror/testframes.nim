@@ -26,10 +26,10 @@ proc main(r = "", l = 10000) =
             u = image.getRgbaUnsafe(x, y)
           var
             c: ColorRGBA
-          let diff = min((abs(m.r.int - u.r.int) + abs(m.g.int - u.g.int) + abs(m.b.int - u.b.int)), 255).uint8
-          c.r = diff
-          c.g = diff
-          c.b = diff
+          let diff = (m.r.int - u.r.int) + (m.g.int - u.g.int) + (m.b.int - u.b.int)
+          c.r = abs(m.a.int - u.a.int).clamp(0, 255).uint8
+          c.g = (diff/3).clamp(0, 255).uint8
+          c.b = (-diff/3).clamp(0, 255).uint8
           c.a = 255
           image.putRgbaUnsafe(x, y, c)
       image.save("frames/diffs/" & frame.name & ".png")

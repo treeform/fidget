@@ -50,6 +50,9 @@ type
   CharacterStyleOverrides* = ref object
     `type`*: string
 
+  OpenTypeFlags* = ref object
+    KERN*: int
+
   TextStyle* = ref object
     fontFamily*: string
     fontPostScriptName*: string
@@ -62,6 +65,8 @@ type
     lineHeightPx*: float32
     lineHeightPercent*: float32
     lineHeightUnit*: string
+    textCase*: string
+    opentypeFlags*: OpenTypeFlags
 
   Geometry* = ref object
     path*: string
@@ -135,7 +140,31 @@ func xy*(b: Box): Vec2 =
 func wh*(b: Box): Vec2 =
   vec2(b.width, b.height)
 
-proc downloadImageRef*(fileKey: string) =
+proc parseTextCase*(s: string): TextCase =
+  case s:
+  of "UPPER":  tcUpper
+  of "LOWER": tcLower
+  of "TITLE": tcTitle
+  #of "SMALL_CAPS": tcSmallCaps
+  #of "SMALL_CAPS_FORCED": tcCapsForced
+  else: tcNormal
+
+var imageRefToUrl: Table[string, string]
+
+proc downloadImageRef*(imageRef: string) =
+  if not existsFile("images/" & imageRef & ".png"):
+    if imageRef in imageRefToUrl:
+      if not existsDir("images"):
+        createDir("images")
+      let url = imageRefToUrl[imageRef]
+      echo "Downloading ", url
+      var client = newHttpClient()
+      let data = client.getContent(url)
+      writeFile("images/" & imageRef & ".png", data)
+
+proc getImageRefs*(fileKey: string) =
+  if not existsDir("images"):
+    createDir("images")
 
   var client = newHttpClient()
   client.headers = newHttpHeaders({"Accept": "*/*"})
@@ -143,16 +172,15 @@ proc downloadImageRef*(fileKey: string) =
   client.headers["X-FIGMA-TOKEN"] = readFile(getHomeDir() / ".figmakey")
 
   let data = client.getContent("https://api.figma.com/v1/files/" & fileKey & "/images")
+  writeFile("images/images.json", data)
+
   let json = parseJson(data)
-
-  if not existsDir("images"):
-    createDir("images")
-
   for imageRef, url in json["meta"]["images"].pairs:
-    if not existsFile("images/" & imageRef):
-      var client = newHttpClient()
-      let data = client.getContent(url.getStr())
-      writeFile("images/" & imageRef, data)
+    imageRefToUrl[imageRef] = url.getStr()
+    # if not existsFile("images/" & imageRef & ".png"):
+    #   var client = newHttpClient()
+    #   let data = client.getContent(url.getStr())
+    #   writeFile("images/" & imageRef & ".png", data)
 
 proc downloadFont*(fontPSName: string) =
   if existsFile("fonts/" & fontPSName & ".ttf"):
@@ -169,7 +197,7 @@ proc downloadFont*(fontPSName: string) =
   for line in readFile("fonts/fonts.csv").split("\n"):
     var line = line.split(",")
     if line[0] == fontPSName:
-      let url = line[1][1 .. ^2]
+      let url = line[1]
       echo "Downloading ", url
       try:
         var client = newHttpClient()
@@ -195,7 +223,7 @@ proc download(url, filePath: string) =
   let data = client.getContent("https://api.figma.com/v1/files/" & figmaFileKey & "?geometry=paths")
   let json = parseJson(data)
   writeFile(filePath, pretty(json))
-  downloadImageRef(figmaFileKey)
+  getImageRefs(figmaFileKey)
 
 proc parseFigma*(file: JsonNode): FigmaFile =
   if "schemaVersion" in file:

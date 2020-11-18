@@ -58,7 +58,7 @@ proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
 
 proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
-  if fill.visible == false:
+  if not fill.visible:
     return
 
   if maskCtx == nil:
@@ -86,7 +86,8 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
   if fill.`type` == "IMAGE":
     var image: Image
     if fill.imageRef notin imageCache:
-      image = loadImage("images/" & fill.imageRef)
+      downloadImageRef(fill.imageRef)
+      image = loadImage("images/" & fill.imageRef & ".png")
       imageCache[fill.imageRef] = image
     else:
       image = imageCache[fill.imageRef]
@@ -207,9 +208,8 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
   else:
     echo "Not supported paint: ", fill.`type`
 
-
   effectsCtx.draw(maskCtx, blendMode = Mask)
-  ctx.draw(effectsCtx)
+  ctx.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
 
 proc applyDropShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the drop shadow.
@@ -341,7 +341,9 @@ proc drawCompleteFrame*(node: Node): Image =
   if node.pixels != nil and not node.dirty:
     return node.pixels
 
-  if mainCtx == nil:
+  if mainCtx == nil or
+      mainCtx.width != node.absoluteBoundingBox.width.int or
+      mainCtx.height != node.absoluteBoundingBox.height.int:
     mainCtx = newImage(
       node.absoluteBoundingBox.width.int,
       node.absoluteBoundingBox.height.int,
@@ -361,6 +363,9 @@ proc drawCompleteFrame*(node: Node): Image =
 proc drawNode*(node: Node) =
   ## Draws a node.
   ## Note: Must be called inside drawCompleteFrame.
+
+  if not node.visible or node.opacity == 0:
+    return
 
   if node.pixels != nil and node.dirty == false:
     # Nothing to do, node.pixels contains the cached version.
@@ -552,6 +557,9 @@ proc drawNode*(node: Node) =
 
     var font: Font
     if node.style.fontPostScriptName notin typefaceCache:
+      if node.style.fontPostScriptName == "":
+        node.style.fontPostScriptName = node.style.fontFamily & "-Regular"
+
       downloadFont(node.style.fontPostScriptName)
       font = readFontTtf("fonts/" & node.style.fontPostScriptName & ".ttf")
       typefaceCache[node.style.fontPostScriptName] = font.typeface
@@ -561,6 +569,15 @@ proc drawNode*(node: Node) =
     font.size = node.style.fontSize
     font.lineHeight = node.style.lineHeightPx
 
+    var wrap = false
+    if node.style.textAutoResize == "HEIGHT":
+      wrap = true
+
+    var kern = true
+    if node.style.opentypeFlags != nil:
+      if node.style.opentypeFlags.KERN == 0:
+        kern = false
+
     let layout = font.typeset(
       text = node.characters,
       pos = pos,
@@ -568,7 +585,9 @@ proc drawNode*(node: Node) =
       hAlign = hAlignCase(node.style.textAlignHorizontal),
       vAlign = vAlignCase(node.style.textAlignVertical),
       clip = false,
-      wrap = false
+      wrap = wrap,
+      kern = kern,
+      textCase = parseTextCase(node.style.textCase),
     )
     fillMaskCtx = newImage(w, h, 4)
     fillMaskCtx.drawText(layout)
@@ -611,19 +630,21 @@ proc drawNode*(node: Node) =
       var nodeMaskLayer = newImage(node.pixels.width, node.pixels.height, 4)
       for child in node.children:
         if child.isMask:
-          nodeMaskLayer.draw(
-            child.pixels,
-            child.pixelBox.xy - node.pixelBox.xy,
-            Normal
-          )
+          if child.pixels != nil:
+            nodeMaskLayer.draw(
+              child.pixels,
+              child.pixelBox.xy - node.pixelBox.xy,
+              Normal
+            )
       var childLayer = newImage(node.pixels.width, node.pixels.height, 4)
       for child in node.children:
-        if not child.isMask:
-          childLayer.draw(
-            child.pixels,
-            child.pixelBox.xy - node.pixelBox.xy,
-            parseBlendMode(child.blendMode),
-          )
+        if child.pixels != nil:
+          if not child.isMask:
+            childLayer.draw(
+              child.pixels,
+              child.pixelBox.xy - node.pixelBox.xy,
+              parseBlendMode(child.blendMode),
+            )
       childLayer.draw(
         nodeMaskLayer,
         blendMode = Mask,
@@ -637,12 +658,16 @@ proc drawNode*(node: Node) =
       # If its just children.
       for child in node.children:
         assert node.pixels != nil
-        assert child.pixels != nil
-        node.pixels.draw(
-          child.pixels,
-          child.pixelBox.xy - node.pixelBox.xy,
-          parseBlendMode(child.blendMode),
-        )
+        if child.pixels != nil:
+          node.pixels.draw(
+            child.pixels,
+            child.pixelBox.xy - node.pixelBox.xy,
+            parseBlendMode(child.blendMode),
+          )
+
+  # Apply node.opacity to alpha
+  if node.opacity != 1.0:
+    node.pixels.applyOpacity(node.opacity)
 
   node.dirty = false
   assert node.pixels != nil
