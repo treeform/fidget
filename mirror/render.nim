@@ -218,6 +218,10 @@ proc applyDropShadowEffect(effect: Effect, node: Node) =
   shadow.draw(node.pixels)
   node.pixels = shadow
 
+proc applyLayerBlurEffect(effect: Effect, node: Node) =
+  ## Blurs the layer.
+  node.pixels = node.pixels.blur(effect.radius)
+
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
   var shadowCtx = fillMaskCtx.copy()
@@ -313,7 +317,7 @@ proc computePixelBox*(node: Node) =
 
   # Take drop shadow into account:
   for effect in node.effects:
-    if effect.`type` == "DROP_SHADOW" or effect.`type` == "INNER_SHADOW":
+    if effect.`type` in ["DROP_SHADOW", "INNER_SHADOW", "LAYER_BLUR"]:
       # Note: INNER_SHADOW needs just as much area around as drop shadow
       # because it needs to blur in.
       s = max(
@@ -668,6 +672,9 @@ proc drawNode*(node: Node) =
     if effect.`type` == "DROP_SHADOW":
       if node.pixels != nil:
         applyDropShadowEffect(effect, node)
+    elif effect.`type` == "LAYER_BLUR":
+      if node.pixels != nil:
+        applyLayerBlurEffect(effect, node)
 
   # Apply node.opacity to alpha
   if node.opacity != 1.0:

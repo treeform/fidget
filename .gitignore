@@ -19,3 +19,8 @@ package-lock.json
 *.flippy
 wasm
 *.html
+
+
+# fidget stuff
+
+mirror\images\*
