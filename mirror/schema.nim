@@ -178,10 +178,6 @@ proc getImageRefs*(fileKey: string) =
   let json = parseJson(data)
   for imageRef, url in json["meta"]["images"].pairs:
     imageRefToUrl[imageRef] = url.getStr()
-    # if not existsFile("images/" & imageRef & ".png"):
-    #   var client = newHttpClient()
-    #   let data = client.getContent(url.getStr())
-    #   writeFile("images/" & imageRef & ".png", data)
 
 proc downloadFont*(fontPSName: string) =
   if existsFile("fonts/" & fontPSName & ".ttf"):
@@ -212,14 +208,10 @@ proc downloadFont*(fontPSName: string) =
   echo &"Please download fonts/{fontPSName}.ttf"
 
 proc download(url, filePath: string) =
-
   var client = newHttpClient()
   client.headers = newHttpHeaders({"Accept": "*/*"})
   client.headers["User-Agent"] = "curl/7.58.0"
   client.headers["X-FIGMA-TOKEN"] = readFile(getHomeDir() / ".figmakey")
-
-  #let url = "https://www.figma.com/file/TQOSRucXGFQpuOpyTkDYj1/Fidget-Mirror-Test?node-id=0%3A1&viewport=952%2C680%2C1"
-
   figmaFileKey = url.split("/")[4]
   let data = client.getContent("https://api.figma.com/v1/files/" & figmaFileKey & "?geometry=paths")
   let json = parseJson(data)
@@ -230,9 +222,8 @@ proc parseFigma*(file: JsonNode): FigmaFile =
   if "schemaVersion" in file:
     doAssert file["schemaVersion"].getInt() == 0
   result = file.fromJson(FigmaFile)
-  #writeFile("generate.json", pretty(%result))
 
 proc use*(url: string) =
-  #if not existsFile("import.json"):
-  download(url, "import.json")
-  figmaFile = parseFigma(parseJson(readFile("import.json")))
+  #if not existsFile("figma.json"):
+  download(url, "figma.json")
+  figmaFile = parseFigma(parseJson(readFile("figma.json")))
