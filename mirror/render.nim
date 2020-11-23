@@ -8,7 +8,6 @@ const
 
 var
   mainCtx*: Image
-  ctx*: Image
   # maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
@@ -196,33 +195,22 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
   elif fill.`type` == "SOLID":
     var color = fill.color
-    effectsCtx.fill(color.rgba)
-    #echo "solid color", fill.color
-    #effectsCtx.writeFile("tmp/effectsCtx.png")
+    effectsCtx = effectsCtx.fill(color.rgba)
   else:
     echo "Not supported paint: ", fill.`type`
 
   ## Apply opacity
-  var opacity = newImage(effectsCtx.width, effectsCtx.height)
-  opacity.fill(color(0,0,0, fill.opacity).rgba)
-  effectsCtx = effectsCtx.draw(opacity, blendMode = bmMask)
-
-  #echo "here"
-  #effectsCtx.writeFile("tmp/effectsCtx2.png")
-
+  if fill.opacity != 1.0:
+    var opacity = newImageFill(
+      effectsCtx.width,
+      effectsCtx.height,
+      color(0,0,0, fill.opacity).rgba
+    )
+    effectsCtx = effectsCtx.draw(opacity, blendMode = bmMask)
 
   effectsCtx = effectsCtx.draw(maskCtx, blendMode = bmMask)
 
-  #echo "here2"
-  #effectsCtx.writeFile("tmp/effectsCtx3.png")
-
-  ctx = ctx.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
-
-  #echo "her3"
-  #ctx.writeFile("tmp/ctx4.bmp")
-  #ctx.writeFile("tmp/ctx4.png")
-
-  #echo "done"
+  node.pixels = node.pixels.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
 
 proc applyDropShadowEffect(effect: Effect, node: Node) =
   ## Draws the drop shadow.
@@ -239,17 +227,17 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
   var shadowCtx = fillMaskCtx.copy()
   # Invert colors of the fill mask.
-  shadowCtx = shadowCtx.invertColor()
+  shadowCtx = shadowCtx.invert()
   # Blur the inverted fill.
   shadowCtx = shadowCtx.blur(effect.radius)
   # Color the inverted blurred fill.
-  var colorCtx = newImage(shadowCtx.width, shadowCtx.height)
-  colorCtx.fill(effect.color.rgba)
+  var colorCtx = newImageFill(
+    shadowCtx.width, shadowCtx.height, effect.color.rgba)
   colorCtx = colorCtx.draw(shadowCtx, blendMode = bmMask)
   # Only have the shadow be on the fill.
   colorCtx = colorCtx.draw(fillMaskCtx, blendMode = bmMask)
   # Draw it back.
-  ctx = ctx.draw(colorCtx)
+  node.pixels = node.pixels.draw(colorCtx)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
@@ -367,15 +355,10 @@ proc drawCompleteFrame*(node: Node): Image =
   if node.pixels != nil and not node.dirty:
     return node.pixels
 
-  if mainCtx == nil or
-      mainCtx.width != node.absoluteBoundingBox.width.int or
-      mainCtx.height != node.absoluteBoundingBox.height.int:
-    mainCtx = newImage(
-      node.absoluteBoundingBox.width.int,
-      node.absoluteBoundingBox.height.int
-    )
-  else:
-    mainCtx.fill(clear)
+  mainCtx = newImage(
+    node.absoluteBoundingBox.width.int,
+    node.absoluteBoundingBox.height.int
+  )
 
   drawNode(node)
 
@@ -418,16 +401,12 @@ proc drawNode*(node: Node) =
   let
     w = ceil(node.pixelBox.w).int
     h = ceil(node.pixelBox.h).int
-  if node.pixels == nil or node.pixels.width != w or node.pixels.height != h:
-    node.pixels = newImage(w, h)
-  else:
-    node.pixels.fill(clear)
+
+  node.pixels = newImage(w, h)
 
   var
     fillMaskCtx: Image
     strokeMaskCtx: Image
-
-  ctx = node.pixels
 
   var mat = mat3()
   for i, node in nodeStack:
@@ -489,12 +468,11 @@ proc drawNode*(node: Node) =
           w = node.size.x,
           h = node.size.y,
         )
-      fillMaskCtx.fillPath(
+      fillMaskCtx = fillMaskCtx.fillPath(
         path,
         white,
         mat,
       )
-      # fillMaskCtx.writeFile("tmp/fillMask.png")
 
     if node.strokes.len > 0:
       strokeMaskCtx = newImage(w, h)
@@ -552,7 +530,7 @@ proc drawNode*(node: Node) =
         path.lineTo(x+inner,   y+inner)
         path.closePath()
 
-      strokeMaskCtx.fillPath(
+      strokeMaskCtx = strokeMaskCtx.fillPath(
         path,
         white,
         mat
@@ -563,7 +541,7 @@ proc drawNode*(node: Node) =
       fillMaskCtx = newImage(w, h)
       var geometryCtx = newImage(w, h)
       for geometry in node.fillGeometry:
-        geometryCtx.fillPath(
+        geometryCtx = geometryCtx.fillPath(
           geometry.path,
           white,
           mat
@@ -573,7 +551,7 @@ proc drawNode*(node: Node) =
     if node.strokes.len > 0:
       strokeMaskCtx = newImage(w, h)
       for geometry in node.strokeGeometry:
-        strokeMaskCtx.fillPath(
+        strokeMaskCtx = strokeMaskCtx.fillPath(
           geometry.path,
           white,
           mat
@@ -641,26 +619,33 @@ proc drawNode*(node: Node) =
     drawChildren(node)
 
     fillMaskCtx = newImage(w, h)
-    case node.booleanOperation
-    of "SUBTRACT":
-      for i, child in node.children:
-        let blendMode =
-          if i == 0: bmNormal
-          else: bmSubtractMask
-        fillMaskCtx = fillMaskCtx.draw(
-          child.pixels,
-          child.pixelBox.xy - node.pixelBox.xy,
-          blendMode
-        )
-        #fillMaskCtx.save("step" & $i & ".png")
+    for i, child in node.children:
+      let blendMode =
+        if i == 0:
+          bmNormal
+        else:
+          case node.booleanOperation
+            of "SUBTRACT":
+              bmSubtractMask
+            of "INTERSECT":
+              bmIntersectMask
+            of "EXCLUDE":
+              bmExcludeMask
+            of "UNION":
+              bmNormal
+            else:
+              bmNormal
+      fillMaskCtx = fillMaskCtx.draw(
+        child.pixels,
+        child.pixelBox.xy - node.pixelBox.xy,
+        blendMode
+      )
 
   else:
     echo "Not supported node type: ", node.`type`
 
   for fill in node.fills:
     applyPaint(fillMaskCtx, fill, node, mat)
-    # echo "apply fill!"
-    # node.pixels.writeFile("tmp/pixels.png")
 
   for stroke in node.strokes:
    applyPaint(strokeMaskCtx, stroke, node, mat)
@@ -668,8 +653,6 @@ proc drawNode*(node: Node) =
   for effect in node.effects:
     if effect.`type` == "INNER_SHADOW":
       applyInnerShadowEffect(effect, node, fillMaskCtx)
-
-  node.pixels = ctx
 
   if node.children.len > 0:
     drawChildren(node)
