@@ -16,10 +16,10 @@ proc main(r = "", e = "", l = 10000) =
 
     echo " *** ", frame.name, " *** "
     let image = drawCompleteFrame(frame)
-    image.writeFile("frames/" & frame.name & ".png")
+    image.writeFile("testframes/" & frame.name & ".png")
 
-    if existsFile(&"frames/masters/{frame.name}.png"):
-      var master = readImage(&"frames/masters/{frame.name}.png")
+    if existsFile(&"testframes/masters/{frame.name}.png"):
+      var master = readImage(&"testframes/masters/{frame.name}.png")
       for x in 0 ..< master.width:
         for y in 0 ..< master.height:
           let
@@ -33,9 +33,9 @@ proc main(r = "", e = "", l = 10000) =
           c.b = (-diff).clamp(0, 255).uint8
           c.a = 255
           image.setRgbaUnsafe(x, y, c)
-      image.writeFile("frames/diffs/" & frame.name & ".png")
+      image.writeFile("testframes/diffs/" & frame.name & ".png")
       count += 1
     framesHtml.add(&"""<h4>{frame.name}</h4><img src="{frame.name}.png"><img src="masters/{frame.name}.png"><img src="diffs/{frame.name}.png"><br>""")
-  writeFile("frames/index.html", framesHtml)
+  writeFile("testframes/index.html", framesHtml)
 
 dispatch(main)

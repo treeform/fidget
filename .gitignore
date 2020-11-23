@@ -26,3 +26,4 @@ wasm
 mirror\images\*
 import.json
 generate.json
+figma.json

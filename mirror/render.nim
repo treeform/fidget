@@ -59,7 +59,6 @@ proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
 proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
   if not fill.visible:
-    echo "not visible"
     return
 
   if maskCtx == nil:
