@@ -1,5 +1,5 @@
 
-import flippy, flippy/paths, chroma, chroma/blends, math, vmath, schema, print,
+import pixie, chroma, math, vmath, schema, print,
     typography, bumpy, strutils, tables
 
 const
@@ -54,11 +54,12 @@ proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
       gs2.color,
       (a - gs1.position) / (gs2.position - gs1.position)
     )
-  effectsCtx.putRgbaUnsafe(x, y, color.rgba)
+  effectsCtx.setRgbaUnsafe(x, y, color.rgba)
 
 proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
   if not fill.visible:
+    echo "not visible"
     return
 
   if maskCtx == nil:
@@ -81,13 +82,13 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
       det = d.x*d.x + d.y*d.y
     return (d.y*(point.y-at.y)+d.x*(point.x-at.x))/det
 
-  var effectsCtx = newImage(maskCtx.width, maskCtx.height, 4)
+  var effectsCtx = newImage(maskCtx.width, maskCtx.height)
 
   if fill.`type` == "IMAGE":
     var image: Image
     if fill.imageRef notin imageCache:
       downloadImageRef(fill.imageRef)
-      image = loadImage("images/" & fill.imageRef & ".png")
+      image = readImage("images/" & fill.imageRef & ".png")
       imageCache[fill.imageRef] = image
     else:
       image = imageCache[fill.imageRef]
@@ -98,9 +99,9 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = min(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effectsCtx.draw(
+      effectsCtx = effectsCtx.draw(
         image,
-        mat.mat4 * translate(vec3(topRight, 0)) * scale(vec3(1/scale))
+        mat * translate(topRight) * scale(vec2(1/scale))
       )
 
     elif fill.scaleMode == "FIT":
@@ -109,39 +110,32 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = max(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effectsCtx.draw(
+      effectsCtx = effectsCtx.draw(
         image,
-        mat.mat4 * translate(vec3(topRight, 0)) * scale(vec3(1/scale))
+        mat * translate(topRight) * scale(vec2(1/scale))
       )
 
     elif fill.scaleMode == "STRETCH": # Figma ui calls this "crop".
-      var mat: Mat4
-      mat[ 0] = fill.imageTransform[0][0]
-      mat[ 1] = fill.imageTransform[0][1]
-      mat[ 2] = 0
-      mat[ 3] = 0
-      mat[ 4] = fill.imageTransform[1][0]
-      mat[ 5] = fill.imageTransform[1][1]
-      mat[ 6] = 0
-      mat[ 7] = 0
-      mat[ 8] = 0
-      mat[ 9] = 0
-      mat[10] = 1
-      mat[11] = 0
-      mat[12] = fill.imageTransform[0][2]
-      mat[13] = fill.imageTransform[1][2]
-      mat[14] = 0
-      mat[15] = 1
+      var mat: Mat3
+      mat[0, 0] = fill.imageTransform[0][0]
+      mat[0, 1] = fill.imageTransform[0][1]
+
+      mat[1, 0] = fill.imageTransform[1][0]
+      mat[1, 1] = fill.imageTransform[1][1]
+
+      mat[2, 0] = fill.imageTransform[0][2]
+      mat[2, 1] = fill.imageTransform[1][2]
+      mat[2, 2] = 1
+
       mat = mat.inverse()
-      mat[12] = pos.x + mat[12] * node.absoluteBoundingBox.width
-      mat[13] = pos.y + mat[13] * node.absoluteBoundingBox.height
+      mat[2, 0] = pos.x + mat[2, 0] * node.absoluteBoundingBox.width
+      mat[2, 1] = pos.y + mat[2, 1] * node.absoluteBoundingBox.height
       let
         ratioW = image.width.float32 / node.absoluteBoundingBox.width
         ratioH = image.height.float32 / node.absoluteBoundingBox.height
         scale = min(ratioW, ratioH)
-      # TODO: Don't scale the image, just scale the matrix.
-      image = image.resize(int(image.width.float32 / scale), int(image.height.float32 / scale))
-      effectsCtx.draw(image, mat)
+      mat = mat * scale(vec2(1/scale))
+      effectsCtx = effectsCtx.draw(image, mat)
 
     elif fill.scaleMode == "TILE":
       image = image.resize(
@@ -151,7 +145,7 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
       while x < node.absoluteBoundingBox.width:
         var y = 0.0
         while y < node.absoluteBoundingBox.height:
-          effectsCtx.draw(image, vec2(x, y))
+          effectsCtx = effectsCtx.draw(image, vec2(x, y))
           y += image.height.float32
         x += image.width.float32
 
@@ -203,19 +197,39 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
 
   elif fill.`type` == "SOLID":
     var color = fill.color
-    color.a *= fill.opacity
     effectsCtx.fill(color.rgba)
+    #echo "solid color", fill.color
+    #effectsCtx.writeFile("tmp/effectsCtx.png")
   else:
     echo "Not supported paint: ", fill.`type`
 
-  effectsCtx.draw(maskCtx, blendMode = Mask)
-  ctx.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
+  ## Apply opacity
+  var opacity = newImage(effectsCtx.width, effectsCtx.height)
+  opacity.fill(color(0,0,0, fill.opacity).rgba)
+  effectsCtx = effectsCtx.draw(opacity, blendMode = bmMask)
+
+  #echo "here"
+  #effectsCtx.writeFile("tmp/effectsCtx2.png")
+
+
+  effectsCtx = effectsCtx.draw(maskCtx, blendMode = bmMask)
+
+  #echo "here2"
+  #effectsCtx.writeFile("tmp/effectsCtx3.png")
+
+  ctx = ctx.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
+
+  #echo "her3"
+  #ctx.writeFile("tmp/ctx4.bmp")
+  #ctx.writeFile("tmp/ctx4.png")
+
+  #echo "done"
 
 proc applyDropShadowEffect(effect: Effect, node: Node) =
   ## Draws the drop shadow.
   var shadow = node.pixels.shadow(
     effect.offset, effect.spread, effect.radius, effect.color)
-  shadow.draw(node.pixels)
+  shadow = shadow.draw(node.pixels)
   node.pixels = shadow
 
 proc applyLayerBlurEffect(effect: Effect, node: Node) =
@@ -226,17 +240,17 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
   ## Draws the inner shadow.
   var shadowCtx = fillMaskCtx.copy()
   # Invert colors of the fill mask.
-  shadowCtx.invertColor()
+  shadowCtx = shadowCtx.invertColor()
   # Blur the inverted fill.
   shadowCtx = shadowCtx.blur(effect.radius)
   # Color the inverted blurred fill.
-  var colorCtx = newImage(shadowCtx.width, shadowCtx.height, 4)
+  var colorCtx = newImage(shadowCtx.width, shadowCtx.height)
   colorCtx.fill(effect.color.rgba)
-  colorCtx.draw(shadowCtx, blendMode = Mask)
+  colorCtx = colorCtx.draw(shadowCtx, blendMode = bmMask)
   # Only have the shadow be on the fill.
-  colorCtx.draw(fillMaskCtx, blendMode = Mask)
+  colorCtx = colorCtx.draw(fillMaskCtx, blendMode = bmMask)
   # Draw it back.
-  ctx.draw(colorCtx)
+  ctx = ctx.draw(colorCtx)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
@@ -339,6 +353,11 @@ proc computePixelBox*(node: Node) =
       # TODO: clips content should still respect shadows.
       node.pixelBox = node.pixelBox or child.pixelBox
 
+  node.pixelBox.x = node.pixelBox.x.floor
+  node.pixelBox.y = node.pixelBox.y.floor
+  node.pixelBox.w = node.pixelBox.w.ceil
+  node.pixelBox.h = node.pixelBox.h.ceil
+
 proc drawCompleteFrame*(node: Node): Image =
   ## Draws full frame that is ready to be displayed.
 
@@ -354,8 +373,8 @@ proc drawCompleteFrame*(node: Node): Image =
       mainCtx.height != node.absoluteBoundingBox.height.int:
     mainCtx = newImage(
       node.absoluteBoundingBox.width.int,
-      node.absoluteBoundingBox.height.int,
-      4)
+      node.absoluteBoundingBox.height.int
+    )
   else:
     mainCtx.fill(clear)
 
@@ -364,7 +383,22 @@ proc drawCompleteFrame*(node: Node): Image =
   assert mainCtx != nil
   assert node.pixels != nil
 
-  mainCtx.draw(node.pixels, blendMode = parseBlendMode(node.blendMode))
+  proc putNode(node: Node) =
+    if node.pixels != nil:
+      #mainCtx.writeFile("tmp/pre." & node.name & ".png")
+      #echo parseBlendMode(node.blendMode)
+      mainCtx = mainCtx.draw(
+        node.pixels,
+        node.pixelBox.xy,
+        parseBlendMode(node.blendMode)
+      )
+      #mainCtx.writeFile("tmp/post." & node.name & "." & $parseBlendMode(node.blendMode) & ".png")
+    if node.`type` != "BOOLEAN_OPERATION":
+      for c in node.children:
+        putNode(c)
+  putNode(node)
+
+  #mainCtx.draw(node.pixels, blendMode = parseBlendMode(node.blendMode))
 
   return mainCtx
 
@@ -386,7 +420,7 @@ proc drawNode*(node: Node) =
     w = ceil(node.pixelBox.w).int
     h = ceil(node.pixelBox.h).int
   if node.pixels == nil or node.pixels.width != w or node.pixels.height != h:
-    node.pixels = newImage(w, h, 4)
+    node.pixels = newImage(w, h)
   else:
     node.pixels.fill(clear)
 
@@ -419,10 +453,10 @@ proc drawNode*(node: Node) =
   of "DOCUMENT", "CANVAS":
     quit(node.`type` & " can't be drawn.")
 
-  of "RECTANGLE", "FRAME", "GROUP", "COMPONENT", "INSTANCE", "BOOLEAN_OPERATION":
+  of "RECTANGLE", "FRAME", "GROUP", "COMPONENT", "INSTANCE":
     if node.fills.len > 0:
       #echo "making rect", node.size
-      fillMaskCtx = newImage(w, h, 4)
+      fillMaskCtx = newImage(w, h)
       var path = newPath()
       if node.cornerRadius > 0:
         # Rectangle with common corners.
@@ -461,9 +495,10 @@ proc drawNode*(node: Node) =
         white,
         mat,
       )
+      # fillMaskCtx.writeFile("tmp/fillMask.png")
 
     if node.strokes.len > 0:
-      strokeMaskCtx = newImage(w, h, 4)
+      strokeMaskCtx = newImage(w, h)
       let
         x = 0.0
         y = 0.0
@@ -526,18 +561,18 @@ proc drawNode*(node: Node) =
 
   of "VECTOR", "STAR", "ELLIPSE", "LINE", "REGULAR_POLYGON":
     if node.fills.len > 0:
-      fillMaskCtx = newImage(w, h, 4)
-      var geometryCtx = newImage(w, h, 4)
+      fillMaskCtx = newImage(w, h)
+      var geometryCtx = newImage(w, h)
       for geometry in node.fillGeometry:
         geometryCtx.fillPath(
           geometry.path,
           white,
           mat
         )
-        fillMaskCtx.draw(geometryCtx)
+        fillMaskCtx = fillMaskCtx.draw(geometryCtx)
 
     if node.strokes.len > 0:
-      strokeMaskCtx = newImage(w, h, 4)
+      strokeMaskCtx = newImage(w, h)
       for geometry in node.strokeGeometry:
         strokeMaskCtx.fillPath(
           geometry.path,
@@ -597,17 +632,36 @@ proc drawNode*(node: Node) =
       kern = kern,
       textCase = parseTextCase(node.style.textCase),
     )
-    fillMaskCtx = newImage(w, h, 4)
+    fillMaskCtx = newImage(w, h)
     fillMaskCtx.drawText(layout)
 
-    if node.strokes.len > 0:
-      strokeMaskCtx = fillMaskCtx.outlineBorder2(node.strokeWeight.int)
+    # if node.strokes.len > 0:
+    #   strokeMaskCtx = fillMaskCtx.outlineBorder2(node.strokeWeight.int)
+
+  of "BOOLEAN_OPERATION":
+    drawChildren(node)
+
+    fillMaskCtx = newImage(w, h)
+    case node.booleanOperation
+    of "SUBTRACT":
+      for i, child in node.children:
+        let blendMode =
+          if i == 0: bmNormal
+          else: bmSubtractMask
+        fillMaskCtx = fillMaskCtx.draw(
+          child.pixels,
+          child.pixelBox.xy - node.pixelBox.xy,
+          blendMode
+        )
+        #fillMaskCtx.save("step" & $i & ".png")
 
   else:
     echo "Not supported node type: ", node.`type`
 
   for fill in node.fills:
     applyPaint(fillMaskCtx, fill, node, mat)
+    # echo "apply fill!"
+    # node.pixels.writeFile("tmp/pixels.png")
 
   for stroke in node.strokes:
    applyPaint(strokeMaskCtx, stroke, node, mat)
@@ -616,57 +670,59 @@ proc drawNode*(node: Node) =
     if effect.`type` == "INNER_SHADOW":
       applyInnerShadowEffect(effect, node, fillMaskCtx)
 
+  node.pixels = ctx
+
   if node.children.len > 0:
     drawChildren(node)
 
-    var
-      haveMask = false
-      haveChildren = false
-    for child in node.children:
-      if child.isMask:
-        haveMask = true
-      else:
-        haveChildren = true
+  #   var
+  #     haveMask = false
+  #     haveChildren = false
+  #   for child in node.children:
+  #     if child.isMask:
+  #       haveMask = true
+  #     else:
+  #       haveChildren = true
 
-    if haveMask and haveChildren:
-      # If there are children and a mask.
-      var nodeMaskLayer = newImage(node.pixels.width, node.pixels.height, 4)
-      for child in node.children:
-        if child.isMask:
-          if child.pixels != nil:
-            nodeMaskLayer.draw(
-              child.pixels,
-              child.pixelBox.xy - node.pixelBox.xy,
-              Normal
-            )
-      var childLayer = newImage(node.pixels.width, node.pixels.height, 4)
-      for child in node.children:
-        if child.pixels != nil:
-          if not child.isMask:
-            childLayer.draw(
-              child.pixels,
-              child.pixelBox.xy - node.pixelBox.xy,
-              parseBlendMode(child.blendMode),
-            )
-      childLayer.draw(
-        nodeMaskLayer,
-        blendMode = Mask,
-      )
-      node.pixels.draw(
-        childLayer,
-        blendMode = Normal,
-      )
+  #   if haveMask and haveChildren:
+  #     # If there are children and a mask.
+  #     var nodeMaskLayer = newImage(node.pixels.width, node.pixels.height)
+  #     for child in node.children:
+  #       if child.isMask:
+  #         if child.pixels != nil:
+  #           nodeMaskLayer.draw(
+  #             child.pixels,
+  #             child.pixelBox.xy - node.pixelBox.xy,
+  #             Normal
+  #           )
+  #     var childLayer = newImage(node.pixels.width, node.pixels.height)
+  #     for child in node.children:
+  #       if child.pixels != nil:
+  #         if not child.isMask:
+  #           childLayer.draw(
+  #             child.pixels,
+  #             child.pixelBox.xy - node.pixelBox.xy,
+  #             parseBlendMode(child.blendMode),
+  #           )
+  #     childLayer.draw(
+  #       nodeMaskLayer,
+  #       blendMode = Mask,
+  #     )
+  #     node.pixels.draw(
+  #       childLayer,
+  #       blendMode = Normal,
+  #     )
 
-    elif haveChildren:
-      # If its just children.
-      for child in node.children:
-        assert node.pixels != nil
-        if child.pixels != nil:
-          node.pixels.draw(
-            child.pixels,
-            child.pixelBox.xy - node.pixelBox.xy,
-            parseBlendMode(child.blendMode),
-          )
+  #   elif haveChildren:
+  #     # If its just children.
+  #     for child in node.children:
+  #       assert node.pixels != nil
+  #       if child.pixels != nil:
+  #         node.pixels.draw(
+  #           child.pixels,
+  #           child.pixelBox.xy - node.pixelBox.xy,
+  #           parseBlendMode(child.blendMode),
+  #         )
 
   for effect in node.effects:
     if effect.`type` == "DROP_SHADOW":
@@ -678,7 +734,9 @@ proc drawNode*(node: Node) =
 
   # Apply node.opacity to alpha
   if node.opacity != 1.0:
-    node.pixels.applyOpacity(node.opacity)
+    node.pixels = node.pixels.applyOpacity(node.opacity)
 
   node.dirty = false
   assert node.pixels != nil
+
+  #node.pixels.writeFile("tmp/" & node.name & ".png")

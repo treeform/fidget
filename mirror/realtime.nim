@@ -1,6 +1,6 @@
 ## This example show how to have real time cairo using glfw backend
 import staticglfw, opengl, math
-import schema, render, flippy
+import schema, render, pixie
 use("https://www.figma.com/file/TQOSRucXGFQpuOpyTkDYj1/")
 
 let

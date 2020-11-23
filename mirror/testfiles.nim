@@ -1,4 +1,4 @@
-import chroma, os, schema, render, print, flippy, strutils, strformat, cligen,
+import chroma, os, schema, render, print, pixie, strutils, strformat, cligen,
     mirror
 
 var files = @[
@@ -38,12 +38,12 @@ proc main(r = "", l = 10000) =
     schema.use(url)
     let frame = figmaFile.document.children[0].findByName(mainFrame)
     let image = drawCompleteFrame(frame)
-    image.save("testfiles/" & frame.name & ".png")
+    image.writeFile("testfiles/" & frame.name & ".png")
     echo " *** ", frame.name, " *** "
     count += 1
 
     if existsFile(&"testfiles/masters/{frame.name}.png"):
-      var master = loadImage(&"testfiles/masters/{frame.name}.png")
+      var master = readImage(&"testfiles/masters/{frame.name}.png")
       for x in 0 ..< master.width:
         for y in 0 ..< master.height:
           let
@@ -56,8 +56,8 @@ proc main(r = "", l = 10000) =
           c.g = (diff/3).clamp(0, 255).uint8
           c.b = (-diff/3).clamp(0, 255).uint8
           c.a = 255
-          image.putRgbaUnsafe(x, y, c)
-      image.save("testfiles/diffs/" & frame.name & ".png")
+          image.setRgbaUnsafe(x, y, c)
+      image.writeFile("testfiles/diffs/" & frame.name & ".png")
     else:
       echo &"testfiles/masters/{frame.name}.png does not exist!"
 

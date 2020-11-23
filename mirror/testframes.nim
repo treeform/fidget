@@ -1,6 +1,6 @@
-import chroma, os, schema, render, print, flippy, strutils, strformat, cligen
+import chroma, os, schema, render, print, pixie, strutils, strformat, cligen
 
-proc main(r = "", l = 10000) =
+proc main(r = "", e = "", l = 10000) =
   use("https://www.figma.com/file/TQOSRucXGFQpuOpyTkDYj1/")
   assert figmaFile.document != nil, "Empty document?"
   var framesHtml = """
@@ -12,13 +12,14 @@ proc main(r = "", l = 10000) =
   for frame in figmaFile.document.children[0].children:
     if count >= l: continue
     if r != "" and not frame.name.startsWith(r): continue
+    if e != "" and frame.name != e: continue
 
     echo " *** ", frame.name, " *** "
     let image = drawCompleteFrame(frame)
-    image.save("frames/" & frame.name & ".png")
+    image.writeFile("frames/" & frame.name & ".png")
 
     if existsFile(&"frames/masters/{frame.name}.png"):
-      var master = loadImage(&"frames/masters/{frame.name}.png")
+      var master = readImage(&"frames/masters/{frame.name}.png")
       for x in 0 ..< master.width:
         for y in 0 ..< master.height:
           let
@@ -31,8 +32,8 @@ proc main(r = "", l = 10000) =
           c.g = (diff).clamp(0, 255).uint8
           c.b = (-diff).clamp(0, 255).uint8
           c.a = 255
-          image.putRgbaUnsafe(x, y, c)
-      image.save("frames/diffs/" & frame.name & ".png")
+          image.setRgbaUnsafe(x, y, c)
+      image.writeFile("frames/diffs/" & frame.name & ".png")
       count += 1
     framesHtml.add(&"""<h4>{frame.name}</h4><img src="{frame.name}.png"><img src="masters/{frame.name}.png"><img src="diffs/{frame.name}.png"><br>""")
   writeFile("frames/index.html", framesHtml)

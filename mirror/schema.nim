@@ -1,4 +1,4 @@
-import json, jsons, print, tables, chroma, vmath, flippy,
+import json, jsons, print, tables, chroma, vmath, pixie,
     httpclient2, json, strutils, os, typography, strformat
 
 type
@@ -109,6 +109,7 @@ type
     #styleOverrideTable:
     fillGeometry*: seq[Geometry]
     strokeGeometry*: seq[Geometry]
+    booleanOperation*: string
 
     # Non figma parameters:
     dirty*: bool     ## Do the pixels need redrawing?

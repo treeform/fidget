@@ -1,4 +1,4 @@
-import staticglfw, opengl, math, schema, render, flippy, vmath, bumpy
+import staticglfw, opengl, math, schema, render, pixie, vmath, bumpy
 export bumpy
 
 var
@@ -143,7 +143,7 @@ proc startFidget*() =
   loadExtensions()
 
   # allocate a texture and bind it
-  ctx = newImage(w, h, 4)
+  ctx = newImage(w, h)
   var dataPtr = addr ctx.data[0]
   glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
