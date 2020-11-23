@@ -230,7 +230,7 @@ proc parseFigma*(file: JsonNode): FigmaFile =
   if "schemaVersion" in file:
     doAssert file["schemaVersion"].getInt() == 0
   result = file.fromJson(FigmaFile)
-  writeFile("generate.json", pretty(%result))
+  #writeFile("generate.json", pretty(%result))
 
 proc use*(url: string) =
   #if not existsFile("import.json"):

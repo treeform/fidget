@@ -24,3 +24,5 @@ wasm
 # fidget stuff
 
 mirror\images\*
+import.json
+generate.json
