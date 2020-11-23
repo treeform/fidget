@@ -7,8 +7,8 @@ const
   clear = rgba(0, 0, 0, 0)
 
 var
-  mainCtx*: Image
-  # maskStack: seq[Image]
+  screen*: Image
+  maskStack: seq[Image]
   nodeStack: seq[Node]
   parentNode: Node
   framePos*: Vec2
@@ -29,10 +29,10 @@ proc drawChildren(node: Node) =
   if nodeStack.len > 0:
     parentNode = nodeStack[^1]
 
-proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
+proc gradientPut(effects: Image, x, y: int, a: float32, paint: Paint) =
   var
     index = -1
-  for i, stop in fill.gradientStops:
+  for i, stop in paint.gradientStops:
     if stop.position < a:
       index = i
     if stop.position > a:
@@ -40,31 +40,50 @@ proc gradientPut(effectsCtx: Image, x, y: int, a: float32, fill: Paint) =
   var color: Color
   if index == -1:
     # first stop solid
-    color = fill.gradientStops[0].color
-  elif index + 1 >= fill.gradientStops.len:
+    color = paint.gradientStops[0].color
+  elif index + 1 >= paint.gradientStops.len:
     # last stop solid
-    color = fill.gradientStops[index].color
+    color = paint.gradientStops[index].color
   else:
     let
-      gs1 = fill.gradientStops[index]
-      gs2 = fill.gradientStops[index+1]
+      gs1 = paint.gradientStops[index]
+      gs2 = paint.gradientStops[index+1]
     color = mix(
       gs1.color,
       gs2.color,
       (a - gs1.position) / (gs2.position - gs1.position)
     )
-  effectsCtx.setRgbaUnsafe(x, y, color.rgba)
+  effects.setRgbaUnsafe(x, y, color.rgba)
 
-proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
+proc parseBlendMode*(s: string): BlendMode =
+  case s:
+    of "NORMAL": bmNormal
+    of "DARKEN": bmDarken
+    of "MULTIPLY": bmMultiply
+    of "LINEAR_BURN": bmLinearBurn
+    of "COLOR_BURN": bmColorBurn
+    of "LIGHTEN": bmLighten
+    of "SCREEN": bmScreen
+    of "LINEAR_DODGE": bmLinearDodge
+    of "COLOR_DODGE": bmColorDodge
+    of "OVERLAY": bmOverlay
+    of "SOFT_LIGHT": bmSoftLight
+    of "HARD_LIGHT": bmHardLight
+    of "DIFFERENCE": bmDifference
+    of "EXCLUSION": bmExclusion
+    of "HUE": bmHue
+    of "SATURATION": bmSaturation
+    of "COLOR": bmColor
+    of "LUMINOSITY": bmLuminosity
+    else: bmNormal
 
-  if not fill.visible:
+proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
+
+  if not paint.visible:
     return
 
-  if maskCtx == nil:
-    echo "maskCtx == nil:", node.name
+  if mask == nil:
     return
-
-  #assert maskCtx != nil, "Mask is nil for id: " & node.id & "."
 
   let pos = vec2(mat[2, 0], mat[2, 1])
 
@@ -80,49 +99,49 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
       det = d.x*d.x + d.y*d.y
     return (d.y*(point.y-at.y)+d.x*(point.x-at.x))/det
 
-  var effectsCtx = newImage(maskCtx.width, maskCtx.height)
+  var effects = newImage(mask.width, mask.height)
 
-  if fill.`type` == "IMAGE":
+  if paint.`type` == "IMAGE":
     var image: Image
-    if fill.imageRef notin imageCache:
-      downloadImageRef(fill.imageRef)
-      image = readImage("images/" & fill.imageRef & ".png")
-      imageCache[fill.imageRef] = image
+    if paint.imageRef notin imageCache:
+      downloadImageRef(paint.imageRef)
+      image = readImage("images/" & paint.imageRef & ".png")
+      imageCache[paint.imageRef] = image
     else:
-      image = imageCache[fill.imageRef]
+      image = imageCache[paint.imageRef]
 
-    if fill.scaleMode == "FILL":
+    if paint.scaleMode == "FILL":
       let
         ratioW = image.width.float32 / node.size.x
         ratioH = image.height.float32 / node.size.y
         scale = min(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effectsCtx = effectsCtx.draw(
+      effects = effects.draw(
         image,
         mat * translate(topRight) * scale(vec2(1/scale))
       )
 
-    elif fill.scaleMode == "FIT":
+    elif paint.scaleMode == "FIT":
       let
         ratioW = image.width.float32 / node.size.x
         ratioH = image.height.float32 / node.size.y
         scale = max(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effectsCtx = effectsCtx.draw(
+      effects = effects.draw(
         image,
         mat * translate(topRight) * scale(vec2(1/scale))
       )
 
-    elif fill.scaleMode == "STRETCH": # Figma ui calls this "crop".
+    elif paint.scaleMode == "STRETCH": # Figma ui calls this "crop".
       var mat: Mat3
-      mat[0, 0] = fill.imageTransform[0][0]
-      mat[0, 1] = fill.imageTransform[0][1]
+      mat[0, 0] = paint.imageTransform[0][0]
+      mat[0, 1] = paint.imageTransform[0][1]
 
-      mat[1, 0] = fill.imageTransform[1][0]
-      mat[1, 1] = fill.imageTransform[1][1]
+      mat[1, 0] = paint.imageTransform[1][0]
+      mat[1, 1] = paint.imageTransform[1][1]
 
-      mat[2, 0] = fill.imageTransform[0][2]
-      mat[2, 1] = fill.imageTransform[1][2]
+      mat[2, 0] = paint.imageTransform[0][2]
+      mat[2, 1] = paint.imageTransform[1][2]
       mat[2, 2] = 1
 
       mat = mat.inverse()
@@ -133,84 +152,85 @@ proc applyPaint(maskCtx: Image, fill: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.absoluteBoundingBox.height
         scale = min(ratioW, ratioH)
       mat = mat * scale(vec2(1/scale))
-      effectsCtx = effectsCtx.draw(image, mat)
+      effects = effects.draw(image, mat)
 
-    elif fill.scaleMode == "TILE":
+    elif paint.scaleMode == "TILE":
       image = image.resize(
-        int(image.width.float32 * fill.scalingFactor),
-        int(image.height.float32 * fill.scalingFactor))
+        int(image.width.float32 * paint.scalingFactor),
+        int(image.height.float32 * paint.scalingFactor))
       var x = 0.0
       while x < node.absoluteBoundingBox.width:
         var y = 0.0
         while y < node.absoluteBoundingBox.height:
-          effectsCtx = effectsCtx.draw(image, vec2(x, y))
+          effects = effects.draw(image, vec2(x, y))
           y += image.height.float32
         x += image.width.float32
 
-  elif fill.`type` == "GRADIENT_LINEAR":
+  elif paint.`type` == "GRADIENT_LINEAR":
     let
-      at = fill.gradientHandlePositions[0].toImageSpace()
-      to = fill.gradientHandlePositions[1].toImageSpace()
-    for y in 0 ..< effectsCtx.height:
-      for x in 0 ..< effectsCtx.width:
+      at = paint.gradientHandlePositions[0].toImageSpace()
+      to = paint.gradientHandlePositions[1].toImageSpace()
+    for y in 0 ..< effects.height:
+      for x in 0 ..< effects.width:
         let xy = vec2(x.float32, y.float32)
         let a = toLineSpace(at, to, xy)
-        effectsCtx.gradientPut(x, y, a, fill)
+        effects.gradientPut(x, y, a, paint)
 
-  elif fill.`type` == "GRADIENT_RADIAL":
+  elif paint.`type` == "GRADIENT_RADIAL":
     let
-      at = fill.gradientHandlePositions[0].toImageSpace()
-      to = fill.gradientHandlePositions[1].toImageSpace()
+      at = paint.gradientHandlePositions[0].toImageSpace()
+      to = paint.gradientHandlePositions[1].toImageSpace()
       distance = dist(at, to)
-    for y in 0 ..< effectsCtx.height:
-      for x in 0 ..< effectsCtx.width:
+    for y in 0 ..< effects.height:
+      for x in 0 ..< effects.width:
         let xy = vec2(x.float32, y.float32)
         let a = (at - xy).length() / distance
-        effectsCtx.gradientPut(x, y, a, fill)
+        effects.gradientPut(x, y, a, paint)
 
-  elif fill.`type` == "GRADIENT_ANGULAR":
+  elif paint.`type` == "GRADIENT_ANGULAR":
     let
-      at = fill.gradientHandlePositions[0].toImageSpace()
-      to = fill.gradientHandlePositions[1].toImageSpace()
+      at = paint.gradientHandlePositions[0].toImageSpace()
+      to = paint.gradientHandlePositions[1].toImageSpace()
       gradientAngle = normalize(to - at).angle().fixAngle()
-    for y in 0 ..< effectsCtx.height:
-      for x in 0 ..< effectsCtx.width:
+    for y in 0 ..< effects.height:
+      for x in 0 ..< effects.width:
         let
           xy = vec2(x.float32, y.float32)
           angle = normalize(xy - at).angle()
           a = (angle + gradientAngle + PI/2).fixAngle() / 2 / PI + 0.5
-        effectsCtx.gradientPut(x, y, a, fill)
+        effects.gradientPut(x, y, a, paint)
 
-  elif fill.`type` == "GRADIENT_DIAMOND":
+  elif paint.`type` == "GRADIENT_DIAMOND":
     # TODO: implement GRADIENT_DIAMOND, now will just do GRADIENT_RADIAL
     let
-      at = fill.gradientHandlePositions[0].toImageSpace()
-      to = fill.gradientHandlePositions[1].toImageSpace()
+      at = paint.gradientHandlePositions[0].toImageSpace()
+      to = paint.gradientHandlePositions[1].toImageSpace()
       distance = dist(at, to)
-    for y in 0 ..< effectsCtx.height:
-      for x in 0 ..< effectsCtx.width:
+    for y in 0 ..< effects.height:
+      for x in 0 ..< effects.width:
         let xy = vec2(x.float32, y.float32)
         let a = (at - xy).length() / distance
-        effectsCtx.gradientPut(x, y, a, fill)
+        effects.gradientPut(x, y, a, paint)
 
-  elif fill.`type` == "SOLID":
-    var color = fill.color
-    effectsCtx = effectsCtx.fill(color.rgba)
+  elif paint.`type` == "SOLID":
+    var color = paint.color
+    effects = effects.fill(color.rgba)
   else:
-    echo "Not supported paint: ", fill.`type`
+    echo "Not supported paint: ", paint.`type`
 
   ## Apply opacity
-  if fill.opacity != 1.0:
+  if paint.opacity != 1.0:
     var opacity = newImageFill(
-      effectsCtx.width,
-      effectsCtx.height,
-      color(0,0,0, fill.opacity).rgba
+      effects.width,
+      effects.height,
+      color(0,0,0, paint.opacity).rgba
     )
-    effectsCtx = effectsCtx.draw(opacity, blendMode = bmMask)
+    effects = effects.draw(opacity, blendMode = bmMask)
 
-  effectsCtx = effectsCtx.draw(maskCtx, blendMode = bmMask)
+  effects = effects.draw(mask, blendMode = bmMask)
 
-  node.pixels = node.pixels.draw(effectsCtx, blendMode = parseBlendMode(fill.blendMode))
+  node.pixels = node.pixels.draw(
+    effects, blendMode = parseBlendMode(paint.blendMode))
 
 proc applyDropShadowEffect(effect: Effect, node: Node) =
   ## Draws the drop shadow.
@@ -223,21 +243,21 @@ proc applyLayerBlurEffect(effect: Effect, node: Node) =
   ## Blurs the layer.
   node.pixels = node.pixels.blur(effect.radius)
 
-proc applyInnerShadowEffect(effect: Effect, node: Node, fillMaskCtx: Image) =
+proc applyInnerShadowEffect(effect: Effect, node: Node, fillMask: Image) =
   ## Draws the inner shadow.
-  var shadowCtx = fillMaskCtx.copy()
+  var shadow = fillMask.copy()
   # Invert colors of the fill mask.
-  shadowCtx = shadowCtx.invert()
+  shadow = shadow.invert()
   # Blur the inverted fill.
-  shadowCtx = shadowCtx.blur(effect.radius)
+  shadow = shadow.blur(effect.radius)
   # Color the inverted blurred fill.
-  var colorCtx = newImageFill(
-    shadowCtx.width, shadowCtx.height, effect.color.rgba)
-  colorCtx = colorCtx.draw(shadowCtx, blendMode = bmMask)
+  var color = newImageFill(
+    shadow.width, shadow.height, effect.color.rgba)
+  color = color.draw(shadow, blendMode = bmMask)
   # Only have the shadow be on the fill.
-  colorCtx = colorCtx.draw(fillMaskCtx, blendMode = bmMask)
+  color = color.draw(fillMask, blendMode = bmMask)
   # Draw it back.
-  node.pixels = node.pixels.draw(colorCtx)
+  node.pixels = node.pixels.draw(color)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
@@ -302,7 +322,7 @@ proc computePixelBox*(node: Node) =
 
   when not pixelBounds:
     node.pixelBox.xy = vec2(0, 0)
-    node.pixelBox.wh = vec2(mainCtx.width.float32, mainCtx.height.float32)
+    node.pixelBox.wh = vec2(screen.width.float32, screen.height.float32)
     return
 
   ## Computes pixel bounds.
@@ -348,41 +368,29 @@ proc computePixelBox*(node: Node) =
 proc drawCompleteFrame*(node: Node): Image =
   ## Draws full frame that is ready to be displayed.
 
-  framePos = -node.absoluteBoundingBox.xy
-
   checkDirty(node)
 
-  if node.pixels != nil and not node.dirty:
-    return node.pixels
-
-  mainCtx = newImage(
+  framePos = -node.absoluteBoundingBox.xy
+  screen = newImage(
     node.absoluteBoundingBox.width.int,
     node.absoluteBoundingBox.height.int
   )
 
   drawNode(node)
 
-  assert mainCtx != nil
-  assert node.pixels != nil
-
   proc putNode(node: Node) =
     if node.pixels != nil:
-      #mainCtx.writeFile("tmp/pre." & node.name & ".png")
-      #echo parseBlendMode(node.blendMode)
-      mainCtx = mainCtx.draw(
+      screen = screen.draw(
         node.pixels,
         node.pixelBox.xy,
         parseBlendMode(node.blendMode)
       )
-      #mainCtx.writeFile("tmp/post." & node.name & "." & $parseBlendMode(node.blendMode) & ".png")
     if node.`type` != "BOOLEAN_OPERATION":
       for c in node.children:
         putNode(c)
   putNode(node)
 
-  #mainCtx.draw(node.pixels, blendMode = parseBlendMode(node.blendMode))
-
-  return mainCtx
+  return screen
 
 proc drawNode*(node: Node) =
   ## Draws a node.
@@ -405,8 +413,8 @@ proc drawNode*(node: Node) =
   node.pixels = newImage(w, h)
 
   var
-    fillMaskCtx: Image
-    strokeMaskCtx: Image
+    fillMask: Image
+    strokeMask: Image
 
   var mat = mat3()
   for i, node in nodeStack:
@@ -434,7 +442,7 @@ proc drawNode*(node: Node) =
   of "RECTANGLE", "FRAME", "GROUP", "COMPONENT", "INSTANCE":
     if node.fills.len > 0:
       #echo "making rect", node.size
-      fillMaskCtx = newImage(w, h)
+      fillMask = newImage(w, h)
       var path = newPath()
       if node.cornerRadius > 0:
         # Rectangle with common corners.
@@ -468,14 +476,14 @@ proc drawNode*(node: Node) =
           w = node.size.x,
           h = node.size.y,
         )
-      fillMaskCtx = fillMaskCtx.fillPath(
+      fillMask = fillMask.fillPath(
         path,
         white,
         mat,
       )
 
     if node.strokes.len > 0:
-      strokeMaskCtx = newImage(w, h)
+      strokeMask = newImage(w, h)
       let
         x = 0.0
         y = 0.0
@@ -530,7 +538,7 @@ proc drawNode*(node: Node) =
         path.lineTo(x+inner,   y+inner)
         path.closePath()
 
-      strokeMaskCtx = strokeMaskCtx.fillPath(
+      strokeMask = strokeMask.fillPath(
         path,
         white,
         mat
@@ -538,20 +546,20 @@ proc drawNode*(node: Node) =
 
   of "VECTOR", "STAR", "ELLIPSE", "LINE", "REGULAR_POLYGON":
     if node.fills.len > 0:
-      fillMaskCtx = newImage(w, h)
-      var geometryCtx = newImage(w, h)
-      for geometry in node.fillGeometry:
-        geometryCtx = geometryCtx.fillPath(
-          geometry.path,
+      fillMask = newImage(w, h)
+      var geometry = newImage(w, h)
+      for geom in node.fillGeometry:
+        geometry = geometry.fillPath(
+          geom.path,
           white,
           mat
         )
-        fillMaskCtx = fillMaskCtx.draw(geometryCtx)
+        fillMask = fillMask.draw(geometry)
 
     if node.strokes.len > 0:
-      strokeMaskCtx = newImage(w, h)
+      strokeMask = newImage(w, h)
       for geometry in node.strokeGeometry:
-        strokeMaskCtx = strokeMaskCtx.fillPath(
+        strokeMask = strokeMask.fillPath(
           geometry.path,
           white,
           mat
@@ -609,16 +617,16 @@ proc drawNode*(node: Node) =
       kern = kern,
       textCase = parseTextCase(node.style.textCase),
     )
-    fillMaskCtx = newImage(w, h)
-    fillMaskCtx.drawText(layout)
+    fillMask = newImage(w, h)
+    fillMask.drawText(layout)
 
     # if node.strokes.len > 0:
-    #   strokeMaskCtx = fillMaskCtx.outlineBorder2(node.strokeWeight.int)
+    #   strokeMask = fillMask.outlineBorder2(node.strokeWeight.int)
 
   of "BOOLEAN_OPERATION":
     drawChildren(node)
 
-    fillMaskCtx = newImage(w, h)
+    fillMask = newImage(w, h)
     for i, child in node.children:
       let blendMode =
         if i == 0:
@@ -635,7 +643,7 @@ proc drawNode*(node: Node) =
               bmNormal
             else:
               bmNormal
-      fillMaskCtx = fillMaskCtx.draw(
+      fillMask = fillMask.draw(
         child.pixels,
         child.pixelBox.xy - node.pixelBox.xy,
         blendMode
@@ -645,14 +653,14 @@ proc drawNode*(node: Node) =
     echo "Not supported node type: ", node.`type`
 
   for fill in node.fills:
-    applyPaint(fillMaskCtx, fill, node, mat)
+    applyPaint(fillMask, fill, node, mat)
 
   for stroke in node.strokes:
-   applyPaint(strokeMaskCtx, stroke, node, mat)
+   applyPaint(strokeMask, stroke, node, mat)
 
   for effect in node.effects:
     if effect.`type` == "INNER_SHADOW":
-      applyInnerShadowEffect(effect, node, fillMaskCtx)
+      applyInnerShadowEffect(effect, node, fillMask)
 
   if node.children.len > 0:
     drawChildren(node)
