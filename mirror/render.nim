@@ -8,14 +8,15 @@ const
 
 var
   screen*: Image
-  maskStack: seq[Image]
+  maskStack: seq[(Node, Image)]
   nodeStack: seq[Node]
   parentNode: Node
   framePos*: Vec2
   imageCache: Table[string, Image]
   typefaceCache: Table[string, Typeface]
 
-proc drawNode*(node: Node)
+proc drawNodeInternal*(node: Node)
+proc drawNodeScreen*(node: Node)
 
 proc drawChildren(node: Node) =
   parentNode = node
@@ -23,7 +24,7 @@ proc drawChildren(node: Node) =
 
   # Draw regular children:
   for child in node.children:
-    drawNode(child)
+    drawNodeInternal(child)
 
   discard nodeStack.pop()
   if nodeStack.len > 0:
@@ -376,23 +377,12 @@ proc drawCompleteFrame*(node: Node): Image =
     node.absoluteBoundingBox.height.int
   )
 
-  drawNode(node)
-
-  proc putNode(node: Node) =
-    if node.pixels != nil:
-      screen = screen.draw(
-        node.pixels,
-        node.pixelBox.xy,
-        parseBlendMode(node.blendMode)
-      )
-    if node.`type` != "BOOLEAN_OPERATION":
-      for c in node.children:
-        putNode(c)
-  putNode(node)
+  drawNodeInternal(node)
+  drawNodeScreen(node)
 
   return screen
 
-proc drawNode*(node: Node) =
+proc drawNodeInternal*(node: Node) =
   ## Draws a node.
   ## Note: Must be called inside drawCompleteFrame.
 
@@ -730,3 +720,56 @@ proc drawNode*(node: Node) =
   assert node.pixels != nil
 
   #node.pixels.writeFile("tmp/" & node.name & ".png")
+
+proc drawNodeScreen(node: Node) =
+  if node.pixels != nil:
+    if node.isMask:
+      let mask =
+        if maskStack.len == 0:
+          screen.draw(
+            node.pixels,
+            node.pixelBox.xy,
+            blendMode = bmIntersectMask
+          )
+        else:
+          maskStack[0][1].draw(
+            node.pixels,
+            node.pixelBox.xy,
+            blendMode = bmIntersectMask
+          )
+      maskStack.add((parentNode, mask))
+    else:
+      if maskStack.len > 0:
+        var withMask = newImage(screen.width, screen.height)
+        withMask = withMask.draw(
+          node.pixels,
+          node.pixelBox.xy,
+          parseBlendMode(node.blendMode)
+        )
+        withMask = withMask.draw(
+          maskStack[0][1],
+          blendMode = bmIntersectMask
+        )
+        screen = screen.draw(
+          withMask,
+          blendMode = parseBlendMode(node.blendMode)
+        )
+      else:
+        screen = screen.draw(
+          node.pixels,
+          node.pixelBox.xy,
+          parseBlendMode(node.blendMode)
+        )
+  if node.`type` != "BOOLEAN_OPERATION":
+    parentNode = node
+    nodeStack.add(node)
+
+    for c in node.children:
+      drawNodeScreen(c)
+
+    discard nodeStack.pop()
+    if nodeStack.len > 0:
+      parentNode = nodeStack[^1]
+
+  while maskStack.len > 0 and maskStack[^1][0] == node:
+    discard maskStack.pop()
