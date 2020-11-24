@@ -17,6 +17,7 @@ var
 
 proc drawNodeInternal*(node: Node)
 proc drawNodeScreen*(node: Node)
+proc selfAndChildrenMask*(node: Node): Image
 
 proc drawChildren(node: Node) =
   parentNode = node
@@ -235,14 +236,24 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
 
 proc applyDropShadowEffect(effect: Effect, node: Node) =
   ## Draws the drop shadow.
-  var shadow = node.pixels.shadow(
+  var shadow = node.selfAndChildrenMask().subImage(
+    node.pixelBox.x.int,
+    node.pixelBox.y.int,
+    node.pixelBox.w.int,
+    node.pixelBox.h.int
+  )
+  shadow = shadow.shadow(
     effect.offset, effect.spread, effect.radius, effect.color)
   shadow = shadow.draw(node.pixels)
   node.pixels = shadow
 
-proc applyLayerBlurEffect(effect: Effect, node: Node) =
-  ## Blurs the layer.
-  node.pixels = node.pixels.blur(effect.radius)
+# proc applyLayerBlurEffect(effect: Effect, node: Node) =
+#   ## Blurs the layer.
+#   node.pixels = node.pixels.blur(effect.radius)
+
+# proc applyBackgroundBlurEffect(effect: Effect, node: Node) =
+#   ## Blurs the layer.
+#   node.pixels = node.pixels.blur(effect.radius)
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMask: Image) =
   ## Draws the inner shadow.
@@ -655,62 +666,16 @@ proc drawNodeInternal*(node: Node) =
   if node.children.len > 0:
     drawChildren(node)
 
-  #   var
-  #     haveMask = false
-  #     haveChildren = false
-  #   for child in node.children:
-  #     if child.isMask:
-  #       haveMask = true
-  #     else:
-  #       haveChildren = true
-
-  #   if haveMask and haveChildren:
-  #     # If there are children and a mask.
-  #     var nodeMaskLayer = newImage(node.pixels.width, node.pixels.height)
-  #     for child in node.children:
-  #       if child.isMask:
-  #         if child.pixels != nil:
-  #           nodeMaskLayer.draw(
-  #             child.pixels,
-  #             child.pixelBox.xy - node.pixelBox.xy,
-  #             Normal
-  #           )
-  #     var childLayer = newImage(node.pixels.width, node.pixels.height)
-  #     for child in node.children:
-  #       if child.pixels != nil:
-  #         if not child.isMask:
-  #           childLayer.draw(
-  #             child.pixels,
-  #             child.pixelBox.xy - node.pixelBox.xy,
-  #             parseBlendMode(child.blendMode),
-  #           )
-  #     childLayer.draw(
-  #       nodeMaskLayer,
-  #       blendMode = Mask,
-  #     )
-  #     node.pixels.draw(
-  #       childLayer,
-  #       blendMode = Normal,
-  #     )
-
-  #   elif haveChildren:
-  #     # If its just children.
-  #     for child in node.children:
-  #       assert node.pixels != nil
-  #       if child.pixels != nil:
-  #         node.pixels.draw(
-  #           child.pixels,
-  #           child.pixelBox.xy - node.pixelBox.xy,
-  #           parseBlendMode(child.blendMode),
-  #         )
-
   for effect in node.effects:
     if effect.`type` == "DROP_SHADOW":
       if node.pixels != nil:
         applyDropShadowEffect(effect, node)
-    elif effect.`type` == "LAYER_BLUR":
-      if node.pixels != nil:
-        applyLayerBlurEffect(effect, node)
+    # elif effect.`type` == "LAYER_BLUR":
+    #   if node.pixels != nil:
+    #     applyLayerBlurEffect(effect, node)
+    # elif effect.`type` == "BACKGROUND_BLUR":
+    #   if node.pixels != nil:
+    #     applyBackgroundBlurEffect(effect, node)
 
   # Apply node.opacity to alpha
   if node.opacity != 1.0:
@@ -721,22 +686,56 @@ proc drawNodeInternal*(node: Node) =
 
   #node.pixels.writeFile("tmp/" & node.name & ".png")
 
+proc selfAndChildrenMask(node: Node): Image =
+  result = newImage(screen.width, screen.height)
+  result = result.draw(
+    node.pixels,
+    node.pixelBox.xy,
+    blendMode = bmNormal
+  )
+  if node.`type` != "BOOLEAN_OPERATION":
+    for c in node.children:
+      let childMask = selfAndChildrenMask(c)
+      result = result.draw(
+        childMask,
+        blendMode = bmNormal
+      )
+
 proc drawNodeScreen(node: Node) =
+
+  var stopDraw = false
+
+  for effect in node.effects:
+    if effect.`type` == "LAYER_BLUR":
+      var maskWithColors = node.selfAndChildrenMask()
+      maskWithColors = maskWithColors.blur(effect.radius)
+      screen = screen.draw(
+        maskWithColors
+      )
+      stopDraw = true
+    if effect.`type` == "BACKGROUND_BLUR":
+      var blur = screen.blur(effect.radius)
+      var mask = node.selfAndChildrenMask()
+      mask = mask.sharpOpacity()
+      blur = blur.draw(
+        mask,
+        blendMode = bmMask
+      )
+      screen = screen.draw(
+        blur
+      )
+
+  if stopDraw:
+    return
+
   if node.pixels != nil:
     if node.isMask:
-      let mask =
-        if maskStack.len == 0:
-          screen.draw(
-            node.pixels,
-            node.pixelBox.xy,
-            blendMode = bmIntersectMask
-          )
-        else:
-          maskStack[0][1].draw(
-            node.pixels,
-            node.pixelBox.xy,
-            blendMode = bmIntersectMask
-          )
+      var mask = node.selfAndChildrenMask()
+      if maskStack.len > 0:
+        mask = maskStack[0][1].draw(
+          mask,
+          blendMode = bmIntersectMask
+        )
       maskStack.add((parentNode, mask))
     else:
       if maskStack.len > 0:
