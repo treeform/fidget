@@ -1,5 +1,5 @@
-import buffers, chroma, flippy, hashes, opengl, os, shaders, strformat,
-    strutils, tables, textures, times, vmath
+import buffers, chroma, pixie, hashes, opengl, os, shaders, strformat,
+    strutils, tables, textures, times, vmath, formatflippy
 
 const
   quadLimit = 10_921
@@ -262,13 +262,13 @@ proc updateImage*(ctx: Context, path: string | Hash, image: Image) =
     image
   )
 
-proc putFlippy*(ctx: Context, path: string | Hash, flippy: Flippy) =
-  let rect = ctx.findEmptyRect(flippy.width, flippy.height)
+proc putFlippy*(ctx: Context, path: string | Hash, pixie: Flippy) =
+  let rect = ctx.findEmptyRect(pixie.width, pixie.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
   var
     x = int(rect.x)
     y = int(rect.y)
-  for level, mip in flippy.mipmaps:
+  for level, mip in pixie.mipmaps:
     updateSubImage(
       ctx.atlasTexture,
       x,
@@ -418,23 +418,23 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
 
   let filePath = cast[string](imagePath) # We know it is a string
   if hash(filePath) notin ctx.entries:
-    # Need to load imagePath, check to see if the .flippy file is around
+    # Need to load imagePath, check to see if the .pixie file is around
     echo "[load] ", filePath
     if not fileExists(filePath):
       raise newException(Exception, &"Image '{filePath}' not found")
-    let flippyFilePath = filePath.changeFileExt(".flippy")
-    if not fileExists(flippyFilePath):
+    let pixieFilePath = filePath.changeFileExt(".flippy")
+    if not fileExists(pixieFilePath):
       # No Flippy file generate new one
-      pngToFlippy(filePath, flippyFilePath)
+      pngToFlippy(filePath, pixieFilePath)
     else:
       let
-        mtFlippy = getLastModificationTime(flippyFilePath).toUnix
+        mtFlippy = getLastModificationTime(pixieFilePath).toUnix
         mtImage = getLastModificationTime(filePath).toUnix
       if mtFlippy < mtImage:
         # Flippy file too old, regenerate
-        pngToFlippy(filePath, flippyFilePath)
-    var flippy = loadFlippy(flippyFilePath)
-    ctx.putFlippy(filePath, flippy)
+        pngToFlippy(filePath, pixieFilePath)
+    var pixie = loadFlippy(pixieFilePath)
+    ctx.putFlippy(filePath, pixie)
   return ctx.entries[filePath]
 
 proc drawImage*(
@@ -500,8 +500,8 @@ proc drawSprite*(
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   const imgKey = hash("rect")
   if imgKey notin ctx.entries:
-    var image = newImage(4, 4, 4)
-    image.fill(rgba(255, 255, 255, 255))
+    var image = newImage(4, 4)
+    image.fill2(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
 
   let
@@ -528,8 +528,8 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
     w = ceil(rect.w).int
     h = ceil(rect.h).int
   if hash notin ctx.entries:
-    var image = newImage(w, h, 4)
-    image.fill(rgba(255, 255, 255, 0))
+    var image = newImage(w, h)
+    image.fill2(rgba(255, 255, 255, 0))
     image.fillRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
@@ -564,8 +564,8 @@ proc strokeRoundedRect*(
     w = ceil(rect.w).int
     h = ceil(rect.h).int
   if hash notin ctx.entries:
-    var image = newImage(w, h, 4)
-    image.fill(rgba(255, 255, 255, 0))
+    var image = newImage(w, h)
+    image.fill2(rgba(255, 255, 255, 0))
     image.strokeRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
@@ -599,8 +599,8 @@ proc line*(
     pos = vec2(min(a.x, b.x), min(a.y, b.y))
 
   if hash notin ctx.entries:
-    var image = newImage(w, h, 4)
-    image.fill(rgba(255, 255, 255, 0))
+    var image = newImage(w, h)
+    image.fill2(rgba(255, 255, 255, 0))
     image.line(
       a-pos, b-pos,
       rgba(255, 255, 255, 255)

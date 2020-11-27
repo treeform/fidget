@@ -1,6 +1,6 @@
-import chroma, common, flippy, hashes, input, internal, opengl/base,
+import chroma, common, pixie, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
-    typography/textboxes, unicode, vmath
+    typography/textboxes, unicode, vmath, opengl/formatflippy
 
 when not defined(emscripten) and not defined(fidgetNoAsync):
   import httpClient, asyncdispatch, asyncfutures, json

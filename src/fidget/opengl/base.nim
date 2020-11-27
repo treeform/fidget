@@ -1,4 +1,4 @@
-import ../common, ../input, ../internal, chroma, flippy, opengl, os, perf,
+import ../common, ../input, ../internal, chroma, pixie, opengl, os, perf,
     staticglfw, times, typography/textboxes, unicode, vmath, strformat
 
 when defined(glDebugMessageCallback):
@@ -420,8 +420,8 @@ proc setWindowBounds*(min, max: Vec2) =
 
 proc takeScreenshot*(
   frame = rect(0, 0, windowFrame.x, windowFrame.y)
-): flippy.Image =
-  result = newImage("", frame.w.int, frame.h.int, 4)
+): pixie.Image =
+  result = newImage(frame.w.int, frame.h.int)
   glReadPixels(
     frame.x.GLint,
     frame.y.GLint,
