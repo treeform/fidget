@@ -23,7 +23,7 @@ wasm
 
 # fidget stuff
 
-mirror\images\*
+mirror/images/*
 import.json
 generate.json
 figma.json

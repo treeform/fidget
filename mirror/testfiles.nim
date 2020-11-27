@@ -2,26 +2,30 @@ import chroma, os, schema, render, print, pixie, strutils, strformat, cligen,
     mirror
 
 var files = @[
-  # (
-  #   "https://www.figma.com/file/livQgJR90bQW8KREsMigrX",
-  #   "Driving - Navigation"
-  # )
-  # (
-  #   "https://www.figma.com/file/7leI8PHWQjsj5VwPpF7MsW",
-  #   "Grada UI Widgets"
-  # ),
+  (
+    "https://www.figma.com/file/livQgJR90bQW8KREsMigrX",
+    "Driving - Navigation"
+  ),
+  (
+    "https://www.figma.com/file/7leI8PHWQjsj5VwPpF7MsW",
+    "Grada UI Widgets"
+  ),
   (
     "https://www.figma.com/file/Cto22A31tUso9On23AIpM7",
     "Crew Dragon Flight Control UI"
   ),
-  # (
-  #   "https://www.figma.com/file/2Xx3HqDhwVy4EuI68PjM2D",
-  #   "TeamBuilder"
-  # ),
-  # (
-  #   "https://www.figma.com/file/AzRTd8mpSIKbD8vgVg40RW",
-  #   "Uber Light UI Kit"
-  # ),
+  (
+    "https://www.figma.com/file/2Xx3HqDhwVy4EuI68PjM2D",
+    "TeamBuilder"
+  ),
+  (
+    "https://www.figma.com/file/AzRTd8mpSIKbD8vgVg40RW",
+    "Uber Light UI Kit"
+  ),
+  (
+    "https://www.figma.com/file/WRPn7PZLpQXYDUlXEoyBZk",
+    "T-1"
+  )
 ]
 
 var framesHtml = """

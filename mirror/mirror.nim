@@ -143,8 +143,8 @@ proc startFidget*() =
   loadExtensions()
 
   # allocate a texture and bind it
-  ctx = newImage(w, h)
-  var dataPtr = addr ctx.data[0]
+  screen = newImage(w, h)
+  var dataPtr = addr screen.data[0]
   glTexImage2D(GL_TEXTURE_2D, 0, 3, GLsizei w, GLsizei h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataPtr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

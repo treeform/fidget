@@ -1,10 +1,8 @@
 
-import pixie, chroma, math, vmath, schema, print,
-    typography, bumpy, strutils, tables
+import pixie, chroma, math, vmath, schema, typography, tables
 
 const
   white = rgba(255, 255, 255, 255)
-  clear = rgba(0, 0, 0, 0)
 
 var
   screen*: Image
@@ -107,7 +105,11 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
     var image: Image
     if paint.imageRef notin imageCache:
       downloadImageRef(paint.imageRef)
-      image = readImage("images/" & paint.imageRef & ".png")
+      try:
+        image = readImage("images/" & paint.imageRef & ".png")
+      except PixieError:
+        return
+
       imageCache[paint.imageRef] = image
     else:
       image = imageCache[paint.imageRef]
@@ -247,14 +249,6 @@ proc applyDropShadowEffect(effect: Effect, node: Node) =
   shadow = shadow.draw(node.pixels)
   node.pixels = shadow
 
-# proc applyLayerBlurEffect(effect: Effect, node: Node) =
-#   ## Blurs the layer.
-#   node.pixels = node.pixels.blur(effect.radius)
-
-# proc applyBackgroundBlurEffect(effect: Effect, node: Node) =
-#   ## Blurs the layer.
-#   node.pixels = node.pixels.blur(effect.radius)
-
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMask: Image) =
   ## Draws the inner shadow.
   var shadow = fillMask.copy()
@@ -340,7 +334,7 @@ proc computePixelBox*(node: Node) =
   ## Computes pixel bounds.
   ## Takes into account width, height and shadow extent, and children.
   node.pixelBox.xy = node.absoluteBoundingBox.xy + framePos
-  node.pixelBox.wh = node.absoluteBoundingBox.wh
+  node.pixelBox.wh = node.absoluteBoundingBox.wh + vec2(1, 1)
 
   var s = 0.0
 
@@ -381,6 +375,9 @@ proc drawCompleteFrame*(node: Node): Image =
   ## Draws full frame that is ready to be displayed.
 
   checkDirty(node)
+
+  if not node.dirty and node.pixels != nil:
+    return screen
 
   framePos = -node.absoluteBoundingBox.xy
   screen = newImage(
@@ -670,12 +667,6 @@ proc drawNodeInternal*(node: Node) =
     if effect.`type` == "DROP_SHADOW":
       if node.pixels != nil:
         applyDropShadowEffect(effect, node)
-    # elif effect.`type` == "LAYER_BLUR":
-    #   if node.pixels != nil:
-    #     applyLayerBlurEffect(effect, node)
-    # elif effect.`type` == "BACKGROUND_BLUR":
-    #   if node.pixels != nil:
-    #     applyBackgroundBlurEffect(effect, node)
 
   # Apply node.opacity to alpha
   if node.opacity != 1.0:
@@ -688,11 +679,12 @@ proc drawNodeInternal*(node: Node) =
 
 proc selfAndChildrenMask(node: Node): Image =
   result = newImage(screen.width, screen.height)
-  result = result.draw(
-    node.pixels,
-    node.pixelBox.xy,
-    blendMode = bmNormal
-  )
+  if node.pixels != nil:
+    result = result.draw(
+      node.pixels,
+      node.pixelBox.xy,
+      blendMode = bmNormal
+    )
   if node.`type` != "BOOLEAN_OPERATION":
     for c in node.children:
       let childMask = selfAndChildrenMask(c)
@@ -709,7 +701,7 @@ proc drawNodeScreen(node: Node) =
     if effect.`type` == "LAYER_BLUR":
       var maskWithColors = node.selfAndChildrenMask()
       maskWithColors = maskWithColors.blur(effect.radius)
-      screen = screen.draw(
+      screen.drawInPlace(
         maskWithColors
       )
       stopDraw = true
@@ -721,7 +713,7 @@ proc drawNodeScreen(node: Node) =
         mask,
         blendMode = bmMask
       )
-      screen = screen.draw(
+      screen.drawInPlace(
         blur
       )
 
@@ -749,12 +741,12 @@ proc drawNodeScreen(node: Node) =
           maskStack[0][1],
           blendMode = bmIntersectMask
         )
-        screen = screen.draw(
+        screen.drawInPlace(
           withMask,
           blendMode = parseBlendMode(node.blendMode)
         )
       else:
-        screen = screen.draw(
+        screen.drawInPlace(
           node.pixels,
           node.pixelBox.xy,
           parseBlendMode(node.blendMode)
