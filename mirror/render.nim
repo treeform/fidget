@@ -120,7 +120,7 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = min(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effects = effects.draw(
+      effects.draw(
         image,
         mat * translate(topRight) * scale(vec2(1/scale))
       )
@@ -131,7 +131,7 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.size.y
         scale = max(ratioW, ratioH)
       let topRight = node.size / 2 - vec2(image.width/2, image.height/2) / scale
-      effects = effects.draw(
+      effects.draw(
         image,
         mat * translate(topRight) * scale(vec2(1/scale))
       )
@@ -156,7 +156,7 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
         ratioH = image.height.float32 / node.absoluteBoundingBox.height
         scale = min(ratioW, ratioH)
       mat = mat * scale(vec2(1/scale))
-      effects = effects.draw(image, mat)
+      effects.draw(image, mat)
 
     elif paint.scaleMode == "TILE":
       image = image.resize(
@@ -166,7 +166,7 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
       while x < node.absoluteBoundingBox.width:
         var y = 0.0
         while y < node.absoluteBoundingBox.height:
-          effects = effects.draw(image, vec2(x, y))
+          effects.draw(image, vec2(x, y))
           y += image.height.float32
         x += image.width.float32
 
@@ -218,7 +218,7 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
 
   elif paint.`type` == "SOLID":
     var color = paint.color
-    effects = effects.fill(color.rgba)
+    effects.fill(color.rgba)
   else:
     echo "Not supported paint: ", paint.`type`
 
@@ -229,11 +229,11 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
       effects.height,
       color(0,0,0, paint.opacity).rgba
     )
-    effects = effects.draw(opacity, blendMode = bmMask)
+    effects.draw(opacity, blendMode = bmMask)
 
-  effects = effects.draw(mask, blendMode = bmMask)
+  effects.draw(mask, blendMode = bmMask)
 
-  node.pixels = node.pixels.draw(
+  node.pixels.draw(
     effects, blendMode = parseBlendMode(paint.blendMode))
 
 proc applyDropShadowEffect(effect: Effect, node: Node) =
@@ -246,24 +246,24 @@ proc applyDropShadowEffect(effect: Effect, node: Node) =
   )
   shadow = shadow.shadow(
     effect.offset, effect.spread, effect.radius, effect.color)
-  shadow = shadow.draw(node.pixels)
+  shadow.draw(node.pixels)
   node.pixels = shadow
 
 proc applyInnerShadowEffect(effect: Effect, node: Node, fillMask: Image) =
   ## Draws the inner shadow.
   var shadow = fillMask.copy()
   # Invert colors of the fill mask.
-  shadow = shadow.invert()
+  shadow.invert()
   # Blur the inverted fill.
   shadow = shadow.blur(effect.radius)
   # Color the inverted blurred fill.
   var color = newImageFill(
     shadow.width, shadow.height, effect.color.rgba)
-  color = color.draw(shadow, blendMode = bmMask)
+  color.draw(shadow, blendMode = bmMask)
   # Only have the shadow be on the fill.
-  color = color.draw(fillMask, blendMode = bmMask)
+  color.draw(fillMask, blendMode = bmMask)
   # Draw it back.
-  node.pixels = node.pixels.draw(color)
+  node.pixels.draw(color)
 
 proc roundRect(path: Path, x, y, w, h, nw, ne, se, sw: float32) =
   ## Draw a round rectangle with different radius corners.
@@ -552,7 +552,7 @@ proc drawNodeInternal*(node: Node) =
           white,
           mat
         )
-        fillMask = fillMask.draw(geometry)
+        fillMask.draw(geometry)
 
     if node.strokes.len > 0:
       strokeMask = newImage(w, h)
@@ -641,7 +641,7 @@ proc drawNodeInternal*(node: Node) =
               bmNormal
             else:
               bmNormal
-      fillMask = fillMask.draw(
+      fillMask.draw(
         child.pixels,
         child.pixelBox.xy - node.pixelBox.xy,
         blendMode
@@ -680,7 +680,7 @@ proc drawNodeInternal*(node: Node) =
 proc selfAndChildrenMask(node: Node): Image =
   result = newImage(screen.width, screen.height)
   if node.pixels != nil:
-    result = result.draw(
+    result.draw(
       node.pixels,
       node.pixelBox.xy,
       blendMode = bmNormal
@@ -688,7 +688,7 @@ proc selfAndChildrenMask(node: Node): Image =
   if node.`type` != "BOOLEAN_OPERATION":
     for c in node.children:
       let childMask = selfAndChildrenMask(c)
-      result = result.draw(
+      result.draw(
         childMask,
         blendMode = bmNormal
       )
@@ -701,7 +701,7 @@ proc drawNodeScreen(node: Node) =
     if effect.`type` == "LAYER_BLUR":
       var maskWithColors = node.selfAndChildrenMask()
       maskWithColors = maskWithColors.blur(effect.radius)
-      screen.drawInPlace(
+      screen.draw(
         maskWithColors
       )
       stopDraw = true
@@ -709,11 +709,11 @@ proc drawNodeScreen(node: Node) =
       var blur = screen.blur(effect.radius)
       var mask = node.selfAndChildrenMask()
       mask = mask.sharpOpacity()
-      blur = blur.draw(
+      blur.draw(
         mask,
         blendMode = bmMask
       )
-      screen.drawInPlace(
+      screen.draw(
         blur
       )
 
@@ -724,7 +724,8 @@ proc drawNodeScreen(node: Node) =
     if node.isMask:
       var mask = node.selfAndChildrenMask()
       if maskStack.len > 0:
-        mask = maskStack[0][1].draw(
+        mask = maskStack[0][1].copy()
+        mask.draw(
           mask,
           blendMode = bmIntersectMask
         )
@@ -732,21 +733,21 @@ proc drawNodeScreen(node: Node) =
     else:
       if maskStack.len > 0:
         var withMask = newImage(screen.width, screen.height)
-        withMask = withMask.draw(
+        withMask.draw(
           node.pixels,
           node.pixelBox.xy,
           parseBlendMode(node.blendMode)
         )
-        withMask = withMask.draw(
+        withMask.draw(
           maskStack[0][1],
           blendMode = bmIntersectMask
         )
-        screen.drawInPlace(
+        screen.draw(
           withMask,
           blendMode = parseBlendMode(node.blendMode)
         )
       else:
-        screen.drawInPlace(
+        screen.draw(
           node.pixels,
           node.pixelBox.xy,
           parseBlendMode(node.blendMode)
