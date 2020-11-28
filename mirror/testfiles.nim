@@ -1,4 +1,4 @@
-import chroma, os, schema, render, print, pixie, strutils, strformat, cligen,
+import chroma, os, schema, render, pixie, strutils, strformat, cligen,
     mirror
 
 var files = @[

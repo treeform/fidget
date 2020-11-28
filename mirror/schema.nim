@@ -1,4 +1,4 @@
-import json, jsons, print, tables, chroma, vmath, pixie,
+import json, jsons, tables, chroma, vmath, pixie,
     httpclient2, json, strutils, os, typography, strformat
 
 type
