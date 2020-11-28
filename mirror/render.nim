@@ -77,7 +77,7 @@ proc parseBlendMode*(s: string): BlendMode =
     of "LUMINOSITY": bmLuminosity
     else: bmNormal
 
-proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
+proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3, paintNum: int, applyMask=true) =
 
   if not paint.visible:
     return
@@ -231,10 +231,19 @@ proc applyPaint(mask: Image, paint: Paint, node: Node, mat: Mat3) =
     )
     effects.draw(opacity, blendMode = bmMask)
 
-  effects.draw(mask, blendMode = bmMask)
+  # Optimization: if mask it simple, skip mask!
+  if applyMask:
+    effects.draw(mask, blendMode = bmMask)
+  # else:
+  #   echo "skip mask!"
 
-  node.pixels.draw(
-    effects, blendMode = parseBlendMode(paint.blendMode))
+  # Optimization: if its the first paint and blend mode is normal,
+  # pixels are just the effects.
+  if parseBlendMode(paint.blendMode) == bmNormal and paintNum == 0:
+  #   #echo "skip re-draw"
+    node.pixels = effects
+  else:
+    node.pixels.draw(effects, blendMode = parseBlendMode(paint.blendMode))
 
 proc applyDropShadowEffect(effect: Effect, node: Node) =
   ## Draws the drop shadow.
@@ -334,7 +343,7 @@ proc computePixelBox*(node: Node) =
   ## Computes pixel bounds.
   ## Takes into account width, height and shadow extent, and children.
   node.pixelBox.xy = node.absoluteBoundingBox.xy + framePos
-  node.pixelBox.wh = node.absoluteBoundingBox.wh + vec2(1, 1)
+  node.pixelBox.wh = node.absoluteBoundingBox.wh
 
   var s = 0.0
 
@@ -366,10 +375,19 @@ proc computePixelBox*(node: Node) =
       # TODO: clips content should still respect shadows.
       node.pixelBox = node.pixelBox or child.pixelBox
 
-  node.pixelBox.x = node.pixelBox.x.floor
-  node.pixelBox.y = node.pixelBox.y.floor
-  node.pixelBox.w = node.pixelBox.w.ceil
-  node.pixelBox.h = node.pixelBox.h.ceil
+  if node.pixelBox.x.fractional > 0:
+    node.pixelBox.w += node.pixelBox.x.fractional
+    node.pixelBox.x = node.pixelBox.x.floor
+
+  if node.pixelBox.y.fractional > 0:
+    node.pixelBox.h += node.pixelBox.y.fractional
+    node.pixelBox.y = node.pixelBox.y.floor
+
+  if node.pixelBox.w.fractional > 0:
+    node.pixelBox.w = node.pixelBox.w.ceil
+
+  if node.pixelBox.h.fractional > 0:
+    node.pixelBox.h = node.pixelBox.h.ceil
 
 proc drawCompleteFrame*(node: Node): Image =
   ## Draws full frame that is ready to be displayed.
@@ -405,8 +423,8 @@ proc drawNodeInternal*(node: Node) =
 
   # Make sure node.pixels is there and is the right size:
   let
-    w = ceil(node.pixelBox.w).int
-    h = ceil(node.pixelBox.h).int
+    w = node.pixelBox.w.int
+    h = node.pixelBox.h.int
 
   node.pixels = newImage(w, h)
 
@@ -432,6 +450,8 @@ proc drawNodeInternal*(node: Node) =
   # for node in nodeStack:
   #   s.add(" ")
   # echo s, node.name, "|", node.pixelBox, "...", repr(node.transform()).strip()
+
+  var applyMask = true
 
   case node.`type`
   of "DOCUMENT", "CANVAS":
@@ -468,17 +488,27 @@ proc drawNodeInternal*(node: Node) =
         )
       else:
         # Basic rectangle.
-        path.rect(
-          x = 0,
-          y = 0,
-          w = node.size.x,
-          h = node.size.y,
+        if node.pixelBox.x == 0 and
+          node.pixelBox.y == 0 and
+          node.pixelBox.wh == node.size:
+          #echo "simple mask case"
+          applyMask = false
+          #fillMask.fill(white)
+
+        if applyMask:
+          path.rect(
+            x = 0,
+            y = 0,
+            w = node.size.x,
+            h = node.size.y,
+          )
+
+      if applyMask:
+        fillMask = fillMask.fillPath(
+          path,
+          white,
+          mat,
         )
-      fillMask = fillMask.fillPath(
-        path,
-        white,
-        mat,
-      )
 
     if node.strokes.len > 0:
       strokeMask = newImage(w, h)
@@ -650,11 +680,13 @@ proc drawNodeInternal*(node: Node) =
   else:
     echo "Not supported node type: ", node.`type`
 
-  for fill in node.fills:
-    applyPaint(fillMask, fill, node, mat)
+  #echo "simpleMaskCase ", simpleMaskCase
 
-  for stroke in node.strokes:
-   applyPaint(strokeMask, stroke, node, mat)
+  for i, fill in node.fills:
+    applyPaint(fillMask, fill, node, mat, i, applyMask = applyMask)
+
+  for i, stroke in node.strokes:
+   applyPaint(strokeMask, stroke, node, mat, i)
 
   for effect in node.effects:
     if effect.`type` == "INNER_SHADOW":
