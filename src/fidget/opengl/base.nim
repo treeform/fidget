@@ -431,4 +431,4 @@ proc takeScreenshot*(
     GL_UNSIGNED_BYTE,
     result.data[0].addr
   )
-  result = result.flipVertical()
+  result.flipVertical()

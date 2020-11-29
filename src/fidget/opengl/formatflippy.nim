@@ -340,11 +340,11 @@ proc fillRoundedRect*(
   var corner = newImage(borderWidthPx, borderWidthPx)
   corner.fillCircle(vec2(borderWidth, borderWidth), radius, rgba)
   image.blit(corner, vec2(0, 0))
-  corner = corner.flipHorizontal()
+  corner.flipHorizontal()
   image.blit(corner, vec2(rect.w - borderWidth, 0)) # NE
-  corner = corner.flipVertical()
+  corner.flipVertical()
   image.blit(corner, vec2(rect.w - borderWidth, rect.h - borderWidth)) # SE
-  corner = corner.flipHorizontal()
+  corner.flipHorizontal()
   image.blit(corner, vec2(0, rect.h - borderWidth)) # SW
 
 proc strokeRoundedRect*(
@@ -366,11 +366,11 @@ proc strokeRoundedRect*(
   corner.strokeCircle(vec2(borderWidth, borderWidth), radius, border, rgba)
   let s = borderWidth.ceil
   image.blit(corner, vec2(0, 0)) # NW
-  corner = corner.flipHorizontal()
+  corner.flipHorizontal()
   image.blit(corner, vec2(rect.w - s, 0)) # NE
-  corner = corner.flipVertical()
+  corner.flipVertical()
   image.blit(corner, vec2(rect.w - s, rect.h - s)) # SE
-  corner = corner.flipHorizontal()
+  corner.flipHorizontal()
   image.blit(corner, vec2(0, rect.h - s)) # SW
 
 proc outlineBorder*(image: Image, borderPx: int): Image =
