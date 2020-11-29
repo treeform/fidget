@@ -254,7 +254,7 @@ proc applyDropShadowEffect(effect: Effect, node: Node) =
     node.pixelBox.h.int
   )
   shadow = shadow.shadow(
-    effect.offset, effect.spread, effect.radius, effect.color)
+    effect.offset, effect.spread, effect.radius, effect.color.rgba)
   shadow.draw(node.pixels)
   node.pixels = shadow
 
@@ -264,7 +264,7 @@ proc applyInnerShadowEffect(effect: Effect, node: Node, fillMask: Image) =
   # Invert colors of the fill mask.
   shadow.invert()
   # Blur the inverted fill.
-  shadow = shadow.blur(effect.radius)
+  shadow = shadow.blurAlpha(effect.radius)
   # Color the inverted blurred fill.
   var color = newImageFill(
     shadow.width, shadow.height, effect.color.rgba)
