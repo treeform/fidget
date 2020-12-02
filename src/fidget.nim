@@ -266,7 +266,7 @@ proc image*(imageName: string) =
   ## Sets image fill.
   current.imageName = imageName
 
-proc orgBox*(x, y, w, h: int|float32|float32) =
+proc orgBox*(x, y, w, h: int|float32|float64) =
   ## Sets the box dimensions of the original element for constraints.
   current.orgBox.x = float32 x
   current.orgBox.y = float32 y
