@@ -10,12 +10,14 @@ proc drawMain() =
       stroke "#000"
       strokeWeight 1
       clipContent true
-      scrollable true
+      scrollable true, true
       fill "#FFF"
       for i in 0 .. 4:
         group "blockA" & $i:
           scrollSpeed (i + 1) * 2 - 6
           box 15 + (float i) * 120, 15, 100, 100
           fill "#2B9FEA"
+          stroke "#000"
+          strokeWeight 1
 
 startFidget(drawMain, w = 620, h = 140)

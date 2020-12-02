@@ -280,10 +280,12 @@ proc box*(x, y, w, h: float32) =
   current.box.w = w
   current.box.h = h
 
-  ## Apply scrolling
+  ## Apply scroll
   if not parent.isNil:
-    if parent.scrollable:
-      current.box.y += parent.scroll.y * current.scrollSpeed
+    if parent.scrollable.x:
+      current.box.x += parent.scroll.x * current.scrollSpeed.x
+    if parent.scrollable.y:
+      current.box.y += parent.scroll.y * current.scrollSpeed.y
 
 proc box*(
   x: int|float32|float64,
@@ -363,22 +365,34 @@ proc scrollBars*(scrollBars: bool) =
   ## Causes the parent to clip the children and draw scroll bars.
   current.scrollBars = scrollBars
 
-proc scrollable*(scrollable: bool) =
+proc scrollable*(value: tuple[x: bool, y:bool]) =
   ## Causes the parent to let scroll its children.
-  current.scrollable = scrollable
+  current.scrollable = value
 
   ## Accumulate scroll value
-  if current.scrollable:
+  if current.scrollable.x or current.scrollable.y:
     onHover:
-      current.scroll.y += mouse.wheelDelta
+      current.scroll += mouse.wheelDelta
 
-proc scrollSpeed*(scrollSpeed: float) =
-  ## Sets the speed at which a child is scolled inside its parent's box
-  current.scrollSpeed = scrollSpeed
+proc scrollable*(xValue: bool, yValue: bool) = 
+  ## Causes the parent to let scroll its children.
+  scrollable((x: xValue, y: yValue))
 
-proc scrollSpeed*(scrollSpeed: int) =
-  ## Sets the speed at which a child is scolled inside its parent's box
-  current.scrollSpeed = float scrollSpeed
+proc scrollable*(yValue: bool) = 
+  ## Causes the parent to let scroll its children.
+  scrollable((x: false, y: yValue))
+
+proc scrollSpeed*(value: Vec2) =
+  ## Sets the speed at which a child is scrolled inside its parent's box
+  current.scrollSpeed = value
+
+proc scrollSpeed*(value: int|float32|float64) =
+  ## Sets the speed at which a child is scrolled inside its parent's box
+  scrollSpeed(vec2(float32 value, float32 value))
+
+proc scrollSpeed*(xValue, yValue: int|float32|float64) =
+  ## Sets the speed at which a child is scrolled inside its parent's box
+  scrollSpeed(vec2(float32 xValue, float32 yValue))
 
 proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.
