@@ -280,6 +280,11 @@ proc box*(x, y, w, h: float32) =
   current.box.w = w
   current.box.h = h
 
+  ## Apply scrolling
+  if not parent.isNil:
+    if parent.scrollable:
+      current.box.y += parent.scroll.y * current.scrollSpeed
+
 proc box*(
   x: int|float32|float64,
   y: int|float32|float64,
@@ -357,6 +362,23 @@ proc clipContent*(clipContent: bool) =
 proc scrollBars*(scrollBars: bool) =
   ## Causes the parent to clip the children and draw scroll bars.
   current.scrollBars = scrollBars
+
+proc scrollable*(scrollable: bool) =
+  ## Causes the parent to let scroll its children.
+  current.scrollable = scrollable
+
+  ## Accumulate scroll value
+  if current.scrollable:
+    onHover:
+      current.scroll.y += mouse.wheelDelta
+
+proc scrollSpeed*(scrollSpeed: float) =
+  ## Sets the speed at which a child is scolled inside its parent's box
+  current.scrollSpeed = scrollSpeed
+
+proc scrollSpeed*(scrollSpeed: int) =
+  ## Sets the speed at which a child is scolled inside its parent's box
+  current.scrollSpeed = float scrollSpeed
 
 proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.

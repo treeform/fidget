@@ -142,6 +142,9 @@ type
     textLayoutWidth*: float32
     ## Can the text be selected.
     selectable*: bool
+    scrollable*: bool
+    scroll*: Vec2
+    scrollSpeed*: float
     scrollBars*: bool ## Should it have scroll bars if children are clipped.
 
   KeyState* = enum
@@ -320,6 +323,7 @@ proc resetToDefault*(node: Node)=
   node.clipContent = false
   node.diffIndex = 0
   node.selectable = false
+  node.scrollSpeed = 1
 
 proc setupRoot*() =
   if root == nil:
