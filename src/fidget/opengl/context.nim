@@ -262,13 +262,13 @@ proc updateImage*(ctx: Context, path: string | Hash, image: Image) =
     image
   )
 
-proc putFlippy*(ctx: Context, path: string | Hash, pixie: Flippy) =
-  let rect = ctx.findEmptyRect(pixie.width, pixie.height)
+proc putFlippy*(ctx: Context, path: string | Hash, flippy: Flippy) =
+  let rect = ctx.findEmptyRect(flippy.width, flippy.height)
   ctx.entries[path] = rect / float(ctx.atlasSize)
   var
     x = int(rect.x)
     y = int(rect.y)
-  for level, mip in pixie.mipmaps:
+  for level, mip in flippy.mipmaps:
     updateSubImage(
       ctx.atlasTexture,
       x,
@@ -418,23 +418,23 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
 
   let filePath = cast[string](imagePath) # We know it is a string
   if hash(filePath) notin ctx.entries:
-    # Need to load imagePath, check to see if the .pixie file is around
+    # Need to load imagePath, check to see if the .flippy file is around
     echo "[load] ", filePath
     if not fileExists(filePath):
       raise newException(Exception, &"Image '{filePath}' not found")
-    let pixieFilePath = filePath.changeFileExt(".flippy")
-    if not fileExists(pixieFilePath):
+    let flippyFilePath = filePath.changeFileExt(".flippy")
+    if not fileExists(flippyFilePath):
       # No Flippy file generate new one
-      pngToFlippy(filePath, pixieFilePath)
+      pngToFlippy(filePath, flippyFilePath)
     else:
       let
-        mtFlippy = getLastModificationTime(pixieFilePath).toUnix
+        mtFlippy = getLastModificationTime(flippyFilePath).toUnix
         mtImage = getLastModificationTime(filePath).toUnix
       if mtFlippy < mtImage:
         # Flippy file too old, regenerate
-        pngToFlippy(filePath, pixieFilePath)
-    var pixie = loadFlippy(pixieFilePath)
-    ctx.putFlippy(filePath, pixie)
+        pngToFlippy(filePath, flippyFilePath)
+    var flippy = loadFlippy(flippyFilePath)
+    ctx.putFlippy(filePath, flippy)
   return ctx.entries[filePath]
 
 proc drawImage*(
