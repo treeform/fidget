@@ -1,5 +1,5 @@
-import buffers, chroma, flippy, hashes, opengl, os, shaders, strformat,
-    strutils, tables, textures, times, vmath
+import buffers, chroma, pixie, hashes, opengl, os, shaders, strformat,
+    strutils, tables, textures, times, vmath, formatflippy
 
 const
   quadLimit = 10_921
@@ -500,8 +500,8 @@ proc drawSprite*(
 proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   const imgKey = hash("rect")
   if imgKey notin ctx.entries:
-    var image = newImage(4, 4, 4)
-    image.fill(rgba(255, 255, 255, 255))
+    var image = newImage(4, 4)
+    image.fill2(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
 
   let
@@ -528,8 +528,8 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
     w = ceil(rect.w).int
     h = ceil(rect.h).int
   if hash notin ctx.entries:
-    var image = newImage(w, h, 4)
-    image.fill(rgba(255, 255, 255, 0))
+    var image = newImage(w, h)
+    image.fill2(rgba(255, 255, 255, 0))
     image.fillRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
@@ -564,8 +564,8 @@ proc strokeRoundedRect*(
     w = ceil(rect.w).int
     h = ceil(rect.h).int
   if hash notin ctx.entries:
-    var image = newImage(w, h, 4)
-    image.fill(rgba(255, 255, 255, 0))
+    var image = newImage(w, h)
+    image.fill2(rgba(255, 255, 255, 0))
     image.strokeRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
@@ -599,8 +599,8 @@ proc line*(
     pos = vec2(min(a.x, b.x), min(a.y, b.y))
 
   if hash notin ctx.entries:
-    var image = newImage(w, h, 4)
-    image.fill(rgba(255, 255, 255, 0))
+    var image = newImage(w, h)
+    image.fill2(rgba(255, 255, 255, 0))
     image.line(
       a-pos, b-pos,
       rgba(255, 255, 255, 255)

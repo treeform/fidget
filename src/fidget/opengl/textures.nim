@@ -1,4 +1,4 @@
-import buffers, flippy, opengl, strformat
+import buffers, pixie, opengl, strformat
 
 type
   MinFilter* = enum
@@ -79,15 +79,7 @@ proc bindTextureData*(texture: ptr Texture, data: pointer) =
     glGenerateMipmap(GL_TEXTURE_2D)
 
 func getFormat(image: Image): GLenum =
-  if image.channels == 4:
-    result = GL_RGBA
-  elif image.channels == 3:
-    result = GL_RGB
-  else:
-    raise newException(
-      ValueError,
-      &"Texture init error for {$image}, invalid channels value"
-    )
+  result = GL_RGBA
 
 proc initTexture*(image: Image): Texture =
   result.width = image.width.GLint
