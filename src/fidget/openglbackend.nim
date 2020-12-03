@@ -1,4 +1,4 @@
-import chroma, common, pixie, hashes, input, internal, opengl/base,
+import chroma, common, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
     typography/textboxes, unicode, vmath, opengl/formatflippy
 
