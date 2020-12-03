@@ -1154,6 +1154,13 @@ type
     screenX*, screenY*: int
     x*, y*: int
 
+  WheelEvent* = ref WheelEventObj ## see `docs<https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent>`
+  WheelEventObj {.importc.} = object of MouseEvent
+    deltaX*: float64
+    deltaY*: float64
+    deltaZ*: float64
+    deltaMode*: uint32
+
   DataTransferItemKind* {.pure.} = enum
     File = "file",
     String = "string"
