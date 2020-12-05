@@ -150,7 +150,7 @@ proc fill2*(image: Image, rgba: ColorRGBA) =
     # image.data[i + 1] = rgba.g
     # image.data[i + 2] = rgba.b
     # image.data[i + 3] = rgba.a
-    i += 4
+    i += 1
 
 proc blitUnsafe*(destImage: Image, srcImage: Image, src, dest: Rect) =
   ## Blits rectangle from one image to the other image.
@@ -165,8 +165,8 @@ proc blitUnsafe*(destImage: Image, srcImage: Image, src, dest: Rect) =
       srcIdx = int(src.x) + (int(src.y) + y) * srcImage.width
       destIdx = int(dest.x) + (int(dest.y) + y) * destImage.width
     copyMem(
-      destImage.data[destIdx*c].addr,
-      srcImage.data[srcIdx*c].addr,
+      destImage.data[destIdx].addr,
+      srcImage.data[srcIdx].addr,
       int(dest.w) * c
     )
 
