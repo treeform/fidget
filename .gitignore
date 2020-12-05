@@ -19,3 +19,4 @@ package-lock.json
 *.flippy
 wasm
 *.html
+nimbledeps

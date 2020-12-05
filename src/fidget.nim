@@ -266,7 +266,7 @@ proc image*(imageName: string) =
   ## Sets image fill.
   current.imageName = imageName
 
-proc orgBox*(x, y, w, h: int|float32|float32) =
+proc orgBox*(x, y, w, h: int|float32|float64) =
   ## Sets the box dimensions of the original element for constraints.
   current.orgBox.x = float32 x
   current.orgBox.y = float32 y
@@ -279,6 +279,13 @@ proc box*(x, y, w, h: float32) =
   current.box.y = y
   current.box.w = w
   current.box.h = h
+
+  ## Apply scroll
+  if not parent.isNil:
+    if parent.scrollable.x:
+      current.box.x += parent.scroll.x * current.scrollSpeed.x
+    if parent.scrollable.y:
+      current.box.y += parent.scroll.y * current.scrollSpeed.y
 
 proc box*(
   x: int|float32|float64,
@@ -357,6 +364,35 @@ proc clipContent*(clipContent: bool) =
 proc scrollBars*(scrollBars: bool) =
   ## Causes the parent to clip the children and draw scroll bars.
   current.scrollBars = scrollBars
+
+proc scrollable*(value: tuple[x: bool, y:bool]) =
+  ## Causes the parent to let scroll its children.
+  current.scrollable = value
+
+  ## Accumulate scroll value
+  if current.scrollable.x or current.scrollable.y:
+    onHover:
+      current.scroll += mouse.wheelDelta
+
+proc scrollable*(xValue: bool, yValue: bool) = 
+  ## Causes the parent to let scroll its children.
+  scrollable((x: xValue, y: yValue))
+
+proc scrollable*(yValue: bool) = 
+  ## Causes the parent to let scroll its children.
+  scrollable((x: false, y: yValue))
+
+proc scrollSpeed*(value: Vec2) =
+  ## Sets the speed at which a child is scrolled inside its parent's box
+  current.scrollSpeed = value
+
+proc scrollSpeed*(value: int|float32|float64) =
+  ## Sets the speed at which a child is scrolled inside its parent's box
+  scrollSpeed(vec2(float32 value, float32 value))
+
+proc scrollSpeed*(xValue, yValue: int|float32|float64) =
+  ## Sets the speed at which a child is scrolled inside its parent's box
+  scrollSpeed(vec2(float32 xValue, float32 yValue))
 
 proc cursorColor*(color: Color) =
   ## Sets the color of the text cursor.

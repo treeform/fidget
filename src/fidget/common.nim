@@ -142,6 +142,9 @@ type
     textLayoutWidth*: float32
     ## Can the text be selected.
     selectable*: bool
+    scrollable*: tuple[x: bool, y: bool]
+    scroll*: Vec2
+    scrollSpeed*: Vec2
     scrollBars*: bool ## Should it have scroll bars if children are clipped.
 
   KeyState* = enum
@@ -160,7 +163,7 @@ type
   Mouse* = ref object
     pos*, delta*, prevPos*: Vec2
     pixelScale*: float32
-    wheelDelta*: float32
+    wheelDelta*: Vec2
     cursorStyle*: MouseCursorStyle ## Sets the mouse cursor icon
     prevCursorStyle*: MouseCursorStyle
 
@@ -320,6 +323,7 @@ proc resetToDefault*(node: Node)=
   node.clipContent = false
   node.diffIndex = 0
   node.selectable = false
+  node.scrollSpeed = vec2(1, 1)
 
 proc setupRoot*() =
   if root == nil:
@@ -335,7 +339,7 @@ proc setupRoot*() =
 
 proc clearInputs*() =
 
-  mouse.wheelDelta = 0
+  mouse.wheelDelta = vec2(0, 0)
 
   # Reset key and mouse press to default state
   for i in 0 ..< buttonPress.len:

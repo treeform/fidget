@@ -274,7 +274,7 @@ proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
   if keyboard.focusNode != nil:
     textBox.scrollBy(-yoffset * 50)
   else:
-    mouse.wheelDelta += yoffset
+    mouse.wheelDelta += vec2(xoffset, yoffset)
 
 proc onMouseButton(
   window: staticglfw.Window, button, action, modifiers: cint

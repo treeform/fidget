@@ -519,6 +519,12 @@ proc startFidget*(draw: proc(), load: proc() = nil, w = 0, h = 0) =
     ## Scroll does not need to do anything special in HTML mode
     refresh()
 
+  dom.window.addEventListener "wheel", proc(event: Event) =
+    ## When wheel is used
+    let event = cast[WheelEvent](event)
+    mouse.wheelDelta += vec2(event.deltaX, event.deltaY)
+    refresh()
+
   dom.window.addEventListener "mousedown", proc(event: Event) =
     ## When mouse button is pressed
     let event = cast[MouseEvent](event)
