@@ -48,8 +48,9 @@ proc news(id: string) =
         box 389, 0, 96, 18
         fill "#000000", 0.5
         font "IBM Plex Sans", 14, 400, 0, hLeft, vTop
-        let uri = parseUri(call.json["url"].getStr())
-        characters "(" & uri.hostname & ")"
+        if "url" in call.json:
+          let uri = parseUri(call.json["url"].getStr())
+          characters "(" & uri.hostname & ")"
         textAutoResize tsWidthAndHeight
         layoutAlign laCenter
       text "title":
@@ -77,7 +78,8 @@ proc news(id: string) =
         box 305, 0, 87, 18
         fill "#000000", 0.5
         font "IBM Plex Sans", 14, 400, 0, hLeft, vTop
-        characters $call.json["descendants"].getInt() & " comments"
+        if "descendants" in call.json:
+          characters $call.json["descendants"].getInt() & " comments"
         textAutoResize tsWidthAndHeight
         layoutAlign laCenter
       text "bar":
