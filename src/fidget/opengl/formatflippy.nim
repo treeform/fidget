@@ -1,4 +1,4 @@
-import pixie, streams, supersnappy, chroma, strformat, vmath
+import pixie, streams, supersnappy, chroma, strformat, vmath, bumpy
 
 const version = 1
 

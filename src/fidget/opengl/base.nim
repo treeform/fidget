@@ -1,5 +1,5 @@
 import ../common, ../input, ../internal, chroma, pixie, opengl, os, perf,
-    staticglfw, times, typography/textboxes, unicode, vmath, strformat
+    staticglfw, times, typography/textboxes, unicode, vmath, strformat, bumpy
 
 when defined(glDebugMessageCallback):
   import strformat, strutils

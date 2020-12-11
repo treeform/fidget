@@ -1,4 +1,4 @@
-import chroma, input, sequtils, tables, vmath, json
+import chroma, input, sequtils, tables, vmath, json, bumpy
 
 when defined(js):
   import dom2, html/ajax
