@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.6.2"
+version       = "0.6.3"
 author        = "treeform"
 description   = "Fidget - UI Library"
 license       = "MIT"
@@ -19,4 +19,4 @@ requires "html5_canvas >= 1.3"
 requires "staticglfw >= 4.1.2"
 requires "cligen >= 1.0.0"
 requires "supersnappy >= 1.0.0"
-requires "bumpy >= 0.2.0"
+requires "bumpy >= 0.2.1"
