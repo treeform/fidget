@@ -1591,7 +1591,7 @@ proc now*(p: Performance): float
 proc removeAllRanges*(s: Selection)
 proc deleteFromDocument*(s: Selection)
 proc getRangeAt*(s: Selection, index: int): Range
-proc collapse*(s: Selection)
+proc collapse*(s: Selection, node: Node, offset: int)
 converter toString*(s: Selection): cstring
 proc `$`*(s: Selection): string = $(s.toString())
 

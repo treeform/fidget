@@ -321,6 +321,11 @@ proc stroke*(color: Color) =
   ## Sets stroke/border color.
   current.stroke = color
 
+proc stroke*(color: Color, alpha: float32) =
+  ## Sets stroke/border color.
+  current.stroke = color
+  current.stroke.a = alpha
+
 proc stroke*(color: string, alpha = 1.0) =
   ## Sets stroke/border color.
   current.stroke = parseHtmlColor(color)

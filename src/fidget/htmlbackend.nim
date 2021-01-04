@@ -600,7 +600,7 @@ proc startFidget*(draw: proc(), load: proc() = nil, w = 0, h = 0) =
     if selection.rangeCount == 0:
       return
     selection.getRangeAt(0).insertNode(document.createTextNode(paste))
-    selection.collapse()
+    selection.removeAllRanges()
     ev.preventDefault()
     keyboard.input = $document.activeElement.innerText
     echo "keyboard.input"
