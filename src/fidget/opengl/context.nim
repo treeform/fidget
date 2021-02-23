@@ -416,7 +416,9 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
   if imagePath is Hash:
     return ctx.entries[imagePath]
 
-  let filePath = cast[string](imagePath) # We know it is a string
+  var filePath = cast[string](imagePath) # We know it is a string
+  if splitFile(filePath).ext == "":
+    filePath.add ".png"
   if hash(filePath) notin ctx.entries:
     # Need to load imagePath, check to see if the .flippy file is around
     echo "[load] ", filePath
