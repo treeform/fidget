@@ -106,7 +106,6 @@ First `cd` to each folder then compile and run.
 
 ```sh
 nim c -r bars.nim
-nim c -r fonts.nim
 nim c -r hovers.nim
 nim c -r inputs.nim
 nim c -r padoftext.nim
@@ -120,7 +119,6 @@ First `cd` to each folder then run `js` compile command then open the `.html` fi
 
 ```sh
 nim js bars.nim
-nim js fonts.nim
 nim js hovers.nim
 nim js inputs.nim
 nim js padoftext.nim
