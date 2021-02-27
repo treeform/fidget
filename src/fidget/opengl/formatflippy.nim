@@ -49,7 +49,7 @@ proc alphaBleed*(image: Image) =
   var
     layers: seq[Image]
     min = image.minifyBy2Alpha()
-  while min.width >= 1 and min.height >= 1:
+  while min.width >= 2 and min.height >= 2:
     layers.add min
     min = min.minifyBy2Alpha()
 
@@ -81,7 +81,7 @@ proc save*(flippy: Flippy, filePath: string) =
     # TODO Talk to Ryan about format data compression.
     var s = newStringStream()
     for c in mip.data:
-      s.write(c)
+      s.write(c.toStraightAlpha())
     s.setPosition(0)
     var stringData = s.readAll()
     var zipped = compress(stringData)
@@ -133,245 +133,14 @@ proc loadFlippy*(filePath: string): Flippy =
     # TODO: Talk to ryan about compression
     var unzipped = uncompress(zipped)
     var s = newStringStream(cast[string](unzipped))
-    mip.data = newSeq[ColorRGBA](mip.width * mip.height)
+    mip.data = newSeq[ColorRGBX](mip.width * mip.height)
     for c in mip.data.mitems:
-      s.read(c)
+      var rgba: ColorRGBA
+      s.read(rgba)
+      c = rgba
     #mip.data = uncompress(zipped)
 
     result.mipmaps.add(mip)
-
-proc fill2*(image: Image, rgba: ColorRGBA) =
-  ## Fills the image with a solid color.
-  var i = 0
-  while i < image.data.len:
-    cast[ptr uint32](image.data[i + 0].addr)[] = cast[uint32](rgba)
-    # This accomplishes the same thing as:
-    # image.data[i + 0] = rgba.r
-    # image.data[i + 1] = rgba.g
-    # image.data[i + 2] = rgba.b
-    # image.data[i + 3] = rgba.a
-    i += 1
-
-proc blitUnsafe*(destImage: Image, srcImage: Image, src, dest: Rect) =
-  ## Blits rectangle from one image to the other image.
-  ## * No bounds checking *
-  ## Make sure that src and dest rect are in bounds.
-  ## Make sure that channels for images are the same.
-  ## Failure in the assumptions will case unsafe memory writes.
-  ## Note: Does not do alpha or color mixing.
-  let c = 4
-  for y in 0 ..< int(dest.h):
-    let
-      srcIdx = int(src.x) + (int(src.y) + y) * srcImage.width
-      destIdx = int(dest.x) + (int(dest.y) + y) * destImage.width
-    copyMem(
-      destImage.data[destIdx].addr,
-      srcImage.data[srcIdx].addr,
-      int(dest.w) * c
-    )
-
-proc blit*(destImage: Image, srcImage: Image, src, dest: Rect) =
-  ## Blits rectangle from one image to the other image.
-  ## Note: Does not do alpha or color mixing.
-  doAssert src.w == dest.w and src.h == dest.h
-  doAssert src.x >= 0 and src.x + src.w <= srcImage.width.float32
-  doAssert src.y >= 0 and src.y + src.h <= srcImage.height.float32
-
-  # See if the image hits the bounds and needs to be adjusted.
-  var
-    src = src
-    dest = dest
-  if dest.x < 0:
-    dest.w += dest.x
-    src.x -= dest.x
-    src.w += dest.x
-    dest.x = 0
-  if dest.x + dest.w > destImage.width.float32:
-    let diff = destImage.width.float32 - (dest.x + dest.w)
-    dest.w += diff
-    src.w += diff
-  if dest.y < 0:
-    dest.h += dest.y
-    src.y -= dest.y
-    src.h += dest.y
-    dest.y = 0
-  if dest.y + dest.h > destImage.height.float32:
-    let diff = destImage.height.float32 - (dest.y + dest.h)
-    dest.h += diff
-    src.h += diff
-
-  # See if image is entirely outside the bounds:
-  if dest.x + dest.w < 0 or dest.x > destImage.width.float32:
-    return
-  if dest.y + dest.h < 0 or dest.y > destImage.height.float32:
-    return
-
-  # Faster path using copyMem:
-  blitUnsafe(destImage, srcImage, src, dest)
-
-proc line*(image: Image, at, to: Vec2, rgba: ColorRGBA) =
-  ## Draws a line from one at vec to to vec.
-  let
-    dx = to.x - at.x
-    dy = to.y - at.y
-  var x = at.x
-  while true:
-    if dx == 0:
-      break
-    let y = at.y + dy * (x - at.x) / dx
-    image[int x, int y] = rgba
-    if at.x < to.x:
-      x += 1
-      if x > to.x:
-        break
-    else:
-      x -= 1
-      if x < to.x:
-        break
-
-  var y = at.y
-  while true:
-    if dy == 0:
-      break
-    let x = at.x + dx * (y - at.y) / dy
-    image[int x, int y] = rgba
-    if at.y < to.y:
-      y += 1
-      if y > to.y:
-        break
-    else:
-      y -= 1
-      if y < to.y:
-        break
-
-proc fillRect*(image: Image, rect: Rect, rgba: ColorRGBA) =
-  ## Draws a filled rectangle.
-  let
-    minX = max(int(rect.x), 0)
-    maxX = min(int(rect.x + rect.w), image.width)
-    minY = max(int(rect.y), 0)
-    maxY = min(int(rect.y + rect.h), image.height)
-  for y in minY ..< maxY:
-    for x in minX ..< maxX:
-      image.setRgbaUnsafe(x, y, rgba)
-
-proc strokeRect*(image: Image, rect: Rect, rgba: ColorRGBA) =
-  ## Draws a rectangle borders only.
-  let
-    at = rect.xy
-    wh = rect.wh - vec2(1, 1) # line width
-  image.line(at, at + vec2(wh.x, 0), rgba)
-  image.line(at + vec2(wh.x, 0), at + vec2(wh.x, wh.y), rgba)
-  image.line(at + vec2(0, wh.y), at + vec2(wh.x, wh.y), rgba)
-  image.line(at + vec2(0, wh.y), at, rgba)
-
-proc blit*(destImage: Image, srcImage: Image, pos: Vec2) =
-  ## Blits rectangle from one image to the other image.
-  ## Note: Does not do alpha or color mixing.
-  destImage.blit(
-    srcImage,
-    rect(0.0, 0.0, srcImage.width.float32, srcImage.height.float32),
-    rect(pos.x, pos.y, srcImage.width.float32, srcImage.height.float32)
-  )
-
-proc fillCircle*(image: Image, pos: Vec2, radius: float, rgba: ColorRGBA) =
-  ## Draws a filled circle with antialiased edges.
-  let
-    minX = max(int(pos.x - radius), 0)
-    maxX = min(int(pos.x + radius), image.width)
-    minY = max(int(pos.y - radius), 0)
-    maxY = min(int(pos.y + radius), image.height)
-  for x in minX ..< maxX:
-    for y in minY ..< maxY:
-      let
-        pixelPos = vec2(float x, float y) + vec2(0.5, 0.5)
-        pixelDist = pixelPos.dist(pos)
-      if pixelDist < radius - sqrt(0.5):
-        image.setRgbaUnsafe(x, y, rgba)
-      elif pixelDist < radius + sqrt(0.5):
-        var touch = 0
-        const n = 5
-        const r = (n - 1) div 2
-        for aay in -r .. r:
-          for aax in -r .. r:
-            if pos.dist(pixelPos + vec2(aay / n, aax / n)) < radius:
-              inc touch
-        var rgbaAA = rgba
-        rgbaAA.a = uint8(float(touch) * 255.0 / (n * n))
-        image.setRgbaUnsafe(x, y, rgbaAA)
-
-proc strokeCircle*(
-  image: Image, pos: Vec2, radius, border: float, rgba: ColorRGBA
-) =
-  ## Draws a border of circle with antialiased edges.
-  let
-    minX = max(int(pos.x - radius - border), 0)
-    maxX = min(int(pos.x + radius + border), image.width)
-    minY = max(int(pos.y - radius - border), 0)
-    maxY = min(int(pos.y + radius + border), image.height)
-  for y in minY ..< maxY:
-    for x in minX ..< maxX:
-      let
-        pixelPos = vec2(float x, float y) + vec2(0.5, 0.5)
-        pixelDist = pixelPos.dist(pos)
-      if pixelDist > radius - border / 2 - sqrt(0.5) and
-          pixelDist < radius + border / 2 + sqrt(0.5):
-        var touch = 0
-        const
-          n = 5
-          r = (n - 1) div 2
-        for aay in -r .. r:
-          for aax in -r .. r:
-            let dist = pos.dist(pixelPos + vec2(aay / n, aax / n))
-            if dist > radius - border/2 and dist < radius + border/2:
-              inc touch
-        var rgbaAA = rgba
-        rgbaAA.a = uint8(float(touch) * 255.0 / (n * n))
-        image.setRgbaUnsafe(x, y, rgbaAA)
-
-proc fillRoundedRect*(
-  image: Image, rect: Rect, radius: float, rgba: ColorRGBA
-) =
-  ## Fills image with a rounded rectangle.
-  image.fill2(rgba)
-  let
-    borderWidth = radius
-    borderWidthPx = int ceil(radius)
-  var corner = newImage(borderWidthPx, borderWidthPx)
-  corner.fillCircle(vec2(borderWidth, borderWidth), radius, rgba)
-  image.blit(corner, vec2(0, 0))
-  corner.flipHorizontal()
-  image.blit(corner, vec2(rect.w - borderWidth, 0)) # NE
-  corner.flipVertical()
-  image.blit(corner, vec2(rect.w - borderWidth, rect.h - borderWidth)) # SE
-  corner.flipHorizontal()
-  image.blit(corner, vec2(0, rect.h - borderWidth)) # SW
-
-proc strokeRoundedRect*(
-  image: Image, rect: Rect, radius, border: float, rgba: ColorRGBA
-) =
-  ## Fills image with a stroked rounded rectangle.
-  #var radius = min(radius, rect.w/2)
-  for i in 0 ..< int(border):
-    let f = float i
-    image.strokeRect(rect(
-      rect.x + f,
-      rect.y + f,
-      rect.w - f * 2,
-      rect.h - f * 2,
-    ), rgba)
-  let borderWidth = (radius + border / 2)
-  let borderWidthPx = int ceil(borderWidth)
-  var corner = newImage(borderWidthPx, borderWidthPx)
-  corner.strokeCircle(vec2(borderWidth, borderWidth), radius, border, rgba)
-  let s = borderWidth.ceil
-  image.blit(corner, vec2(0, 0)) # NW
-  corner.flipHorizontal()
-  image.blit(corner, vec2(rect.w - s, 0)) # NE
-  corner.flipVertical()
-  image.blit(corner, vec2(rect.w - s, rect.h - s)) # SE
-  corner.flipHorizontal()
-  image.blit(corner, vec2(0, rect.h - s)) # SW
 
 proc outlineBorder*(image: Image, borderPx: int): Image =
   ## Adds n pixel border around alpha parts of the image.

@@ -503,7 +503,7 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   const imgKey = hash("rect")
   if imgKey notin ctx.entries:
     var image = newImage(4, 4)
-    image.fill2(rgba(255, 255, 255, 255))
+    image.fill(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
 
   let
@@ -531,7 +531,6 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
     h = ceil(rect.h).int
   if hash notin ctx.entries:
     var image = newImage(w, h)
-    image.fill2(rgba(255, 255, 255, 0))
     image.fillRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
@@ -567,12 +566,11 @@ proc strokeRoundedRect*(
     h = ceil(rect.h).int
   if hash notin ctx.entries:
     var image = newImage(w, h)
-    image.fill2(rgba(255, 255, 255, 0))
     image.strokeRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
-      weight,
-      rgba(255, 255, 255, 255)
+      rgba(255, 255, 255, 255),
+      weight
     )
     ctx.putImage(hash, image)
   let
@@ -602,9 +600,8 @@ proc line*(
 
   if hash notin ctx.entries:
     var image = newImage(w, h)
-    image.fill2(rgba(255, 255, 255, 0))
-    image.line(
-      a-pos, b-pos,
+    image.strokeSegment(
+      segment(a-pos, b-pos),
       rgba(255, 255, 255, 255)
     )
     ctx.putImage(hash, image)
