@@ -1,7 +1,7 @@
 import chroma, common, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
     typography/textboxes, unicode, vmath, opengl/formatflippy, bumpy,
-    typography/svgfont
+    typography/svgfont, pixie
 
 when not defined(emscripten) and not defined(fidgetNoAsync):
   import httpClient, asyncdispatch, asyncfutures, json
@@ -356,7 +356,7 @@ proc setupFidget(
       ## This is used for test only
       ## Take a screen shot of the first frame and exit.
       var img = takeScreenshot()
-      img.save("screenshot.png")
+      img.writeFile("screenshot.png")
       quit()
 
   useDepthBuffer(false)
