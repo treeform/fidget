@@ -567,7 +567,7 @@ proc strokeRoundedRect*(
   if hash notin ctx.entries:
     var image = newImage(w, h)
     image.strokeRoundedRect(
-      rect(0, 0, rect.w, rect.h),
+      rect(weight / 2, weight / 2, rect.w - weight, rect.h - weight),
       radius,
       rgba(255, 255, 255, 255),
       weight
@@ -601,7 +601,7 @@ proc line*(
   if hash notin ctx.entries:
     var image = newImage(w, h)
     image.strokeSegment(
-      segment(a-pos, b-pos),
+      segment(a - pos, b - pos),
       rgba(255, 255, 255, 255)
     )
     ctx.putImage(hash, image)
