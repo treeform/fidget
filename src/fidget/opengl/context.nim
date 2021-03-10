@@ -598,6 +598,9 @@ proc line*(
     h = ceil(abs(a.y - b.y)).int
     pos = vec2(min(a.x, b.x), min(a.y, b.y))
 
+  if w == 0 or h == 0:
+    return
+
   if hash notin ctx.entries:
     var image = newImage(w, h)
     image.strokeSegment(

@@ -81,7 +81,7 @@ proc save*(flippy: Flippy, filePath: string) =
     # TODO Talk to Ryan about format data compression.
     var s = newStringStream()
     for c in mip.data:
-      s.write(c.rgba())
+      s.write(c.color.rgba())
     s.setPosition(0)
     var stringData = s.readAll()
     var zipped = compress(stringData)

@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.7.3"
+version       = "0.7.4"
 author        = "treeform"
 description   = "Fidget - UI Library"
 license       = "MIT"
