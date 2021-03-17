@@ -90,10 +90,16 @@ proc initTexture*(image: Image): Texture =
   result.genMipmap = true
   result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
-  bindTextureData(result.addr, image.data[0].addr)
+  var data = newSeq[ColorRGBA](image.width * image.height)
+  for i in 0 ..< data.len:
+    data[i] = image.data[i]
+  bindTextureData(result.addr, data[0].addr)
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
   ## Update a small part of a texture image.
+  var data = newSeq[ColorRGBA](image.width * image.height)
+  for i in 0 ..< data.len:
+    data[i] = image.data[i]
   glBindTexture(GL_TEXTURE_2D, texture.textureId)
   glTexSubImage2D(
     GL_TEXTURE_2D,
@@ -104,7 +110,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     height = image.height.GLint,
     format = image.getFormat(),
     `type` = GL_UNSIGNED_BYTE,
-    pixels = image.data[0].addr
+    pixels = data[0].addr
   )
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =

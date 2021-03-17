@@ -1,6 +1,7 @@
 import chroma, common, hashes, input, internal, opengl/base,
     opengl/context, os, strformat, strutils, tables, times, typography,
-    typography/textboxes, unicode, vmath, opengl/formatflippy, bumpy
+    typography/textboxes, unicode, vmath, opengl/formatflippy, bumpy,
+    typography/svgfont, pixie
 
 when not defined(emscripten) and not defined(fidgetNoAsync):
   import httpClient, asyncdispatch, asyncfutures, json
@@ -88,7 +89,7 @@ proc drawText(node: Node) =
 
   let mousePos = mouse.pos - node.screenBox.xy
 
-  if node.selectable and mouse.down and mouse.pos.overlap(node.screenBox):
+  if node.selectable and mouse.down and mouse.pos.overlaps(node.screenBox):
     # mouse actions click, drag, double clicking
     keyboard.focus(node)
     if mouse.click:
@@ -355,7 +356,7 @@ proc setupFidget(
       ## This is used for test only
       ## Take a screen shot of the first frame and exit.
       var img = takeScreenshot()
-      img.save("screenshot.png")
+      img.writeFile("screenshot.png")
       quit()
 
   useDepthBuffer(false)

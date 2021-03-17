@@ -27,7 +27,7 @@ proc drawMain() =
           box 20, 20 + 60 * i, barW, 60
 
           # If current box is not on screen, don't draw children.
-          if current.screenBox.overlap(scrollBox):
+          if current.screenBox.overlaps(scrollBox):
 
             # Draw the decrement button to make the bar go down.
             rectangle "dec":

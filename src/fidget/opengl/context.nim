@@ -416,7 +416,9 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
   if imagePath is Hash:
     return ctx.entries[imagePath]
 
-  let filePath = cast[string](imagePath) # We know it is a string
+  var filePath = cast[string](imagePath) # We know it is a string
+  if splitFile(filePath).ext == "":
+    filePath.add ".png"
   if hash(filePath) notin ctx.entries:
     # Need to load imagePath, check to see if the .flippy file is around
     echo "[load] ", filePath
@@ -501,7 +503,7 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
   const imgKey = hash("rect")
   if imgKey notin ctx.entries:
     var image = newImage(4, 4)
-    image.fill2(rgba(255, 255, 255, 255))
+    image.fill(rgba(255, 255, 255, 255))
     ctx.putImage(imgKey, image)
 
   let
@@ -529,7 +531,6 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
     h = ceil(rect.h).int
   if hash notin ctx.entries:
     var image = newImage(w, h)
-    image.fill2(rgba(255, 255, 255, 0))
     image.fillRoundedRect(
       rect(0, 0, rect.w, rect.h),
       radius,
@@ -565,12 +566,11 @@ proc strokeRoundedRect*(
     h = ceil(rect.h).int
   if hash notin ctx.entries:
     var image = newImage(w, h)
-    image.fill2(rgba(255, 255, 255, 0))
     image.strokeRoundedRect(
-      rect(0, 0, rect.w, rect.h),
+      rect(weight / 2, weight / 2, rect.w - weight, rect.h - weight),
       radius,
-      weight,
-      rgba(255, 255, 255, 255)
+      rgba(255, 255, 255, 255),
+      weight
     )
     ctx.putImage(hash, image)
   let
@@ -598,11 +598,13 @@ proc line*(
     h = ceil(abs(a.y - b.y)).int
     pos = vec2(min(a.x, b.x), min(a.y, b.y))
 
+  if w == 0 or h == 0:
+    return
+
   if hash notin ctx.entries:
     var image = newImage(w, h)
-    image.fill2(rgba(255, 255, 255, 0))
-    image.line(
-      a-pos, b-pos,
+    image.strokeSegment(
+      segment(a - pos, b - pos),
       rgba(255, 255, 255, 255)
     )
     ctx.putImage(hash, image)
