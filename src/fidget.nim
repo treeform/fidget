@@ -137,7 +137,7 @@ proc mouseOverlapLogic*(): bool =
   (not popupActive or inPopup) and
   current.screenBox.w > 0 and
   current.screenBox.h > 0 and
-  mouse.pos.overlap(current.screenBox)
+  mouse.pos.overlaps(current.screenBox)
 
 template onClick*(inner: untyped) =
   ## On click event handler.
