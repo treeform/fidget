@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.7.4"
+version       = "0.7.5"
 author        = "treeform"
 description   = "Fidget - UI Library"
 license       = "MIT"
@@ -9,9 +9,9 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 1.0.0"
-requires "chroma 0.2.3"
-requires "typography 0.7.5"
-requires "pixie 1.0.3"
+requires "chroma >= 0.2.3"
+requires "typography >= 0.7.5"
+requires "pixie >= 1.0.3"
 requires "vmath >= 0.4.0"
 requires "print >= 0.1.0"
 requires "opengl >= 1.2.3"
