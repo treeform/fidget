@@ -366,12 +366,7 @@ proc setupFidget(
 
 proc asyncPoll() =
   when not defined(emscripten) and not defined(fidgetNoAsync):
-    var haveCalls = false
-    for call in httpCalls.values:
-      if call.status == Loading:
-        haveCalls = true
-        break
-    if haveCalls:
+    if hasPendingOperations():
       poll()
 
 proc startFidget*(
