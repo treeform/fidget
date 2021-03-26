@@ -1,7 +1,7 @@
 import algorithm, chroma, fidget/common, fidget/input, json, macros, strutils,
     tables, vmath, bumpy
 
-export chroma, common, input
+export chroma, common, input, vmath
 
 when defined(js):
   import fidget/htmlbackend

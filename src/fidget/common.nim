@@ -252,7 +252,7 @@ when not defined(js):
       of vBottom: Bottom
 
 mouse = Mouse()
-mouse.pos = Vec2()
+mouse.pos = vec2(0)
 
 proc dumpTree*(node: Node, indent = "") =
   echo indent, node.id, node.screenBox

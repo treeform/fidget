@@ -336,7 +336,7 @@ proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
   buf[i * 4 + 3] = color.a
 
 func `*`*(m: Mat4, v: Vec2): Vec2 =
-  (m * vec3(v, 0.0)).xy
+  (m * vec3(v.x, v.y, 0.0)).xy
 
 proc drawQuad*(
   ctx: Context,
@@ -704,7 +704,7 @@ proc beginFrame*(ctx: Context, frameSize: Vec2) =
   beginFrame(
     ctx,
     frameSize,
-    ortho(0, frameSize.x, frameSize.y, 0, -1000, 1000)
+    ortho[float32](0.0, frameSize.x, frameSize.y, 0, -1000.0, 1000.0)
   )
 
 proc endFrame*(ctx: Context) =
@@ -720,17 +720,17 @@ proc translate*(ctx: Context, v: Vec2) =
   ## Translate the internal transform.
   ctx.mat = ctx.mat * translate(vec3(v))
 
-proc rotate*(ctx: Context, angle: float) =
+proc rotate*(ctx: Context, angle: float32) =
   ## Rotates the internal transform.
-  ctx.mat = ctx.mat * rotateZ(angle).mat4()
+  ctx.mat = ctx.mat * rotateZ(angle)
 
-proc scale*(ctx: Context, scale: float) =
+proc scale*(ctx: Context, s: float32) =
   ## Scales the internal transform.
-  ctx.mat = ctx.mat * scaleMat(scale)
+  ctx.mat = ctx.mat * scale(vec3(s))
 
-proc scale*(ctx: Context, scale: Vec2) =
+proc scale*(ctx: Context, s: Vec2) =
   ## Scales the internal transform.
-  ctx.mat = ctx.mat * scaleMat(vec3(scale, 1))
+  ctx.mat = ctx.mat * scale(vec3(s.x, s.y, 1))
 
 proc saveTransform*(ctx: Context) =
   ## Pushes a transform onto the stack.
@@ -751,5 +751,5 @@ proc fromScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
 
 proc toScreen*(ctx: Context, windowFrame: Vec2, v: Vec2): Vec2 =
   ## Takes a point from current transform and translates it to screen.
-  result = (ctx.mat * vec3(v, 1)).xy
+  result = (ctx.mat * vec3(v.x, v.y, 1)).xy
   result.y = -result.y + windowFrame.y

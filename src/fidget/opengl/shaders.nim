@@ -370,7 +370,7 @@ proc setUniform*(shader: Shader, name: string, v: Vec4) =
   shader.setUniform(name, cGL_FLOAT, bkVEC4, values)
 
 proc setUniform*(shader: Shader, name: string, m: Mat4) =
-  shader.setUniform(name, cGL_FLOAT, bkMAT4, m)
+  shader.setUniform(name, cGL_FLOAT, bkMAT4, cast[array[16, float32]](m))
 
 proc setUniform*(shader: Shader, name: string, b: bool) =
   var values: array[16, int32]
