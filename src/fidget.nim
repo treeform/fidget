@@ -262,6 +262,14 @@ proc characters*(text: string) =
   if current.text != text:
     current.text = text
 
+when defined(js):
+  proc asHtml*(asHtml: bool) =
+    ## asHTML
+    current.asHtml = asHtml
+
+  template tooltip*(text: string) =
+    current.tooltip = text
+
 proc image*(imageName: string) =
   ## Sets image fill.
   current.imageName = imageName

@@ -1,4 +1,4 @@
-import chroma, common, dom2 as dom, html5_canvas, input, internal, math, os,
+import chroma, common, dom2 as dom, jsutils/canvas, input, internal, math, os,
     strformat, strutils, tables, vmath, html/ajax, json
 
 const defaultStyle = """
@@ -28,7 +28,7 @@ type
 var
   rootDomNode*: Element
   canvasNode*: Element
-  ctx*: CanvasRenderingContext2D
+  ctx*: Context2d
 
   forceTextReLayout*: bool
 
@@ -119,7 +119,7 @@ type
     ideographicBaseline*: float
 
 proc measureText(
-  ctx: CanvasRenderingContext2D,
+  ctx: Context2d,
   text: cstring
 ): TextMetrics {.importcpp.}
 
@@ -247,6 +247,9 @@ proc draw*(index: int, node: Node, parent: Node) =
   if node.hasDifferent(uid):
     node.element.setAttribute("id", node.uid)
 
+  if node.hasDifferent(tooltip):
+    node.element.setAttribute("title", node.tooltip)
+
   node.zIndex =
     if parent != nil:
       parent.nodes.len - index
@@ -291,7 +294,10 @@ proc draw*(index: int, node: Node, parent: Node) =
 
     if node.hasDifferent(text):
       if keyboard.focusNode != node:
-        node.textElement.innerText = node.text
+        if node.asHTML:
+          node.textElement.innerHtml = node.text
+        else:
+          node.textElement.innerText = node.text
       else:
         # Don't mess with inner text when user is typing!
         discard
