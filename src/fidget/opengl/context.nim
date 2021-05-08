@@ -188,6 +188,9 @@ func `[]=`(t: var Table[Hash, Rect], key: string, rect: Rect) =
 func `[]`(t: var Table[Hash, Rect], key: string): Rect =
   t[hash(key)]
 
+proc hash(v: Vec2): Hash =
+  hash((v.x, v.y))
+
 proc grow(ctx: Context) =
   ctx.draw()
   ctx.atlasSize = ctx.atlasSize * 2
