@@ -78,7 +78,7 @@ proc unFocus*(keyboard: Keyboard, node: Node) =
     keyboard.focusNode = nil
 
 proc drawText(node: Node) =
-  if node.textStyle.fontFamily notin fonts:
+  if node.textStyle.fontFamily notin common.fonts:
     quit &"font not found: {node.textStyle.fontFamily}"
 
   var font = fonts[node.textStyle.fontFamily]
