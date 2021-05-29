@@ -533,11 +533,13 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
     w = ceil(rect.w).int
     h = ceil(rect.h).int
   if hash notin ctx.entries:
-    var image = newImage(w, h)
-    image.fillRoundedRect(
+    let
+      image = newImage(w, h)
+      c = newContext(image)
+    c.fillStyle = rgba(255, 255, 255, 255)
+    c.fillRoundedRect(
       rect(0, 0, rect.w, rect.h),
-      radius,
-      rgba(255, 255, 255, 255)
+      radius
     )
     ctx.putImage(hash, image)
 
@@ -568,12 +570,14 @@ proc strokeRoundedRect*(
     w = ceil(rect.w).int
     h = ceil(rect.h).int
   if hash notin ctx.entries:
-    var image = newImage(w, h)
-    image.strokeRoundedRect(
+    let
+      image = newImage(w, h)
+      c = newContext(image)
+    c.fillStyle = rgba(255, 255, 255, 255)
+    c.lineWidth = weight
+    c.strokeRoundedRect(
       rect(weight / 2, weight / 2, rect.w - weight, rect.h - weight),
-      radius,
-      rgba(255, 255, 255, 255),
-      weight
+      radius
     )
     ctx.putImage(hash, image)
   let
@@ -605,11 +609,11 @@ proc line*(
     return
 
   if hash notin ctx.entries:
-    var image = newImage(w, h)
-    image.strokeSegment(
-      segment(a - pos, b - pos),
-      rgba(255, 255, 255, 255)
-    )
+    let
+      image = newImage(w, h)
+      c = newContext(image)
+    c.fillStyle = rgba(255, 255, 255, 255)
+    c.strokeSegment(segment(a - pos, b - pos))
     ctx.putImage(hash, image)
   let
     uvRect = ctx.entries[hash]
