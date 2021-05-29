@@ -8,6 +8,9 @@ when not defined(emscripten) and not defined(fidgetNoAsync):
 
 export input
 
+type
+  Context = context.Context
+
 var
   ctx*: Context
   glyphOffsets: Table[Hash, Vec2]
