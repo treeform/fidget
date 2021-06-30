@@ -1555,6 +1555,7 @@ proc getPropertyPriority*(s: Style, property: cstring): cstring
 proc preventDefault*(ev: Event)
 proc stopImmediatePropagation*(ev: Event)
 proc stopPropagation*(ev: Event)
+proc initMouseEvent()
 
 # KeyboardEvent "methods"
 proc getModifierState*(ev: KeyboardEvent, keyArg: cstring): bool
@@ -1626,6 +1627,20 @@ proc isFinite*(x: BiggestFloat): bool {.importc, nodecl.}
 proc isNaN*(x: BiggestFloat): bool {.importc, nodecl.}
 
 proc newEvent*(name: cstring): Event {.importcpp: "new Event(@)", constructor.}
+proc newMouseEvent*(
+  screenX: int,
+  screenY: int,
+  clientX: int,
+  clientY: int,
+  ctrlKey: bool,
+  shiftKey: bool,
+  altKey: bool,
+  metaKey: bool,
+  button: int,
+  buttons: int,
+  relatedTarget: EventTarget,
+  region: cstring
+): Event {.importcpp: "new MouseEvent(@)", constructor.}
 
 proc getElementsByClass*(n: Node; name: cstring): seq[Node] {.
   importcpp: "#.getElementsByClassName(#)", nodecl.}

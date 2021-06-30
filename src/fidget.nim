@@ -154,6 +154,11 @@ template onRightClick*(inner: untyped) =
   if buttonPress[MOUSE_RIGHT] and mouseOverlapLogic():
     inner
 
+template onMiddleClick*(inner: untyped) =
+  ## On right click event handler.
+  if buttonPress[MOUSE_MIDDLE] and mouseOverlapLogic():
+    inner
+
 template onMouseDown*(inner: untyped) =
   ## On when mouse is down and overlapping the element.
   if buttonDown[MOUSE_LEFT] and mouseOverlapLogic():
@@ -261,6 +266,14 @@ proc characters*(text: string) =
   ## Sets text.
   if current.text != text:
     current.text = text
+
+when defined(js):
+  proc asHtml*(asHtml: bool) =
+    ## asHTML
+    current.asHtml = asHtml
+
+  template tooltip*(text: string) =
+    current.tooltip = text
 
 proc image*(imageName: string) =
   ## Sets image fill.
