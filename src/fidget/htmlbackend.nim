@@ -682,12 +682,15 @@ proc getUrl*(): string =
     $dom.window.location.search &
     $dom.window.location.hash
 
-proc setUrl*(url: string, scrollToTop = true) =
+proc setUrl*(url: string, scrollToTop = true, history = true) =
   ## Goes to a new URL, inserts it into history so that back button works.
   ## Also scrolls to the top of the page to mimic how an HTML reload would look.
   if getUrl() != url:
     type Dummy = object
-    dom.window.history.pushState(Dummy(), "", url)
+    if history:
+      dom.window.history.pushState(Dummy(), "", url)
+    else:
+      dom.window.location = cast[Location](url.cstring)
     if scrollToTop:
       document.documentElement.scrollTop = 0
     refresh()
