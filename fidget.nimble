@@ -1,7 +1,7 @@
 # Package
 
 version       = "0.7.8"
-author        = "treeform"
+author        = "Andre von Houck"
 description   = "Fidget - UI Library"
 license       = "MIT"
 srcDir        = "src"

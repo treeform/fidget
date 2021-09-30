@@ -2,10 +2,17 @@
 
 👏 👏 👏 Check out video about the library: [Fidget: Let's rethink UI development with Nim (NimConf 2020)](https://www.youtube.com/watch?v=IB8Yt2dqZbo) 👏 👏 👏
 
+⚠️ WARNING: This library is still in heavy development. ⚠️
 
 # Fidget - A cross platform UI library for nim
 
-⚠️ WARNING: This library is still in heavy development. ⚠️
+`nimble install fidget`
+
+![Github Actions](https://github.com/treeform/fidget/workflows/Github%20Actions/badge.svg)
+
+[API reference](https://nimdocs.com/treeform/fidget)
+
+## About
 
 Fidget aims to provide performant natively compiled cross platform UIs for any platform - Web with HTML5, Windows, macOS, Linux, iOS and Android with OpenGL.
 
