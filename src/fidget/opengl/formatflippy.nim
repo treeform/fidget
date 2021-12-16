@@ -1,4 +1,4 @@
-import pixie, streams, supersnappy, chroma, strformat, vmath, bumpy
+import pixie, streams, supersnappy, chroma, strformat
 
 const version = 1
 
@@ -33,17 +33,17 @@ proc alphaBleed*(image: Image) =
             sumG += int rgba.g
             sumB += int rgba.b
             count += 1
-        use image.getRgbaUnsafe(x * 2 + 0, y * 2 + 0)
-        use image.getRgbaUnsafe(x * 2 + 1, y * 2 + 0)
-        use image.getRgbaUnsafe(x * 2 + 1, y * 2 + 1)
-        use image.getRgbaUnsafe(x * 2 + 0, y * 2 + 1)
+        use image.unsafe[x * 2 + 0, y * 2 + 0]
+        use image.unsafe[x * 2 + 1, y * 2 + 0]
+        use image.unsafe[x * 2 + 1, y * 2 + 1]
+        use image.unsafe[x * 2 + 0, y * 2 + 1]
         if count > 0:
           var rgba: ColorRGBA
           rgba.r = uint8(sumR div count)
           rgba.g = uint8(sumG div count)
           rgba.b = uint8(sumB div count)
           rgba.a = 255
-          result.setRgbaUnsafe(x, y, rgba)
+          result.unsafe[x, y] = rgba
 
   # scale image down in layers, only using opaque pixels
   var
@@ -56,7 +56,7 @@ proc alphaBleed*(image: Image) =
   # walk over all transparent pixels, going up layers to find best colors
   for y in 0 ..< image.height:
     for x in 0 ..< image.width:
-      var rgba = image.getRgbaUnsafe(x, y)
+      var rgba = image.unsafe[x, y]
       if rgba.a == 0:
         var
           xs = x
@@ -64,11 +64,11 @@ proc alphaBleed*(image: Image) =
         for l in layers:
           xs = min(xs div 2, l.width - 1)
           ys = min(ys div 2, l.height - 1)
-          rgba = l.getRgbaUnsafe(xs, ys)
+          rgba = l.unsafe[xs, ys]
           if rgba.a > 0.uint8:
             break
         rgba.a = 0
-      image.setRgbaUnsafe(x, y, rgba)
+      image.unsafe[x, y] = rgba
 
 proc save*(flippy: Flippy, filePath: string) =
   ## Flippy is a special file format that is fast to load and save with mip maps.
@@ -160,4 +160,4 @@ proc outlineBorder*(image: Image, borderPx: int): Image =
         if filled:
           break
       if filled:
-        result.setRgbaUnsafe(x, y, rgba(255, 255, 255, 255))
+        result.unsafe[x, y] = rgba(255, 255, 255, 255)
