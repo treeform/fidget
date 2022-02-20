@@ -122,7 +122,7 @@ proc basicControls() =
     strokeWeight 1
     rectangle "fill":
       progress = selectedButton.len / 5 * 100
-      box 2, 2, clamp(int((parent.box.w/3.0 - 4) * (progress/100)), 1, parent.box.w.int), 8
+      box 2, 2, clamp(int((parent.getScaled(box).w - 4) * (progress/100)), 1, parent.getScaled(box).w.int), 8
       fill "#9fe7f8"
       cornerRadius 5
 
@@ -173,7 +173,7 @@ proc basicControls() =
     onClick:
       pipDrag = true
     if pipDrag:
-      pipPos = int(mouse.pos.x/3.0 - current.screenBox.x/3.0)
+      pipPos = int(mouse.getScaled(pos).x - current.getScaled(screenBox).x)
       pipPos = clamp(pipPos, 1, 240)
       pipDrag = buttonDown[MOUSE_LEFT]
     rectangle "pip":
@@ -401,4 +401,4 @@ proc drawMain() =
       of "Constraints":
         basicConstraints()
 
-startFidget(drawMain, w = 3*530, h = 3*300, pixelScale=1.0)
+startFidget(drawMain, w = 3*530, h = 3*300, uiScale=3.0)

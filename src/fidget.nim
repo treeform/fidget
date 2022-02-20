@@ -222,9 +222,9 @@ proc font*(
 ) =
   ## Sets the font.
   current.textStyle.fontFamily = fontFamily
-  current.textStyle.fontSize = 3*fontSize
-  current.textStyle.fontWeight = 3*fontWeight
-  current.textStyle.lineHeight = if lineHeight != 0.0: 3*lineHeight else: 3*fontSize
+  current.textStyle.fontSize = common.uiScale*fontSize
+  current.textStyle.fontWeight = common.uiScale*fontWeight
+  current.textStyle.lineHeight = if lineHeight != 0.0: common.uiScale*lineHeight else: common.uiScale*fontSize
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
 
@@ -268,17 +268,17 @@ proc image*(imageName: string) =
 
 proc orgBox*(x, y, w, h: int|float32|float32) =
   ## Sets the box dimensions of the original element for constraints.
-  current.orgBox.x = 3.0 * float32 x
-  current.orgBox.y = 3.0 * float32 y
-  current.orgBox.w = 3.0 * float32 w
-  current.orgBox.h = 3.0 * float32 h
+  current.orgBox.x = common.uiScale * float32 x
+  current.orgBox.y = common.uiScale * float32 y
+  current.orgBox.w = common.uiScale * float32 w
+  current.orgBox.h = common.uiScale * float32 h
 
 proc box*(x, y, w, h: float32) =
   ## Sets the box dimensions.
-  current.box.x = 3.0*x
-  current.box.y = 3.0*y
-  current.box.w = 3.0*w
-  current.box.h = 3.0*h
+  current.box.x = common.uiScale*x
+  current.box.y = common.uiScale*y
+  current.box.w = common.uiScale*w
+  current.box.h = common.uiScale*h
 
 proc box*(
   x: int|float32|float64,
