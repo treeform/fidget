@@ -268,10 +268,10 @@ proc image*(imageName: string) =
 
 proc orgBox*(x, y, w, h: int|float32|float32) =
   ## Sets the box dimensions of the original element for constraints.
-  current.orgBox.x =3.0* float32 x
-  current.orgBox.y =3.0* float32 y
-  current.orgBox.w =3.0* float32 w
-  current.orgBox.h =3.0* float32 h
+  current.orgBox.x = 3.0 * float32 x
+  current.orgBox.y = 3.0 * float32 y
+  current.orgBox.w = 3.0 * float32 w
+  current.orgBox.h = 3.0 * float32 h
 
 proc box*(x, y, w, h: float32) =
   ## Sets the box dimensions.
