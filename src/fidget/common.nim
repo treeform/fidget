@@ -491,3 +491,8 @@ proc computeScreenBox*(parent, node: Node) =
     node.screenBox = node.box + parent.screenBox
   for n in node.nodes:
     computeScreenBox(node, n)
+
+template getScaled*(node: Node, box: untyped): Rect =
+  node.`box`*1/3
+
+

@@ -272,7 +272,7 @@ proc onSetKey(
 proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
   requestedFrame = true
   if keyboard.focusNode != nil:
-    textBox.scrollBy(-yoffset * 50)
+    textBox.scrollBy(-yoffset * 1)
   else:
     mouse.wheelDelta += yoffset
 
