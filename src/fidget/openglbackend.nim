@@ -94,7 +94,9 @@ proc drawText(node: Node) =
 
   let mousePos = mouse.pos - node.screenBox.xy
 
-  if node.selectable and mouse.down and mouse.pos.overlaps(node.screenBox):
+  if node.selectable and mouse.wheelDelta != 0:
+    keyboard.focus(node)
+  elif node.selectable and mouse.down and mouse.pos.overlaps(node.screenBox):
     # mouse actions click, drag, double clicking
     keyboard.focus(node)
     if mouse.click:
