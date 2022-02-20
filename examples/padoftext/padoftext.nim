@@ -33,4 +33,4 @@ proc drawMain() =
       multiline true
       binding textValue
 
-startFidget(drawMain)
+startFidget(drawMain, uiScale=2)
