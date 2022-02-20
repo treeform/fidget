@@ -58,6 +58,8 @@ proc focus*(keyboard: Keyboard, node: Node) =
     var font = fonts[node.textStyle.fontFamily]
     font.size = node.textStyle.fontSize
     font.lineHeight = node.textStyle.lineHeight
+    # if font.lineHeight == 0:
+      # font.lineHeight = font.size
     keyboard.input = node.text
     textBox = newTextBox(
       font,
