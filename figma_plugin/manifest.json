@@ -2,5 +2,6 @@
   "name": "Fidget Export",
   "api": "1.0.0",
   "main": "code.js",
-  "id": "945866846468157120"
+  "id": "945866846468157120",
+  "editorType": ["figma"]
 }
