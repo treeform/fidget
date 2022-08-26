@@ -58,6 +58,8 @@ proc focus*(keyboard: Keyboard, node: Node) =
     var font = fonts[node.textStyle.fontFamily]
     font.size = node.textStyle.fontSize
     font.lineHeight = node.textStyle.lineHeight
+    # if font.lineHeight == 0:
+      # font.lineHeight = font.size
     keyboard.input = node.text
     textBox = newTextBox(
       font,
@@ -92,7 +94,9 @@ proc drawText(node: Node) =
 
   let mousePos = mouse.pos - node.screenBox.xy
 
-  if node.selectable and mouse.down and mouse.pos.overlaps(node.screenBox):
+  if node.selectable and mouse.wheelDelta != 0:
+    keyboard.focus(node)
+  elif node.selectable and mouse.down and mouse.pos.overlaps(node.screenBox):
     # mouse actions click, drag, double clicking
     keyboard.focus(node)
     if mouse.click:
@@ -388,10 +392,12 @@ proc startFidget*(
   msaa = msaaDisabled,
   mainLoopMode: MainLoopMode = RepaintOnEvent,
   pixelate = false,
-  pixelScale = 1.0
+  pixelScale = 1.0,
+  uiScale = 1.0
 ) =
   ## Starts Fidget UI library
   common.fullscreen = fullscreen
+  common.uiScale = uiScale
   if not fullscreen:
     windowSize = vec2(w.float32, h.float32)
   drawMain = draw
