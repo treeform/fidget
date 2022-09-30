@@ -138,6 +138,8 @@ type
       textElement*: Element
       cache*: Node
       zIndex*: int
+      asHtml*: bool
+      tooltip*: string
     textLayoutHeight*: float32
     textLayoutWidth*: float32
     ## Can the text be selected.
