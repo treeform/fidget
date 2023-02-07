@@ -412,6 +412,14 @@ proc layoutAlign*(mode: LayoutAlign) =
   ## Set the layout alignment mode.
   current.layoutAlign = mode
 
+proc layoutWeight*(weight: float32) =
+  ## Set the layout weight.
+  current.layoutWeight = weight
+
+proc wrapContent*(flag: bool) =
+  ## Set the whether wrap content or not.
+  current.wrapContent = flag
+
 proc layout*(mode: LayoutMode) =
   ## Set the layout mode.
   current.layoutMode = mode

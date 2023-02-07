@@ -247,13 +247,13 @@ proc onSetKey(
         textBox.delete(shift)
       of LETTER_C: # copy
         if ctrl:
-          base.window.setClipboardString(textBox.copy())
+          base.window.setClipboardString(textBox.copy().cstring)
       of LETTER_V: # paste
         if ctrl:
           textBox.paste($base.window.getClipboardString())
       of LETTER_X: # cut
         if ctrl:
-          base.window.setClipboardString(textBox.cut())
+          base.window.setClipboardString(textBox.cut().cstring)
       of LETTER_A: # select all
         if ctrl:
           textBox.selectAll()

@@ -3,7 +3,7 @@ import chroma, input, sequtils, tables, vmath, json, bumpy
 when defined(js):
   import dom2, html/ajax
 else:
-  import typography, typography/textboxes, tables, asyncfutures
+  import typography, typography/textboxes, asyncfutures
 
 const
   clearColor* = color(0, 0, 0, 0)
@@ -124,6 +124,8 @@ type
     constraintsHorizontal*: Constraint
     constraintsVertical*: Constraint
     layoutAlign*: LayoutAlign
+    layoutWeight*: float32
+    wrapContent*: bool
     layoutMode*: LayoutMode
     counterAxisSizingMode*: CounterAxisSizingMode
     horizontalPadding*: float32
@@ -313,6 +315,8 @@ proc resetToDefault*(node: Node)=
   node.constraintsVertical = cMin
   node.layoutAlign = laMin
   node.layoutMode = lmNone
+  node.layoutWeight = 0.0
+  node.wrapContent = false
   node.counterAxisSizingMode = csAuto
   node.horizontalPadding = 0
   node.verticalPadding = 0
@@ -368,10 +372,6 @@ proc consume*(mouse: Mouse) =
   buttonPress[MOUSE_LEFT] = false
 
 proc computeLayout*(parent, node: Node) =
-  ## Computes constraints and auto-layout.
-  for n in node.nodes:
-    computeLayout(node, n)
-
   # Constraints code.
   case node.constraintsVertical:
     of cMin: discard
@@ -420,6 +420,13 @@ proc computeLayout*(parent, node: Node) =
         node.box.w = node.textLayoutWidth
         node.box.h = node.textLayoutHeight
 
+  ## Computes constraints and auto-layout.
+  for n in node.nodes:
+    if node.layoutMode != lmNone and 
+      (n.layoutWeight != 0 or n.layoutAlign == laStretch):
+        continue
+    computeLayout(node, n)
+  
   # Auto-layout code.
   if node.layoutMode == lmVertical:
     if node.counterAxisSizingMode == csAuto:
@@ -429,10 +436,26 @@ proc computeLayout*(parent, node: Node) =
         if n.layoutAlign != laStretch:
           maxW = max(maxW, n.box.w)
       node.box.w = maxW + node.horizontalPadding * 2
+    
+    var remainHeight = node.box.h - node.verticalPadding * 2 - node.itemSpacing * (node.nodes.len - 1).float32
+    var totalWeight: float32
+    var weightTable: Table[int, float32]
+    for i, n in node.nodes.pairs:
+      if n.layoutWeight == 0:
+        remainHeight -= n.box.h
+      else:
+        totalWeight += n.layoutWeight
+        weightTable[i] = n.layoutWeight
+    for i, w in weightTable.pairs:
+      let n = node.nodes[i]
+      n.box.h =
+        if remainHeight <= 0: 0.0
+        else: remainHeight * w / totalWeight
+      if n.layoutAlign != laStretch: computeLayout(node, n)
 
     var at = 0.0
     at += node.verticalPadding
-    for i, n in node.nodes.reversePairs:
+    for i, n in node.nodes:
       if i > 0:
         at += node.itemSpacing
       n.box.y = at
@@ -450,7 +473,7 @@ proc computeLayout*(parent, node: Node) =
           computeLayout(node, n)
       at += n.box.h
     at += node.verticalPadding
-    node.box.h = at
+    if node.wrapContent: node.box.h = at
 
   if node.layoutMode == lmHorizontal:
     if node.counterAxisSizingMode == csAuto:
@@ -461,9 +484,25 @@ proc computeLayout*(parent, node: Node) =
           maxH = max(maxH, n.box.h)
       node.box.h = maxH + node.verticalPadding * 2
 
+    var remainWidth = node.box.w - node.horizontalPadding * 2 - node.itemSpacing * (node.nodes.len - 1).float32
+    var totalWeight: float32
+    var weightTable: Table[int, float32]
+    for i, n in node.nodes.pairs:
+      if n.layoutWeight == 0:
+        remainWidth -= n.box.w
+      else:
+        totalWeight += n.layoutWeight
+        weightTable[i] = n.layoutWeight
+    for i, w in weightTable.pairs:
+      let n = node.nodes[i]
+      n.box.w =
+        if remainWidth <= 0: 0.0
+        else: remainWidth * w / totalWeight
+      if n.layoutAlign != laStretch: computeLayout(node, n)
+
     var at = 0.0
     at += node.horizontalPadding
-    for i, n in node.nodes.reversePairs:
+    for i, n in node.nodes:
       if i > 0:
         at += node.itemSpacing
       n.box.x = at
@@ -481,7 +520,7 @@ proc computeLayout*(parent, node: Node) =
           computeLayout(node, n)
       at += n.box.w
     at += node.horizontalPadding
-    node.box.w = at
+    if node.wrapContent: node.box.w = at
 
 proc computeScreenBox*(parent, node: Node) =
   ## Setups screenBoxes for the whole tree.
