@@ -125,7 +125,8 @@ proc drawText(node: Node) =
   if editing:
     if textBox.size != node.screenBox.wh:
       textBox.resize(node.screenBox.wh)
-    node.textLayout = textBox.layout
+    node.text = keyboard.input
+    computeTextLayout(node)
     ctx.saveTransform()
     ctx.translate(-textBox.scroll)
     for rect in textBox.selectionRegions():
@@ -193,7 +194,7 @@ proc drawText(node: Node) =
 
     let
       glyphOffset = glyphOffsets[hashFill]
-      charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
+      charPos = pos.rect.xy + glyphOffset
 
     if node.strokeWeight > 0 and node.stroke.a > 0:
       ctx.drawImage(

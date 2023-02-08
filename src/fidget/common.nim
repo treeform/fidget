@@ -31,8 +31,9 @@ type
   TextAutoResize* = enum
     ## Should text element resize and how.
     tsNone
-    tsWidthAndHeight
+    tsWidth
     tsHeight
+    tsWidthAndHeight
 
   TextStyle* = object
     ## Holder for text styles.
@@ -412,6 +413,9 @@ proc computeLayout*(parent, node: Node) =
       of tsNone:
         # Fixed sized text node.
         discard
+      of tsWidth:
+        # Text will grow down.
+        node.box.w = node.textLayoutWidth
       of tsHeight:
         # Text will grow down.
         node.box.h = node.textLayoutHeight

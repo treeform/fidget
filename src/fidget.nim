@@ -456,6 +456,10 @@ template binding*(stringVariable: untyped) =
       keyboard.focus(current)
     onClickOutside:
       keyboard.unFocus(current)
+      refresh()
+    if not current.multiline and buttonRelease[ENTER]:
+      keyboard.unFocus(current)
+      refresh()
   onInput:
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input
