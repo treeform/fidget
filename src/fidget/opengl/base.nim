@@ -47,6 +47,8 @@ var
   cursorGrab*: CursorHandle
   cursorNSResize*: CursorHandle
 
+proc getWindow*(): staticglfw.Window {.inline.} = window
+
 proc setCursor*(cursor: CursorHandle) =
   echo "set cursor"
   window.setCursor(cursor)
@@ -247,13 +249,13 @@ proc onSetKey(
         textBox.delete(shift)
       of LETTER_C: # copy
         if ctrl:
-          base.window.setClipboardString(textBox.copy().cstring)
+          base.window.setClipboardString(textBox.copy())
       of LETTER_V: # paste
         if ctrl:
           textBox.paste($base.window.getClipboardString())
       of LETTER_X: # cut
         if ctrl:
-          base.window.setClipboardString(textBox.cut().cstring)
+          base.window.setClipboardString(textBox.cut())
       of LETTER_A: # select all
         if ctrl:
           textBox.selectAll()

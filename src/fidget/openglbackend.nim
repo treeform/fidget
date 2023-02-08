@@ -39,6 +39,7 @@ computeTextLayout = proc(node: Node) =
     hAlignMode(node.textStyle.textAlignHorizontal),
     vAlignMode(node.textStyle.textAlignVertical),
     clip = false,
+    wrap = false,
     boundsMin = boundsMin,
     boundsMax = boundsMax
   )
@@ -67,7 +68,7 @@ proc focus*(keyboard: Keyboard, node: Node) =
       hAlignMode(node.textStyle.textAlignHorizontal),
       vAlignMode(node.textStyle.textAlignVertical),
       node.multiline,
-      worldWrap = true,
+      worldWrap = node.multiline,
     )
     textBox.editable = node.editableText
     textBox.scrollable = true
@@ -125,8 +126,7 @@ proc drawText(node: Node) =
   if editing:
     if textBox.size != node.screenBox.wh:
       textBox.resize(node.screenBox.wh)
-    node.text = keyboard.input
-    computeTextLayout(node)
+    node.textLayout = textBox.layout
     ctx.saveTransform()
     ctx.translate(-textBox.scroll)
     for rect in textBox.selectionRegions():
