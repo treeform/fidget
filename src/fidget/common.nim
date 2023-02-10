@@ -443,26 +443,30 @@ proc computeLayout*(parent, node: Node) =
     
     var remainHeight = node.box.h - node.verticalPadding * 2 - node.itemSpacing * (node.nodes.len - 1).float32
     var totalWeight: float32
-    var weightTable: Table[int, float32]
+    
     for i, n in node.nodes.pairs:
-      if n.layoutWeight == 0:
-        remainHeight -= n.box.h
-      else:
-        totalWeight += n.layoutWeight
-        weightTable[i] = n.layoutWeight
-    for i, w in weightTable.pairs:
-      let n = node.nodes[i]
-      n.box.h =
-        if remainHeight <= 0: 0.0
-        else: remainHeight * w / totalWeight
-      if n.layoutAlign != laStretch: computeLayout(node, n)
-
+      # set width of stretch
+      if n.layoutAlign == laStretch:
+        n.box.w = node.box.w - node.horizontalPadding * 2
+        if n.id == "16": echo n.box.w
+        if n.layoutWeight == 0: computeLayout(node, n)
+      # record weight
+      if n.layoutWeight == 0: remainHeight -= n.box.h
+      else: totalWeight += n.layoutWeight
+    
     var at = 0.0
     at += node.verticalPadding
     for i, n in node.nodes:
-      if i > 0:
-        at += node.itemSpacing
+      if i > 0: at += node.itemSpacing
+      
       n.box.y = at
+      
+      if n.layoutWeight != 0:
+        n.box.h =
+          if remainHeight <= 0: 0.0
+          else: remainHeight * n.layoutWeight / totalWeight
+        computeLayout(node, n)
+      
       case n.layoutAlign:
         of laMin:
           n.box.x = node.horizontalPadding
@@ -472,9 +476,7 @@ proc computeLayout*(parent, node: Node) =
           n.box.x = node.box.w - n.box.w - node.horizontalPadding
         of laStretch:
           n.box.x = node.horizontalPadding
-          n.box.w = node.box.w - node.horizontalPadding * 2
-          # Redo the layout for child node.
-          computeLayout(node, n)
+
       at += n.box.h
     at += node.verticalPadding
     if node.wrapContent: node.box.h = at
@@ -490,26 +492,30 @@ proc computeLayout*(parent, node: Node) =
 
     var remainWidth = node.box.w - node.horizontalPadding * 2 - node.itemSpacing * (node.nodes.len - 1).float32
     var totalWeight: float32
-    var weightTable: Table[int, float32]
+    
     for i, n in node.nodes.pairs:
-      if n.layoutWeight == 0:
-        remainWidth -= n.box.w
-      else:
-        totalWeight += n.layoutWeight
-        weightTable[i] = n.layoutWeight
-    for i, w in weightTable.pairs:
-      let n = node.nodes[i]
-      n.box.w =
-        if remainWidth <= 0: 0.0
-        else: remainWidth * w / totalWeight
-      if n.layoutAlign != laStretch: computeLayout(node, n)
+      # set width of stretch
+      if n.layoutAlign == laStretch:
+        n.box.h = node.box.h - node.verticalPadding * 2
+        if n.layoutWeight == 0: computeLayout(node, n)
+      # record weight
+      if n.layoutWeight == 0: remainWidth -= n.box.w
+      else: totalWeight += n.layoutWeight
+    
 
     var at = 0.0
     at += node.horizontalPadding
     for i, n in node.nodes:
-      if i > 0:
-        at += node.itemSpacing
+      if i > 0: at += node.itemSpacing
+      
       n.box.x = at
+      
+      if n.layoutWeight != 0:
+        n.box.w =
+          if remainWidth <= 0: 0.0
+          else: remainWidth * n.layoutWeight / totalWeight
+        computeLayout(node, n)
+      
       case n.layoutAlign:
         of laMin:
           n.box.y = node.verticalPadding
@@ -519,9 +525,7 @@ proc computeLayout*(parent, node: Node) =
           n.box.y = node.box.h - n.box.h - node.verticalPadding
         of laStretch:
           n.box.y = node.verticalPadding
-          n.box.h = node.box.h - node.verticalPadding * 2
-          # Redo the layout for child node.
-          computeLayout(node, n)
+      
       at += n.box.w
     at += node.horizontalPadding
     if node.wrapContent: node.box.w = at
