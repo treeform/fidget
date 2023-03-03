@@ -299,11 +299,12 @@ proc setupFidget(
   msaa: MSAA,
   mainLoopMode: MainLoopMode,
   pixelate: bool,
-  forcePixelScale: float32
+  forcePixelScale: float32,
+  windowHints: openArray[array[0 .. 1, int]]
 ) =
   pixelScale = forcePixelScale
 
-  base.start(openglVersion, msaa, mainLoopMode)
+  base.start(openglVersion, msaa, mainLoopMode, windowHints)
   setWindowTitle(windowTitle)
   ctx = newContext(pixelate = pixelate, pixelScale = pixelScale)
   requestedFrame = true
@@ -389,7 +390,8 @@ proc startFidget*(
   msaa = msaaDisabled,
   mainLoopMode: MainLoopMode = RepaintOnEvent,
   pixelate = false,
-  pixelScale = 1.0
+  pixelScale = 1.0,
+  windowHints: openArray[array[0 .. 1, int]] = []
 ) =
   ## Starts Fidget UI library
   common.fullscreen = fullscreen
@@ -398,7 +400,7 @@ proc startFidget*(
   drawMain = draw
   tickMain = tick
   loadMain = load
-  setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale)
+  setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale, windowHints)
   mouse.pixelScale = pixelScale
   when defined(emscripten):
     # Emscripten can't block so it will call this callback instead.

@@ -304,7 +304,7 @@ proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     keyboard.state = KeyState.Press
     keyboard.keyString = Rune(character).toUTF8()
 
-proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
+proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode, hints: openArray[array[0 .. 1, int]]) =
   if init() == 0:
     quit("Failed to intialize GLFW.")
 
@@ -318,6 +318,8 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   windowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
   windowHint(CONTEXT_VERSION_MAJOR, openglVersion[0].cint)
   windowHint(CONTEXT_VERSION_MINOR, openglVersion[1].cint)
+
+  for hint in hints: windowHint(hint[0].cint, hint[1].cint)
 
   if fullscreen:
     let
