@@ -424,7 +424,7 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
     filePath.add ".png"
   if hash(filePath) notin ctx.entries:
     # Need to load imagePath, check to see if the .flippy file is around
-    echo "[load] ", filePath
+    # echo "[load] ", filePath
     if not fileExists(filePath):
       raise newException(Exception, &"Image '{filePath}' not found")
     let flippyFilePath = filePath.changeFileExt(".flippy")

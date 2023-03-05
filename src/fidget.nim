@@ -41,7 +41,6 @@ proc preNode(kind: NodeKind, id: string) =
   current.textStyle = parent.textStyle
   current.cursorColor = parent.cursorColor
   current.highlightColor = parent.highlightColor
-  current.transparency = parent.transparency
   nodeStack.add(current)
   inc parent.diffIndex
 

@@ -50,6 +50,9 @@ proc refresh*() =
   ## Request the screen be redrawn
   requestedFrame = true
 
+proc doTick*() =
+  requestedTick = true
+
 proc focus*(keyboard: Keyboard, node: Node) =
   if keyboard.focusNode != node:
     keyboard.onUnFocusNode = keyboard.focusNode
@@ -280,7 +283,10 @@ proc draw*(node: Node) =
 
     if node.imageName != "":
       let path = dataDir / node.imageName
-      ctx.drawImage(path, size = vec2(node.screenBox.w, node.screenBox.h))
+      ctx.drawImage(
+        path,
+        color = color(1, 1, 1, node.transparency),
+        size = vec2(node.screenBox.w, node.screenBox.h))
 
   ctx.restoreTransform()
 

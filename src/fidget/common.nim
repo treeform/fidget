@@ -209,6 +209,7 @@ var
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
+  requestedTick*: bool
   numNodes*: int
   popupActive*: bool
   inPopup*: bool
@@ -289,7 +290,7 @@ proc resetToDefault*(node: Node)=
   # node.screenBox = rect(0,0,0,0)
   node.textOffset = vec2(0, 0)
   node.fill = color(0, 0, 0, 0)
-  node.transparency = 0
+  node.transparency = 1
   node.strokeWeight = 0
   node.stroke = color(0, 0, 0, 0)
   node.zLevel = 0

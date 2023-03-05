@@ -132,18 +132,17 @@ proc updateLoop*(poll = true) =
     of RepaintOnEvent:
       if poll:
         pollEvents()
-      if not requestedFrame or minimized:
-        # Only repaint when necessary
-        when not defined(emscripten):
-          sleep(16)
+      if minimized or not (requestedFrame or (tickMain != nil and requestedTick)):
         return
-      requestedFrame = false
       preInput()
-      if tickMain != nil:
+      if tickMain != nil and requestedTick:
+        requestedTick = false
         preTick()
         tickMain()
         postTick()
-      drawAndSwap()
+      if requestedFrame:
+        requestedFrame = false
+        drawAndSwap()
       postInput()
 
     of RepaintOnFrame:
