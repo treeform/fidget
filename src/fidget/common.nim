@@ -335,6 +335,7 @@ proc setupRoot*() =
     root.uid = newUId()
     root.highlightColor = parseHtmlColor("#3297FD")
     root.cursorColor = rgba(0, 0, 0, 255).color
+    root.transparency = 1
   nodeStack = @[root]
   current = root
   root.diffIndex = 0
