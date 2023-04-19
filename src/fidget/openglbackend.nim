@@ -251,7 +251,11 @@ proc draw*(node: Node) =
       ctx.fillRoundedRect(rect(
         0, 0,
         node.screenBox.w, node.screenBox.h
-      ), rgba(255, 0, 0, 255).color, node.cornerRadius[0])
+      ), rgba(255, 0, 0, 255).color,
+        node.cornerRadius[0],
+        node.cornerRadius[1],
+        node.cornerRadius[2],
+        node.cornerRadius[3])
     else:
       ctx.fillRect(rect(
         0, 0,
@@ -268,7 +272,11 @@ proc draw*(node: Node) =
           ctx.fillRoundedRect(rect(
             0, 0,
             node.screenBox.w, node.screenBox.h
-          ), node.fill, node.cornerRadius[0])
+          ), node.fill, 
+            node.cornerRadius[0],
+            node.cornerRadius[1],
+            node.cornerRadius[2],
+            node.cornerRadius[3])
         else:
           ctx.fillRect(rect(
             0, 0,
@@ -279,7 +287,11 @@ proc draw*(node: Node) =
       ctx.strokeRoundedRect(rect(
         0, 0,
         node.screenBox.w, node.screenBox.h
-      ), node.stroke, node.strokeWeight, node.cornerRadius[0])
+      ), node.stroke, node.strokeWeight,
+        node.cornerRadius[0],
+        node.cornerRadius[1],
+        node.cornerRadius[2],
+        node.cornerRadius[3])
 
     if node.imageName != "":
       let path = dataDir / node.imageName
