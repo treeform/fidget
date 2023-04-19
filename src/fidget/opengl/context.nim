@@ -424,7 +424,7 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
     filePath.add ".png"
   if hash(filePath) notin ctx.entries:
     # Need to load imagePath, check to see if the .flippy file is around
-    echo "[load] ", filePath
+    # echo "[load] ", filePath
     if not fileExists(filePath):
       raise newException(Exception, &"Image '{filePath}' not found")
     let flippyFilePath = filePath.changeFileExt(".flippy")
@@ -519,14 +519,16 @@ proc fillRect*(ctx: Context, rect: Rect, color: Color) =
     uvRect.xy + uvRect.wh / 2, color
   )
 
-proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
+proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, nw, ne, se, sw: float32) =
   # TODO: Make this a 9 patch
-  let radius = min(radius, min(rect.w/2, rect.h/2))
   let hash = hash((
     6118,
     rect.w.int,
     rect.h.int,
-    (radius*100).int
+    (nw*100).int,
+    (ne*100).int,
+    (se*100).int,
+    (sw*100).int,
   ))
 
   let
@@ -539,7 +541,7 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
     c.fillStyle = rgba(255, 255, 255, 255)
     c.fillRoundedRect(
       rect(0, 0, rect.w, rect.h),
-      radius
+      nw, ne, se, sw
     )
     ctx.putImage(hash, image)
 
@@ -555,15 +557,17 @@ proc fillRoundedRect*(ctx: Context, rect: Rect, color: Color, radius: float32) =
   )
 
 proc strokeRoundedRect*(
-  ctx: Context, rect: Rect, color: Color, weight: float32, radius: float32
+  ctx: Context, rect: Rect, color: Color, weight: float32, nw, ne, se, sw: float32
 ) =
-  let radius = min(radius, min(rect.w/2, rect.h/2))
   # TODO: Make this a 9 patch
   let hash = hash((
     8349,
     rect.w.int,
     rect.h.int,
-    (radius*100).int
+    (nw*100).int,
+    (ne*100).int,
+    (se*100).int,
+    (sw*100).int,
   ))
 
   let
@@ -577,7 +581,7 @@ proc strokeRoundedRect*(
     c.lineWidth = weight
     c.strokeRoundedRect(
       rect(weight / 2, weight / 2, rect.w - weight, rect.h - weight),
-      radius
+      nw, ne, se, sw
     )
     ctx.putImage(hash, image)
   let
