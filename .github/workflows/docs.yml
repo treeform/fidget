@@ -1,0 +1,29 @@
+name: docs
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+permissions:
+  contents: write
+env:
+  nim-src: src/${{ github.event.repository.name }}.nim
+  deploy-dir: .gh-pages
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: treeform/setup-nim-action@v6
+      - name: Install dependencies
+        shell: bash
+        run: |
+          cd ..
+          nimby install -g "${{ github.event.repository.name }}/${{ github.event.repository.name }}.nimble"
+      - run: nim doc --index:on --project --git.url:https://github.com/${{ github.repository }} --git.commit:master  --out:${{ env.deploy-dir }} ${{ env.nim-src }}
+      - name: "Copy to index.html"
+        run: cp ${{ env.deploy-dir }}/${{ github.event.repository.name }}.html ${{ env.deploy-dir }}/index.html
+      - name: Deploy documents
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ env.deploy-dir }}
