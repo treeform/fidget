@@ -1,0 +1,89 @@
+nimTitle	fidget	fidget.html	module fidget		0
+nim	group	fidget.html#group.t,string,untyped	template group(id: string; inner: untyped): untyped		81
+nim	frame	fidget.html#frame.t,string,untyped	template frame(id: string; inner: untyped): untyped		85
+nim	rectangle	fidget.html#rectangle.t,string,untyped	template rectangle(id: string; inner: untyped): untyped		89
+nim	text	fidget.html#text.t,string,untyped	template text(id: string; inner: untyped): untyped		93
+nim	component	fidget.html#component.t,string,untyped	template component(id: string; inner: untyped): untyped		97
+nim	instance	fidget.html#instance.t,string,untyped	template instance(id: string; inner: untyped): untyped		101
+nim	group	fidget.html#group.t,untyped	template group(inner: untyped): untyped		105
+nim	frame	fidget.html#frame.t,untyped	template frame(inner: untyped): untyped		109
+nim	rectangle	fidget.html#rectangle.t,untyped	template rectangle(inner: untyped): untyped		113
+nim	text	fidget.html#text.t,untyped	template text(inner: untyped): untyped		117
+nim	component	fidget.html#component.t,untyped	template component(inner: untyped): untyped		121
+nim	instance	fidget.html#instance.t,untyped	template instance(inner: untyped): untyped		125
+nim	rectangle	fidget.html#rectangle.t	template rectangle(color: string | Color)		129
+nim	mouseOverlapLogic	fidget.html#mouseOverlapLogic	proc mouseOverlapLogic(): bool		135
+nim	onClick	fidget.html#onClick.t,untyped	template onClick(inner: untyped)		142
+nim	onClickOutside	fidget.html#onClickOutside.t,untyped	template onClickOutside(inner: untyped)		147
+nim	onRightClick	fidget.html#onRightClick.t,untyped	template onRightClick(inner: untyped)		152
+nim	onMouseDown	fidget.html#onMouseDown.t,untyped	template onMouseDown(inner: untyped)		157
+nim	onKey	fidget.html#onKey.t,untyped	template onKey(inner: untyped)		162
+nim	onKeyUp	fidget.html#onKeyUp.t,untyped	template onKeyUp(inner: untyped)		167
+nim	onKeyDown	fidget.html#onKeyDown.t,untyped	template onKeyDown(inner: untyped)		172
+nim	hasKeyboardFocus	fidget.html#hasKeyboardFocus,Node	proc hasKeyboardFocus(node: Node): bool		177
+nim	onInput	fidget.html#onInput.t,untyped	template onInput(inner: untyped)		181
+nim	onHover	fidget.html#onHover.t,untyped	template onHover(inner: untyped)		186
+nim	onHoverOut	fidget.html#onHoverOut.t,untyped	template onHoverOut(inner: untyped)		191
+nim	onDown	fidget.html#onDown.t,untyped	template onDown(inner: untyped)		196
+nim	onFocus	fidget.html#onFocus.t,untyped	template onFocus(inner: untyped)		201
+nim	onUnFocus	fidget.html#onUnFocus.t,untyped	template onUnFocus(inner: untyped)		207
+nim	id	fidget.html#id,string	proc id(id: string)		213
+nim	font	fidget.html#font,string,float32,float32,float32,HAlign,VAlign	proc font(fontFamily: string; fontSize, fontWeight, lineHeight: float32;\n     textAlignHorizontal: HAlign; textAlignVertical: VAlign)		217
+nim	fontFamily	fidget.html#fontFamily,string	proc fontFamily(fontFamily: string)		231
+nim	fontSize	fidget.html#fontSize,float32	proc fontSize(fontSize: float32)		235
+nim	fontWeight	fidget.html#fontWeight,float32	proc fontWeight(fontWeight: float32)		239
+nim	lineHeight	fidget.html#lineHeight,float32	proc lineHeight(lineHeight: float32)		243
+nim	textAlign	fidget.html#textAlign,HAlign,VAlign	proc textAlign(textAlignHorizontal: HAlign; textAlignVertical: VAlign)		247
+nim	textPadding	fidget.html#textPadding,int	proc textPadding(textPadding: int)		252
+nim	textAutoResize	fidget.html#textAutoResize,TextAutoResize	proc textAutoResize(textAutoResize: TextAutoResize)		256
+nim	characters	fidget.html#characters,string	proc characters(text: string)		260
+nim	image	fidget.html#image,string	proc image(imageName: string)		265
+nim	orgBox	fidget.html#orgBox,,,,	proc orgBox(x, y, w, h: int | float32 | float32)		269
+nim	box	fidget.html#box,float32,float32,float32,float32	proc box(x, y, w, h: float32)		276
+nim	box	fidget.html#box,,,,	proc box(x: int | float32 | float64; y: int | float32 | float64;\n    w: int | float32 | float64; h: int | float32 | float64)		283
+nim	box	fidget.html#box,Rect	proc box(rect: Rect)		294
+nim	rotation	fidget.html#rotation,float32	proc rotation(rotationInDeg: float32)		298
+nim	fill	fidget.html#fill,Color	proc fill(color: Color)		302
+nim	fill	fidget.html#fill,Color,float32	proc fill(color: Color; alpha: float32)		306
+nim	fill	fidget.html#fill,string,float32	proc fill(color: string; alpha: float32 = 1.0)		311
+nim	transparency	fidget.html#transparency,float32	proc transparency(transparency: float32)		316
+nim	stroke	fidget.html#stroke,Color	proc stroke(color: Color)		320
+nim	stroke	fidget.html#stroke,Color,float32	proc stroke(color: Color; alpha: float32)		324
+nim	stroke	fidget.html#stroke,string,float	proc stroke(color: string; alpha = 1.0)		329
+nim	strokeWeight	fidget.html#strokeWeight,float32	proc strokeWeight(weight: float32)		334
+nim	zLevel	fidget.html#zLevel,int	proc zLevel(zLevel: int)		338
+nim	cornerRadius	fidget.html#cornerRadius,float32,float32,float32,float32	proc cornerRadius(a, b, c, d: float32)		342
+nim	cornerRadius	fidget.html#cornerRadius,float32	proc cornerRadius(radius: float32)		346
+nim	editableText	fidget.html#editableText,bool	proc editableText(editableText: bool)		350
+nim	multiline	fidget.html#multiline,bool	proc multiline(multiline: bool)		354
+nim	clipContent	fidget.html#clipContent,bool	proc clipContent(clipContent: bool)		358
+nim	scrollBars	fidget.html#scrollBars,bool	proc scrollBars(scrollBars: bool)		362
+nim	cursorColor	fidget.html#cursorColor,Color	proc cursorColor(color: Color)		366
+nim	cursorColor	fidget.html#cursorColor,string,float	proc cursorColor(color: string; alpha = 1.0)		370
+nim	highlightColor	fidget.html#highlightColor,Color	proc highlightColor(color: Color)		375
+nim	highlightColor	fidget.html#highlightColor,string,float	proc highlightColor(color: string; alpha = 1.0)		379
+nim	dropShadow	fidget.html#dropShadow,float32,float32,float32,string,float32	proc dropShadow(blur, x, y: float32; color: string; alpha: float32)		384
+nim	innerShadow	fidget.html#innerShadow,float32,float32,float32,string,float32	proc innerShadow(blur, x, y: float32; color: string; alpha: float32)		390
+nim	drawable	fidget.html#drawable,bool	proc drawable(drawable: bool)		402
+nim	constraints	fidget.html#constraints,Constraint,Constraint	proc constraints(vCon: Constraint; hCon: Constraint)		406
+nim	layoutAlign	fidget.html#layoutAlign,LayoutAlign	proc layoutAlign(mode: LayoutAlign)		411
+nim	layout	fidget.html#layout,LayoutMode	proc layout(mode: LayoutMode)		415
+nim	counterAxisSizingMode	fidget.html#counterAxisSizingMode,CounterAxisSizingMode	proc counterAxisSizingMode(mode: CounterAxisSizingMode)		419
+nim	horizontalPadding	fidget.html#horizontalPadding,float32	proc horizontalPadding(v: float32)		423
+nim	verticalPadding	fidget.html#verticalPadding,float32	proc verticalPadding(v: float32)		427
+nim	itemSpacing	fidget.html#itemSpacing,float32	proc itemSpacing(v: float32)		431
+nim	selectable	fidget.html#selectable,bool	proc selectable(v: bool)		435
+nim	binding	fidget.html#binding.t,untyped	template binding(stringVariable: untyped)		439
+nim	parseParams	fidget.html#parseParams	proc parseParams(): Table[string, string]		455
+nimgrp	box	fidget.html#box-procs-all	proc		276
+nimgrp	highlightcolor	fidget.html#highlightColor-procs-all	proc		375
+nimgrp	cornerradius	fidget.html#cornerRadius-procs-all	proc		342
+nimgrp	stroke	fidget.html#stroke-procs-all	proc		320
+nimgrp	cursorcolor	fidget.html#cursorColor-procs-all	proc		366
+nimgrp	fill	fidget.html#fill-procs-all	proc		302
+nimgrp	text	fidget.html#text-templates-all	template		93
+nimgrp	instance	fidget.html#instance-templates-all	template		101
+nimgrp	component	fidget.html#component-templates-all	template		97
+nimgrp	rectangle	fidget.html#rectangle-templates-all	template		89
+nimgrp	group	fidget.html#group-templates-all	template		81
+nimgrp	frame	fidget.html#frame-templates-all	template		85

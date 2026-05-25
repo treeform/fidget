@@ -1,0 +1,43 @@
+nimTitle	base	fidget/opengl/base.html	module fidget/opengl/base		0
+nim	msaaDisabled	fidget/opengl/base.html#msaaDisabled	MSAA.msaaDisabled		8
+nim	msaa2x	fidget/opengl/base.html#msaa2x	MSAA.msaa2x		8
+nim	msaa4x	fidget/opengl/base.html#msaa4x	MSAA.msaa4x		8
+nim	msaa8x	fidget/opengl/base.html#msaa8x	MSAA.msaa8x		8
+nim	MSAA	fidget/opengl/base.html#MSAA	enum MSAA		8
+nim	RepaintOnEvent	fidget/opengl/base.html#RepaintOnEvent	MainLoopMode.RepaintOnEvent		11
+nim	RepaintOnFrame	fidget/opengl/base.html#RepaintOnFrame	MainLoopMode.RepaintOnFrame		11
+nim	RepaintSplitUpdate	fidget/opengl/base.html#RepaintSplitUpdate	MainLoopMode.RepaintSplitUpdate		11
+nim	MainLoopMode	fidget/opengl/base.html#MainLoopMode	enum MainLoopMode		11
+nim	loopMode	fidget/opengl/base.html#loopMode	var loopMode		31
+nim	dpi	fidget/opengl/base.html#dpi	var dpi		32
+nim	drawFrame	fidget/opengl/base.html#drawFrame	var drawFrame		33
+nim	running	fidget/opengl/base.html#running	var running		34
+nim	focused	fidget/opengl/base.html#focused	var focused		34
+nim	minimized	fidget/opengl/base.html#minimized	var minimized		34
+nim	programStartTime	fidget/opengl/base.html#programStartTime	var programStartTime		35
+nim	prevFrameTime	fidget/opengl/base.html#prevFrameTime	var prevFrameTime		38
+nim	frameTime	fidget/opengl/base.html#frameTime	var frameTime		39
+nim	dt	fidget/opengl/base.html#dt	var dt		40
+nim	fps	fidget/opengl/base.html#fps	var fps		40
+nim	tps	fidget/opengl/base.html#tps	var tps		40
+nim	avgFrameTime	fidget/opengl/base.html#avgFrameTime	var avgFrameTime		40
+nim	frameCount	fidget/opengl/base.html#frameCount	var frameCount		41
+nim	tickCount	fidget/opengl/base.html#tickCount	var tickCount		41
+nim	cursorDefault	fidget/opengl/base.html#cursorDefault	var cursorDefault		45
+nim	cursorPointer	fidget/opengl/base.html#cursorPointer	var cursorPointer		46
+nim	cursorGrab	fidget/opengl/base.html#cursorGrab	var cursorGrab		47
+nim	cursorNSResize	fidget/opengl/base.html#cursorNSResize	var cursorNSResize		48
+nim	setCursor	fidget/opengl/base.html#setCursor,CursorHandle	proc setCursor(cursor: CursorHandle)		50
+nim	setWindowTitle	fidget/opengl/base.html#setWindowTitle,string	proc setWindowTitle(title: string)		79
+nim	updateLoop	fidget/opengl/base.html#updateLoop	proc updateLoop(poll = true)		124
+nim	clearDepthBuffer	fidget/opengl/base.html#clearDepthBuffer	proc clearDepthBuffer()		169
+nim	clearColorBuffer	fidget/opengl/base.html#clearColorBuffer,Color	proc clearColorBuffer(color: Color)		172
+nim	useDepthBuffer	fidget/opengl/base.html#useDepthBuffer,bool	proc useDepthBuffer(on: bool)		176
+nim	exit	fidget/opengl/base.html#exit	proc exit()		185
+nim	glGetInteger	fidget/opengl/base.html#glGetInteger,GLenum	proc glGetInteger(what: GLenum): int		189
+nim	start	fidget/opengl/base.html#start,,MSAA,MainLoopMode	proc start(openglVersion: (int, int); msaa: MSAA; mainLoopMode: MainLoopMode)		305
+nim	captureMouse	fidget/opengl/base.html#captureMouse	proc captureMouse()		409
+nim	releaseMouse	fidget/opengl/base.html#releaseMouse	proc releaseMouse()		412
+nim	hideMouse	fidget/opengl/base.html#hideMouse	proc hideMouse()		415
+nim	setWindowBounds	fidget/opengl/base.html#setWindowBounds,Vec2,Vec2	proc setWindowBounds(min, max: Vec2)		418
+nim	takeScreenshot	fidget/opengl/base.html#takeScreenshot	proc takeScreenshot(frame = rect(0, 0, windowFrame.arr[0], windowFrame.arr[1])): pixie.Image		421

@@ -1,0 +1,23 @@
+nimTitle	openglbackend	fidget/openglbackend.html	module fidget/openglbackend		0
+nim	ctx	fidget/openglbackend.html#ctx	var ctx		15
+nim	refresh	fidget/openglbackend.html#refresh	proc refresh()		48
+nim	focus	fidget/openglbackend.html#focus,Keyboard,Node	proc focus(keyboard: Keyboard; node: Node)		52
+nim	unFocus	fidget/openglbackend.html#unFocus,Keyboard,Node	proc unFocus(keyboard: Keyboard; node: Node)		77
+nim	capture	fidget/openglbackend.html#capture,Mouse	proc capture(mouse: Mouse)		218
+nim	release	fidget/openglbackend.html#release,Mouse	proc release(mouse: Mouse)		221
+nim	hide	fidget/openglbackend.html#hide,Mouse	proc hide(mouse: Mouse)		224
+nim	remove	fidget/openglbackend.html#remove,Node	proc remove(node: Node)		227
+nim	removeExtraChildren	fidget/openglbackend.html#removeExtraChildren,Node	proc removeExtraChildren(node: Node)		231
+nim	draw	fidget/openglbackend.html#draw,Node	proc draw(node: Node)		235
+nim	openBrowser	fidget/openglbackend.html#openBrowser,string	proc openBrowser(url: string)		292
+nim	startFidget	fidget/openglbackend.html#startFidget,proc),proc),proc),Positive,Positive,(int, int),MainLoopMode,float	proc startFidget(draw: proc (); tick: proc () = nil; load: proc () = nil;\n            fullscreen = false; w: Positive = 1280; h: Positive = 800;\n            openglVersion = (3, 3); msaa = msaaDisabled;\n            mainLoopMode: MainLoopMode = RepaintOnEvent; pixelate = false;\n            pixelScale = 1.0)		380
+nim	getTitle	fidget/openglbackend.html#getTitle	proc getTitle(): string		416
+nim	setTitle	fidget/openglbackend.html#setTitle,string	proc setTitle(title: string)		420
+nim	setWindowBounds	fidget/openglbackend.html#setWindowBounds,Vec2,Vec2	proc setWindowBounds(min, max: Vec2)		427
+nim	getUrl	fidget/openglbackend.html#getUrl	proc getUrl(): string		430
+nim	setUrl	fidget/openglbackend.html#setUrl,string	proc setUrl(url: string)		433
+nim	loadFontAbsolute	fidget/openglbackend.html#loadFontAbsolute,string,string	proc loadFontAbsolute(name: string; pathOrUrl: string)		437
+nim	loadFont	fidget/openglbackend.html#loadFont,string,string	proc loadFont(name: string; pathOrUrl: string)		449
+nim	setItem	fidget/openglbackend.html#setItem,string,string	proc setItem(key, value: string)		453
+nim	getItem	fidget/openglbackend.html#getItem,string	proc getItem(key: string): string		457
+nim	httpGet	fidget/openglbackend.html#httpGet,string	proc httpGet(url: string): HttpCall		465

@@ -1,0 +1,9 @@
+nimTitle	formatflippy	fidget/opengl/formatflippy.html	module fidget/opengl/formatflippy		0
+nim	Flippy	fidget/opengl/formatflippy.html#Flippy	object Flippy		6
+nim	width	fidget/opengl/formatflippy.html#width,Flippy	proc width(flippy: Flippy): int		9
+nim	height	fidget/opengl/formatflippy.html#height,Flippy	proc height(flippy: Flippy): int		12
+nim	alphaBleed	fidget/opengl/formatflippy.html#alphaBleed,Image	proc alphaBleed(image: Image)		15
+nim	save	fidget/opengl/formatflippy.html#save,Flippy,string	proc save(flippy: Flippy; filePath: string)		73
+nim	pngToFlippy	fidget/opengl/formatflippy.html#pngToFlippy,string,string	proc pngToFlippy(pngPath, flippyPath: string)		96
+nim	loadFlippy	fidget/opengl/formatflippy.html#loadFlippy,string	proc loadFlippy(filePath: string): Flippy		109
+nim	outlineBorder	fidget/opengl/formatflippy.html#outlineBorder,Image,int	proc outlineBorder(image: Image; borderPx: int): Image		145

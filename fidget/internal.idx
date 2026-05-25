@@ -1,0 +1,4 @@
+nimTitle	internal	fidget/internal.html	module fidget/internal		0
+nim	drawMain	fidget/internal.html#drawMain	var drawMain		2
+nim	tickMain	fidget/internal.html#tickMain	var tickMain		3
+nim	loadMain	fidget/internal.html#loadMain	var loadMain		4

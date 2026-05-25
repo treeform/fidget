@@ -1,0 +1,112 @@
+nimTitle	common	fidget/common.html	module fidget/common		0
+nim	clearColor	fidget/common.html#clearColor	const clearColor		9
+nim	whiteColor	fidget/common.html#whiteColor	const whiteColor		10
+nim	blackColor	fidget/common.html#blackColor	const blackColor		11
+nim	cMin	fidget/common.html#cMin	Constraint.cMin		14
+nim	cMax	fidget/common.html#cMax	Constraint.cMax		14
+nim	cScale	fidget/common.html#cScale	Constraint.cScale		14
+nim	cStretch	fidget/common.html#cStretch	Constraint.cStretch		14
+nim	cCenter	fidget/common.html#cCenter	Constraint.cCenter		14
+nim	Constraint	fidget/common.html#Constraint	enum Constraint		14
+nim	hLeft	fidget/common.html#hLeft	HAlign.hLeft		21
+nim	hCenter	fidget/common.html#hCenter	HAlign.hCenter		21
+nim	hRight	fidget/common.html#hRight	HAlign.hRight		21
+nim	HAlign	fidget/common.html#HAlign	enum HAlign		21
+nim	vTop	fidget/common.html#vTop	VAlign.vTop		26
+nim	vCenter	fidget/common.html#vCenter	VAlign.vCenter		26
+nim	vBottom	fidget/common.html#vBottom	VAlign.vBottom		26
+nim	VAlign	fidget/common.html#VAlign	enum VAlign		26
+nim	tsNone	fidget/common.html#tsNone	TextAutoResize.tsNone		31
+nim	tsWidthAndHeight	fidget/common.html#tsWidthAndHeight	TextAutoResize.tsWidthAndHeight		31
+nim	tsHeight	fidget/common.html#tsHeight	TextAutoResize.tsHeight		31
+nim	TextAutoResize	fidget/common.html#TextAutoResize	enum TextAutoResize		31
+nim	TextStyle	fidget/common.html#TextStyle	object TextStyle		37
+nim	BorderStyle	fidget/common.html#BorderStyle	object BorderStyle		47
+nim	laMin	fidget/common.html#laMin	LayoutAlign.laMin		52
+nim	laCenter	fidget/common.html#laCenter	LayoutAlign.laCenter		52
+nim	laMax	fidget/common.html#laMax	LayoutAlign.laMax		52
+nim	laStretch	fidget/common.html#laStretch	LayoutAlign.laStretch		52
+nim	LayoutAlign	fidget/common.html#LayoutAlign	enum LayoutAlign		52
+nim	lmNone	fidget/common.html#lmNone	LayoutMode.lmNone		59
+nim	lmVertical	fidget/common.html#lmVertical	LayoutMode.lmVertical		59
+nim	lmHorizontal	fidget/common.html#lmHorizontal	LayoutMode.lmHorizontal		59
+nim	LayoutMode	fidget/common.html#LayoutMode	enum LayoutMode		59
+nim	csAuto	fidget/common.html#csAuto	CounterAxisSizingMode.csAuto		65
+nim	csFixed	fidget/common.html#csFixed	CounterAxisSizingMode.csFixed		65
+nim	CounterAxisSizingMode	fidget/common.html#CounterAxisSizingMode	enum CounterAxisSizingMode		65
+nim	DropShadow	fidget/common.html#DropShadow	ShadowStyle.DropShadow		70
+nim	InnerShadow	fidget/common.html#InnerShadow	ShadowStyle.InnerShadow		70
+nim	ShadowStyle	fidget/common.html#ShadowStyle	enum ShadowStyle		70
+nim	Shadow	fidget/common.html#Shadow	object Shadow		75
+nim	nkRoot	fidget/common.html#nkRoot	NodeKind.nkRoot		82
+nim	nkFrame	fidget/common.html#nkFrame	NodeKind.nkFrame		82
+nim	nkGroup	fidget/common.html#nkGroup	NodeKind.nkGroup		82
+nim	nkImage	fidget/common.html#nkImage	NodeKind.nkImage		82
+nim	nkText	fidget/common.html#nkText	NodeKind.nkText		82
+nim	nkRectangle	fidget/common.html#nkRectangle	NodeKind.nkRectangle		82
+nim	nkComponent	fidget/common.html#nkComponent	NodeKind.nkComponent		82
+nim	nkInstance	fidget/common.html#nkInstance	NodeKind.nkInstance		82
+nim	NodeKind	fidget/common.html#NodeKind	enum NodeKind		82
+nim	Node	fidget/common.html#Node	type Node		93
+nim	Empty	fidget/common.html#Empty	KeyState.Empty		147
+nim	Up	fidget/common.html#Up	KeyState.Up		147
+nim	Down	fidget/common.html#Down	KeyState.Down		147
+nim	Repeat	fidget/common.html#Repeat	KeyState.Repeat		147
+nim	Press	fidget/common.html#Press	KeyState.Press		147
+nim	KeyState	fidget/common.html#KeyState	enum KeyState		147
+nim	Default	fidget/common.html#Default	MouseCursorStyle.Default		154
+nim	Pointer	fidget/common.html#Pointer	MouseCursorStyle.Pointer		154
+nim	Grab	fidget/common.html#Grab	MouseCursorStyle.Grab		154
+nim	NSResize	fidget/common.html#NSResize	MouseCursorStyle.NSResize		154
+nim	MouseCursorStyle	fidget/common.html#MouseCursorStyle	enum MouseCursorStyle		154
+nim	Mouse	fidget/common.html#Mouse	type Mouse		160
+nim	Keyboard	fidget/common.html#Keyboard	type Keyboard		167
+nim	Starting	fidget/common.html#Starting	HttpStatus.Starting		182
+nim	Ready	fidget/common.html#Ready	HttpStatus.Ready		182
+nim	Loading	fidget/common.html#Loading	HttpStatus.Loading		182
+nim	Error	fidget/common.html#Error	HttpStatus.Error		182
+nim	HttpStatus	fidget/common.html#HttpStatus	enum HttpStatus		182
+nim	HttpCall	fidget/common.html#HttpCall	type HttpCall		188
+nim	parent	fidget/common.html#parent	var parent		198
+nim	root	fidget/common.html#root	var root		199
+nim	prevRoot	fidget/common.html#prevRoot	var prevRoot		200
+nim	nodeStack	fidget/common.html#nodeStack	var nodeStack		201
+nim	current	fidget/common.html#current	var current		202
+nim	scrollBox	fidget/common.html#scrollBox	var scrollBox		203
+nim	scrollBoxMega	fidget/common.html#scrollBoxMega	var scrollBoxMega		204
+nim	scrollBoxMini	fidget/common.html#scrollBoxMini	var scrollBoxMini		205
+nim	mouse	fidget/common.html#mouse_2	var mouse		206
+nim	keyboard	fidget/common.html#keyboard_2	var keyboard		207
+nim	requestedFrame	fidget/common.html#requestedFrame	var requestedFrame		208
+nim	numNodes	fidget/common.html#numNodes	var numNodes		209
+nim	popupActive	fidget/common.html#popupActive	var popupActive		210
+nim	inPopup	fidget/common.html#inPopup	var inPopup		211
+nim	fullscreen	fidget/common.html#fullscreen	var fullscreen		212
+nim	windowLogicalSize	fidget/common.html#windowLogicalSize	var windowLogicalSize		213
+nim	windowSize	fidget/common.html#windowSize	var windowSize		214
+nim	windowFrame	fidget/common.html#windowFrame	var windowFrame		215
+nim	pixelRatio	fidget/common.html#pixelRatio	var pixelRatio		216
+nim	pixelScale	fidget/common.html#pixelScale	var pixelScale		217
+nim	pathChecker	fidget/common.html#pathChecker	var pathChecker		220
+nim	computeTextLayout	fidget/common.html#computeTextLayout	var computeTextLayout		222
+nim	nodeLookup	fidget/common.html#nodeLookup	var nodeLookup		225
+nim	dataDir	fidget/common.html#dataDir	var dataDir		227
+nim	httpCalls	fidget/common.html#httpCalls	var httpCalls		230
+nim	newUId	fidget/common.html#newUId	proc newUId(): string		232
+nim	textBox	fidget/common.html#textBox	var textBox		239
+nim	fonts	fidget/common.html#fonts	var fonts		240
+nim	hAlignMode	fidget/common.html#hAlignMode,HAlign	proc hAlignMode(align: HAlign): HAlignMode		242
+nim	vAlignMode	fidget/common.html#vAlignMode,VAlign	proc vAlignMode(align: VAlign): VAlignMode		248
+nim	dumpTree	fidget/common.html#dumpTree,Node,string	proc dumpTree(node: Node; indent = "")		257
+nim	reverse	fidget/common.html#reverse.i,seq[T]	iterator reverse[T](a: seq[T]): T		262
+nim	reversePairs	fidget/common.html#reversePairs.i,seq[T]	iterator reversePairs[T](a: seq[T]): (int, T)		268
+nim	resetToDefault	fidget/common.html#resetToDefault,Node	proc resetToDefault(node: Node)		274
+nim	setupRoot	fidget/common.html#setupRoot	proc setupRoot()		324
+nim	clearInputs	fidget/common.html#clearInputs	proc clearInputs()		336
+nim	click	fidget/common.html#click,Mouse	proc click(mouse: Mouse): bool		350
+nim	down	fidget/common.html#down,Mouse	proc down(mouse: Mouse): bool		353
+nim	consume	fidget/common.html#consume,Keyboard	proc consume(keyboard: Keyboard)		356
+nim	consume	fidget/common.html#consume,Mouse	proc consume(mouse: Mouse)		366
+nim	computeLayout	fidget/common.html#computeLayout,Node,Node	proc computeLayout(parent, node: Node)		370
+nim	computeScreenBox	fidget/common.html#computeScreenBox,Node,Node	proc computeScreenBox(parent, node: Node)		486
+nimgrp	consume	fidget/common.html#consume-procs-all	proc		356

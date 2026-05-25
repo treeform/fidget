@@ -1,0 +1,28 @@
+nimTitle	shaders	fidget/opengl/shaders.html	module fidget/opengl/shaders		0
+nim	Shader	fidget/opengl/shaders.html#Shader	type Shader		16
+nim	getErrorLog	fidget/opengl/shaders.html#getErrorLog,GLuint,string,,	proc getErrorLog(id: GLuint; path: string; lenProc: typeof(glGetShaderiv);\n            strProc: typeof(glGetShaderInfoLog)): string		22
+nim	compileComputeShader	fidget/opengl/shaders.html#compileComputeShader	proc compileComputeShader(compute: (string, string)): GLuint		42
+nim	compileComputeShader	fidget/opengl/shaders.html#compileComputeShader,string	proc compileComputeShader(path: string): GLuint		78
+nim	compileShaderFiles	fidget/opengl/shaders.html#compileShaderFiles,,	proc compileShaderFiles(vert, frag: (string, string)): GLuint		82
+nim	compileShaderFiles	fidget/opengl/shaders.html#compileShaderFiles,string,string	proc compileShaderFiles(vertPath, fragPath: string): GLuint		135
+nim	newShader	fidget/opengl/shaders.html#newShader	proc newShader(compute: (string, string)): Shader		201
+nim	newShader	fidget/opengl/shaders.html#newShader,string	proc newShader(computePath: string): Shader		207
+nim	newShaderStatic	fidget/opengl/shaders.html#newShaderStatic.t,string	template newShaderStatic(computePath: string): Shader		214
+nim	newShader	fidget/opengl/shaders.html#newShader,,	proc newShader(vert, frag: (string, string)): Shader		223
+nim	newShader	fidget/opengl/shaders.html#newShader,string,string	proc newShader(vertPath, fragPath: string): Shader		229
+nim	newShaderStatic	fidget/opengl/shaders.html#newShaderStatic.t,string,string	template newShaderStatic(vertPath, fragPath: string): Shader		238
+nim	hasUniform	fidget/opengl/shaders.html#hasUniform,Shader,string	proc hasUniform(shader: Shader; name: string): bool		249
+nim	setUniform	fidget/opengl/shaders.html#setUniform,Shader,string,varargs[int32]	proc setUniform(shader: Shader; name: string; args: varargs[int32])		317
+nim	setUniform	fidget/opengl/shaders.html#setUniform,Shader,string,varargs[float32]	proc setUniform(shader: Shader; name: string; args: varargs[float32])		337
+nim	setUniform	fidget/opengl/shaders.html#setUniform,Shader,string,Vec3	proc setUniform(shader: Shader; name: string; v: Vec3)		357
+nim	setUniform	fidget/opengl/shaders.html#setUniform,Shader,string,Vec4	proc setUniform(shader: Shader; name: string; v: Vec4)		364
+nim	setUniform	fidget/opengl/shaders.html#setUniform,Shader,string,Mat4	proc setUniform(shader: Shader; name: string; m: Mat4)		372
+nim	setUniform	fidget/opengl/shaders.html#setUniform,Shader,string,bool	proc setUniform(shader: Shader; name: string; b: bool)		375
+nim	bindUniforms	fidget/opengl/shaders.html#bindUniforms,Shader	proc bindUniforms(shader: Shader)		380
+nim	bindUniformBuffer	fidget/opengl/shaders.html#bindUniformBuffer,Shader,string,Buffer,GLuint	proc bindUniformBuffer(shader: Shader; name: string; buffer: Buffer; binding: GLuint)		438
+nim	bindAttrib	fidget/opengl/shaders.html#bindAttrib,Shader,string,Buffer	proc bindAttrib(shader: Shader; name: string; buffer: Buffer)		446
+nimgrp	setuniform	fidget/opengl/shaders.html#setUniform-procs-all	proc		317
+nimgrp	newshader	fidget/opengl/shaders.html#newShader-procs-all	proc		201
+nimgrp	compileshaderfiles	fidget/opengl/shaders.html#compileShaderFiles-procs-all	proc		82
+nimgrp	compilecomputeshader	fidget/opengl/shaders.html#compileComputeShader-procs-all	proc		42
+nimgrp	newshaderstatic	fidget/opengl/shaders.html#newShaderStatic-templates-all	template		214

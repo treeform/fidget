@@ -1,0 +1,13 @@
+nimTitle	buffers	fidget/opengl/buffers.html	module fidget/opengl/buffers		0
+nim	bkSCALAR	fidget/opengl/buffers.html#bkSCALAR	BufferKind.bkSCALAR		4
+nim	bkVEC2	fidget/opengl/buffers.html#bkVEC2	BufferKind.bkVEC2		4
+nim	bkVEC3	fidget/opengl/buffers.html#bkVEC3	BufferKind.bkVEC3		4
+nim	bkVEC4	fidget/opengl/buffers.html#bkVEC4	BufferKind.bkVEC4		4
+nim	bkMAT2	fidget/opengl/buffers.html#bkMAT2	BufferKind.bkMAT2		4
+nim	bkMAT3	fidget/opengl/buffers.html#bkMAT3	BufferKind.bkMAT3		4
+nim	bkMAT4	fidget/opengl/buffers.html#bkMAT4	BufferKind.bkMAT4		4
+nim	BufferKind	fidget/opengl/buffers.html#BufferKind	enum BufferKind		4
+nim	Buffer	fidget/opengl/buffers.html#Buffer	object Buffer		7
+nim	size	fidget/opengl/buffers.html#size,GLenum	proc size(componentType: GLenum): Positive		14
+nim	componentCount	fidget/opengl/buffers.html#componentCount,BufferKind	proc componentCount(bufferKind: BufferKind): Positive		25
+nim	bindBufferData	fidget/opengl/buffers.html#bindBufferData,ptr.Buffer,pointer	proc bindBufferData(buffer: ptr Buffer; data: pointer)		40

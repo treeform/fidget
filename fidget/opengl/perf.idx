@@ -1,0 +1,18 @@
+nimTitle	perf	fidget/opengl/perf.html	module fidget/opengl/perf		0
+nim	PerfEntry	fidget/opengl/perf.html#PerfEntry	object PerfEntry		10
+nim	TimeSeries	fidget/opengl/perf.html#TimeSeries	type TimeSeries		15
+nim	perfEnabled	fidget/opengl/perf.html#perfEnabled	var perfEnabled		21
+nim	getTicks	fidget/opengl/perf.html#getTicks	proc getTicks(): int64		24
+nim	perfMark	fidget/opengl/perf.html#perfMark.t,string,seq[PerfEntry]	template perfMark(tag: string; buffer: var seq[PerfEntry] = defaultBuffer)		35
+nim	perf	fidget/opengl/perf.html#perf.t,string,seq[PerfEntry],untyped	template perf(tag: string; buffer: var seq[PerfEntry]; body: untyped)		39
+nim	perf	fidget/opengl/perf.html#perf.t,string,untyped	template perf(tag: string; body: untyped)		48
+nim	timeIt	fidget/opengl/perf.html#timeIt.t,string,untyped	template timeIt(tag: string; body: untyped)		55
+nim	`$`	fidget/opengl/perf.html#$,seq[PerfEntry]	proc `$`(buffer: seq[PerfEntry]): string		70
+nim	perfDump	fidget/opengl/perf.html#perfDump,seq[PerfEntry]	proc perfDump(buffer: seq[PerfEntry] = defaultBuffer)		96
+nim	newTimeSeries	fidget/opengl/perf.html#newTimeSeries,Natural	proc newTimeSeries(max: Natural = 1000): TimeSeries		101
+nim	addTime	fidget/opengl/perf.html#addTime,TimeSeries	proc addTime(timeSeries: var TimeSeries)		105
+nim	num	fidget/opengl/perf.html#num,TimeSeries,float32	proc num(timeSeries: TimeSeries; inLastSeconds: float32 = 1.0): int		112
+nim	avg	fidget/opengl/perf.html#avg,TimeSeries,float32	proc avg(timeSeries: TimeSeries; inLastSeconds: float32 = 1.0): float32		120
+nim	byteFmt	fidget/opengl/perf.html#byteFmt,int	proc byteFmt(bytes: int): string		125
+nim	dumpHeapDiff	fidget/opengl/perf.html#dumpHeapDiff,int	proc dumpHeapDiff(top = 10): string		212
+nimgrp	perf	fidget/opengl/perf.html#perf-templates-all	template		39

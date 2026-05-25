@@ -1,0 +1,25 @@
+nimTitle	textures	fidget/opengl/textures.html	module fidget/opengl/textures		0
+nim	minDefault	fidget/opengl/textures.html#minDefault	MinFilter.minDefault		4
+nim	minNearest	fidget/opengl/textures.html#minNearest	MinFilter.minNearest		4
+nim	minLinear	fidget/opengl/textures.html#minLinear	MinFilter.minLinear		4
+nim	minNearestMipmapNearest	fidget/opengl/textures.html#minNearestMipmapNearest	MinFilter.minNearestMipmapNearest		4
+nim	minLinearMipmapNearest	fidget/opengl/textures.html#minLinearMipmapNearest	MinFilter.minLinearMipmapNearest		4
+nim	minNearestMipmapLinear	fidget/opengl/textures.html#minNearestMipmapLinear	MinFilter.minNearestMipmapLinear		4
+nim	minLinearMipmapLinear	fidget/opengl/textures.html#minLinearMipmapLinear	MinFilter.minLinearMipmapLinear		4
+nim	MinFilter	fidget/opengl/textures.html#MinFilter	enum MinFilter		4
+nim	magDefault	fidget/opengl/textures.html#magDefault	MagFilter.magDefault		13
+nim	magNearest	fidget/opengl/textures.html#magNearest	MagFilter.magNearest		13
+nim	magLinear	fidget/opengl/textures.html#magLinear	MagFilter.magLinear		13
+nim	MagFilter	fidget/opengl/textures.html#MagFilter	enum MagFilter		13
+nim	wDefault	fidget/opengl/textures.html#wDefault	Wrap.wDefault		18
+nim	wRepeat	fidget/opengl/textures.html#wRepeat	Wrap.wRepeat		18
+nim	wClampToEdge	fidget/opengl/textures.html#wClampToEdge	Wrap.wClampToEdge		18
+nim	wMirroredRepeat	fidget/opengl/textures.html#wMirroredRepeat	Wrap.wMirroredRepeat		18
+nim	Wrap	fidget/opengl/textures.html#Wrap	enum Wrap		18
+nim	Texture	fidget/opengl/textures.html#Texture	object Texture		24
+nim	bindTextureBufferData	fidget/opengl/textures.html#bindTextureBufferData,ptr.Texture,ptr.Buffer,pointer	proc bindTextureBufferData(texture: ptr Texture; buffer: ptr Buffer; data: pointer)		33
+nim	bindTextureData	fidget/opengl/textures.html#bindTextureData,ptr.Texture,pointer	proc bindTextureData(texture: ptr Texture; data: pointer)		48
+nim	initTexture	fidget/opengl/textures.html#initTexture,Image	proc initTexture(image: Image): Texture		84
+nim	updateSubImage	fidget/opengl/textures.html#updateSubImage,Texture,int,int,Image,int	proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)		98
+nim	updateSubImage	fidget/opengl/textures.html#updateSubImage,Texture,int,int,Image	proc updateSubImage(texture: Texture; x, y: int; image: Image)		116
+nimgrp	updatesubimage	fidget/opengl/textures.html#updateSubImage-procs-all	proc		98

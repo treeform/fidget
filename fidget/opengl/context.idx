@@ -1,0 +1,37 @@
+nimTitle	context	fidget/opengl/context.html	module fidget/opengl/context		0
+nim	Context	fidget/opengl/context.html#Context	type Context		8
+nim	newContext	fidget/opengl/context.html#newContext,int,int,int,float	proc newContext(atlasSize = 1024; atlasMargin = 4; maxQuads = 1024; pixelate = false;\n           pixelScale = 1.0): Context		91
+nim	putImage	fidget/opengl/context.html#putImage,Context,,Image	proc putImage(ctx: Context; path: string | Hash; image: Image)		242
+nim	updateImage	fidget/opengl/context.html#updateImage,Context,,Image	proc updateImage(ctx: Context; path: string | Hash; image: Image)		253
+nim	putFlippy	fidget/opengl/context.html#putFlippy,Context,,Flippy	proc putFlippy(ctx: Context; path: string | Hash; flippy: Flippy)		268
+nim	`*`	fidget/opengl/context.html#*,Mat4,Vec2	proc `*`(m: Mat4; v: Vec2): Vec2		341
+nim	drawQuad	fidget/opengl/context.html#drawQuad,Context,array[,Vec2],array[,Vec2],array[,ColorRGBA]	proc drawQuad(ctx: Context; verts: array[4, Vec2]; uvs: array[4, Vec2];\n         colors: array[4, ColorRGBA])		344
+nim	drawImage	fidget/opengl/context.html#drawImage,Context,,Vec2,float	proc drawImage(ctx: Context; imagePath: string | Hash; pos: Vec2 = vec2(0, 0);\n          color = color(1, 1, 1, 1); scale = 1.0)		445
+nim	drawImage	fidget/opengl/context.html#drawImage,Context,,Vec2,Vec2	proc drawImage(ctx: Context; imagePath: string | Hash; pos: Vec2 = vec2(0, 0);\n          color = color(1, 1, 1, 1); size: Vec2)		458
+nim	drawSprite	fidget/opengl/context.html#drawSprite,Context,,Vec2,float	proc drawSprite(ctx: Context; imagePath: string | Hash; pos: Vec2 = vec2(0, 0);\n           color = color(1, 1, 1, 1); scale = 1.0)		469
+nim	drawSprite	fidget/opengl/context.html#drawSprite,Context,,Vec2,Vec2	proc drawSprite(ctx: Context; imagePath: string | Hash; pos: Vec2 = vec2(0, 0);\n           color = color(1, 1, 1, 1); size: Vec2)		488
+nim	fillRect	fidget/opengl/context.html#fillRect,Context,Rect,Color	proc fillRect(ctx: Context; rect: Rect; color: Color)		505
+nim	fillRoundedRect	fidget/opengl/context.html#fillRoundedRect,Context,Rect,Color,float32	proc fillRoundedRect(ctx: Context; rect: Rect; color: Color; radius: float32)		522
+nim	strokeRoundedRect	fidget/opengl/context.html#strokeRoundedRect,Context,Rect,Color,float32,float32	proc strokeRoundedRect(ctx: Context; rect: Rect; color: Color; weight: float32;\n                  radius: float32)		557
+nim	line	fidget/opengl/context.html#line,Context,Vec2,Vec2,Color	proc line(ctx: Context; a: Vec2; b: Vec2; color: Color)		594
+nim	linePolygon	fidget/opengl/context.html#linePolygon,Context,seq[Vec2],Color	proc linePolygon(ctx: Context; poly: seq[Vec2]; color: Color)		629
+nim	clearMask	fidget/opengl/context.html#clearMask,Context	proc clearMask(ctx: Context)		635
+nim	beginMask	fidget/opengl/context.html#beginMask,Context	proc beginMask(ctx: Context)		648
+nim	endMask	fidget/opengl/context.html#endMask,Context	proc endMask(ctx: Context)		669
+nim	popMask	fidget/opengl/context.html#popMask,Context	proc popMask(ctx: Context)		682
+nim	beginFrame	fidget/opengl/context.html#beginFrame,Context,Vec2,Mat4	proc beginFrame(ctx: Context; frameSize: Vec2; proj: Mat4)		688
+nim	beginFrame	fidget/opengl/context.html#beginFrame,Context,Vec2	proc beginFrame(ctx: Context; frameSize: Vec2)		710
+nim	endFrame	fidget/opengl/context.html#endFrame,Context	proc endFrame(ctx: Context)		717
+nim	translate	fidget/opengl/context.html#translate,Context,Vec2	proc translate(ctx: Context; v: Vec2)		726
+nim	rotate	fidget/opengl/context.html#rotate,Context,float32	proc rotate(ctx: Context; angle: float32)		730
+nim	scale	fidget/opengl/context.html#scale,Context,float32	proc scale(ctx: Context; s: float32)		734
+nim	scale	fidget/opengl/context.html#scale,Context,Vec2	proc scale(ctx: Context; s: Vec2)		738
+nim	saveTransform	fidget/opengl/context.html#saveTransform,Context	proc saveTransform(ctx: Context)		742
+nim	restoreTransform	fidget/opengl/context.html#restoreTransform,Context	proc restoreTransform(ctx: Context)		746
+nim	clearTransform	fidget/opengl/context.html#clearTransform,Context	proc clearTransform(ctx: Context)		750
+nim	fromScreen	fidget/opengl/context.html#fromScreen,Context,Vec2,Vec2	proc fromScreen(ctx: Context; windowFrame: Vec2; v: Vec2): Vec2		755
+nim	toScreen	fidget/opengl/context.html#toScreen,Context,Vec2,Vec2	proc toScreen(ctx: Context; windowFrame: Vec2; v: Vec2): Vec2		759
+nimgrp	scale	fidget/opengl/context.html#scale-procs-all	proc		734
+nimgrp	beginframe	fidget/opengl/context.html#beginFrame-procs-all	proc		688
+nimgrp	drawimage	fidget/opengl/context.html#drawImage-procs-all	proc		445
+nimgrp	drawsprite	fidget/opengl/context.html#drawSprite-procs-all	proc		469
