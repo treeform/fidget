@@ -194,7 +194,6 @@ proc hash(v: Vec2): Hash =
 proc grow(ctx: Context) =
   ctx.draw()
   ctx.atlasSize = ctx.atlasSize * 2
-  echo "grow atlasSize ", ctx.atlasSize
   ctx.heights.setLen(ctx.atlasSize)
   ctx.atlasTexture = ctx.createAtlasTexture(ctx.atlasSize)
   ctx.entries.clear()
@@ -424,7 +423,6 @@ proc getOrLoadImageRect(ctx: Context, imagePath: string | Hash): Rect =
     filePath.add ".png"
   if hash(filePath) notin ctx.entries:
     # Need to load imagePath, check to see if the .flippy file is around
-    echo "[load] ", filePath
     if not fileExists(filePath):
       raise newException(Exception, &"Image '{filePath}' not found")
     let flippyFilePath = filePath.changeFileExt(".flippy")
