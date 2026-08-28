@@ -80,6 +80,10 @@ proc setWindowTitle*(title: string) =
   if window != nil:
     window.setWindowTitle(title)
 
+proc setWindowIcon*(count: cint; image: ptr GlfwImage) =
+  if window != nil:
+    window.setWindowIcon(count, image)
+
 proc preInput() =
   var x, y: float64
   window.getCursorPos(addr x, addr y)
