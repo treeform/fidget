@@ -224,7 +224,7 @@ proc font*(
   current.textStyle.fontFamily = fontFamily
   current.textStyle.fontSize = fontSize
   current.textStyle.fontWeight = fontWeight
-  current.textStyle.lineHeight = lineHeight
+  current.textStyle.lineHeight = if lineHeight != 0.0: lineHeight else: fontSize
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
 
