@@ -3,7 +3,7 @@ import chroma, input, sequtils, tables, vmath, json, bumpy
 when defined(js):
   import dom2, html/ajax
 else:
-  import typography, typography/textboxes, tables, asyncfutures
+  import typography, typography/textboxes, asyncfutures
 
 const
   clearColor* = color(0, 0, 0, 0)
@@ -31,8 +31,9 @@ type
   TextAutoResize* = enum
     ## Should text element resize and how.
     tsNone
-    tsWidthAndHeight
+    tsWidth
     tsHeight
+    tsWidthAndHeight
 
   TextStyle* = object
     ## Holder for text styles.
@@ -124,6 +125,8 @@ type
     constraintsHorizontal*: Constraint
     constraintsVertical*: Constraint
     layoutAlign*: LayoutAlign
+    layoutWeight*: float32
+    wrapContent*: bool
     layoutMode*: LayoutMode
     counterAxisSizingMode*: CounterAxisSizingMode
     horizontalPadding*: float32
@@ -206,6 +209,7 @@ var
   mouse* = Mouse()
   keyboard* = Keyboard()
   requestedFrame*: bool
+  requestedTick*: bool
   numNodes*: int
   popupActive*: bool
   inPopup*: bool
@@ -286,7 +290,7 @@ proc resetToDefault*(node: Node)=
   # node.screenBox = rect(0,0,0,0)
   node.textOffset = vec2(0, 0)
   node.fill = color(0, 0, 0, 0)
-  node.transparency = 0
+  node.transparency = 1
   node.strokeWeight = 0
   node.stroke = color(0, 0, 0, 0)
   node.zLevel = 0
@@ -313,6 +317,8 @@ proc resetToDefault*(node: Node)=
   node.constraintsVertical = cMin
   node.layoutAlign = laMin
   node.layoutMode = lmNone
+  node.layoutWeight = 0.0
+  node.wrapContent = false
   node.counterAxisSizingMode = csAuto
   node.horizontalPadding = 0
   node.verticalPadding = 0
@@ -329,6 +335,7 @@ proc setupRoot*() =
     root.uid = newUId()
     root.highlightColor = parseHtmlColor("#3297FD")
     root.cursorColor = rgba(0, 0, 0, 255).color
+    root.transparency = 1
   nodeStack = @[root]
   current = root
   root.diffIndex = 0
@@ -368,10 +375,6 @@ proc consume*(mouse: Mouse) =
   buttonPress[MOUSE_LEFT] = false
 
 proc computeLayout*(parent, node: Node) =
-  ## Computes constraints and auto-layout.
-  for n in node.nodes:
-    computeLayout(node, n)
-
   # Constraints code.
   case node.constraintsVertical:
     of cMin: discard
@@ -412,6 +415,9 @@ proc computeLayout*(parent, node: Node) =
       of tsNone:
         # Fixed sized text node.
         discard
+      of tsWidth:
+        # Text will grow down.
+        node.box.w = node.textLayoutWidth
       of tsHeight:
         # Text will grow down.
         node.box.h = node.textLayoutHeight
@@ -420,6 +426,13 @@ proc computeLayout*(parent, node: Node) =
         node.box.w = node.textLayoutWidth
         node.box.h = node.textLayoutHeight
 
+  ## Computes constraints and auto-layout.
+  for n in node.nodes:
+    if node.layoutMode != lmNone and 
+      (n.layoutWeight != 0 or n.layoutAlign == laStretch):
+        continue
+    computeLayout(node, n)
+  
   # Auto-layout code.
   if node.layoutMode == lmVertical:
     if node.counterAxisSizingMode == csAuto:
@@ -429,13 +442,33 @@ proc computeLayout*(parent, node: Node) =
         if n.layoutAlign != laStretch:
           maxW = max(maxW, n.box.w)
       node.box.w = maxW + node.horizontalPadding * 2
-
+    
+    var remainHeight = node.box.h - node.verticalPadding * 2 - node.itemSpacing * (node.nodes.len - 1).float32
+    var totalWeight: float32
+    
+    for i, n in node.nodes.pairs:
+      # set width of stretch
+      if n.layoutAlign == laStretch:
+        n.box.w = node.box.w - node.horizontalPadding * 2
+        if n.id == "16": echo n.box.w
+        if n.layoutWeight == 0: computeLayout(node, n)
+      # record weight
+      if n.layoutWeight == 0: remainHeight -= n.box.h
+      else: totalWeight += n.layoutWeight
+    
     var at = 0.0
     at += node.verticalPadding
-    for i, n in node.nodes.reversePairs:
-      if i > 0:
-        at += node.itemSpacing
+    for i, n in node.nodes:
+      if i > 0: at += node.itemSpacing
+      
       n.box.y = at
+      
+      if n.layoutWeight != 0:
+        n.box.h =
+          if remainHeight <= 0: 0.0
+          else: remainHeight * n.layoutWeight / totalWeight
+        computeLayout(node, n)
+      
       case n.layoutAlign:
         of laMin:
           n.box.x = node.horizontalPadding
@@ -445,12 +478,10 @@ proc computeLayout*(parent, node: Node) =
           n.box.x = node.box.w - n.box.w - node.horizontalPadding
         of laStretch:
           n.box.x = node.horizontalPadding
-          n.box.w = node.box.w - node.horizontalPadding * 2
-          # Redo the layout for child node.
-          computeLayout(node, n)
+
       at += n.box.h
     at += node.verticalPadding
-    node.box.h = at
+    if node.wrapContent: node.box.h = at
 
   if node.layoutMode == lmHorizontal:
     if node.counterAxisSizingMode == csAuto:
@@ -461,12 +492,32 @@ proc computeLayout*(parent, node: Node) =
           maxH = max(maxH, n.box.h)
       node.box.h = maxH + node.verticalPadding * 2
 
+    var remainWidth = node.box.w - node.horizontalPadding * 2 - node.itemSpacing * (node.nodes.len - 1).float32
+    var totalWeight: float32
+    
+    for i, n in node.nodes.pairs:
+      # set width of stretch
+      if n.layoutAlign == laStretch:
+        n.box.h = node.box.h - node.verticalPadding * 2
+        if n.layoutWeight == 0: computeLayout(node, n)
+      # record weight
+      if n.layoutWeight == 0: remainWidth -= n.box.w
+      else: totalWeight += n.layoutWeight
+    
+
     var at = 0.0
     at += node.horizontalPadding
-    for i, n in node.nodes.reversePairs:
-      if i > 0:
-        at += node.itemSpacing
+    for i, n in node.nodes:
+      if i > 0: at += node.itemSpacing
+      
       n.box.x = at
+      
+      if n.layoutWeight != 0:
+        n.box.w =
+          if remainWidth <= 0: 0.0
+          else: remainWidth * n.layoutWeight / totalWeight
+        computeLayout(node, n)
+      
       case n.layoutAlign:
         of laMin:
           n.box.y = node.verticalPadding
@@ -476,12 +527,10 @@ proc computeLayout*(parent, node: Node) =
           n.box.y = node.box.h - n.box.h - node.verticalPadding
         of laStretch:
           n.box.y = node.verticalPadding
-          n.box.h = node.box.h - node.verticalPadding * 2
-          # Redo the layout for child node.
-          computeLayout(node, n)
+      
       at += n.box.w
     at += node.horizontalPadding
-    node.box.w = at
+    if node.wrapContent: node.box.w = at
 
 proc computeScreenBox*(parent, node: Node) =
   ## Setups screenBoxes for the whole tree.

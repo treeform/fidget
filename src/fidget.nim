@@ -41,7 +41,6 @@ proc preNode(kind: NodeKind, id: string) =
   current.textStyle = parent.textStyle
   current.cursorColor = parent.cursorColor
   current.highlightColor = parent.highlightColor
-  current.transparency = parent.transparency
   nodeStack.add(current)
   inc parent.diffIndex
 
@@ -273,13 +272,6 @@ proc orgBox*(x, y, w, h: int|float32|float32) =
   current.orgBox.w = float32 w
   current.orgBox.h = float32 h
 
-proc box*(x, y, w, h: float32) =
-  ## Sets the box dimensions.
-  current.box.x = x
-  current.box.y = y
-  current.box.w = w
-  current.box.h = h
-
 proc box*(
   x: int|float32|float64,
   y: int|float32|float64,
@@ -287,13 +279,52 @@ proc box*(
   h: int|float32|float64
 ) =
   ## Sets the box dimensions with integers
+  current.box.x = x.float32
+  current.box.y = y.float32
+  current.box.w = w.float32
+  current.box.h = h.float32
   ## Always set box before orgBox when doing constraints.
-  box(float32 x, float32 y, float32 w, float32 h)
   orgBox(float32 x, float32 y, float32 w, float32 h)
 
 proc box*(rect: Rect) =
   ## Sets the box dimensions with integers
   box(rect.x, rect.y, rect.w, rect.h)
+
+proc x*(x: int|float32|float64) =
+  current.box.x = x.float32
+  current.orgBox.x = x.float32
+
+proc y*(y: int|float32|float64) =
+  current.box.y = y.float32
+  current.orgBox.y = y.float32
+
+proc w*(w: int|float32|float64) =
+  current.box.w = w.float32
+  current.orgBox.w = w.float32
+
+proc h*(h: int|float32|float64) =
+  current.box.h = h.float32
+  current.orgBox.h = h.float32
+
+proc xy*(x, y: int|float32|float64) =
+  current.box.x = x.float32
+  current.box.y = y.float32
+  current.orgBox.x = x.float32
+  current.orgBox.y = y.float32
+
+proc xy*(xy: Vec2) =
+  current.box.xy = xy
+  current.orgBox.xy = xy
+
+proc wh*(w, h: int|float32|float64) =
+  current.box.w = w.float32
+  current.box.h = h.float32
+  current.orgBox.w = w.float32
+  current.orgBox.h = h.float32
+
+proc wh*(wh: Vec2) =
+  current.box.wh = wh
+  current.orgBox.wh = wh
 
 proc rotation*(rotationInDeg: float32) =
   ## Sets rotation in degrees.
@@ -412,6 +443,14 @@ proc layoutAlign*(mode: LayoutAlign) =
   ## Set the layout alignment mode.
   current.layoutAlign = mode
 
+proc layoutWeight*(weight: float32) =
+  ## Set the layout weight.
+  current.layoutWeight = weight
+
+proc wrapContent*(flag: bool) =
+  ## Set the whether wrap content or not.
+  current.wrapContent = flag
+
 proc layout*(mode: LayoutMode) =
   ## Set the layout mode.
   current.layoutMode = mode
@@ -448,6 +487,10 @@ template binding*(stringVariable: untyped) =
       keyboard.focus(current)
     onClickOutside:
       keyboard.unFocus(current)
+      refresh()
+    if not current.multiline and buttonRelease[ENTER]:
+      keyboard.unFocus(current)
+      refresh()
   onInput:
     if stringVariable != keyboard.input:
       stringVariable = keyboard.input

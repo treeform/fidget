@@ -47,6 +47,8 @@ var
   cursorGrab*: CursorHandle
   cursorNSResize*: CursorHandle
 
+proc getWindow*(): staticglfw.Window {.inline.} = window
+
 proc setCursor*(cursor: CursorHandle) =
   echo "set cursor"
   window.setCursor(cursor)
@@ -130,18 +132,17 @@ proc updateLoop*(poll = true) =
     of RepaintOnEvent:
       if poll:
         pollEvents()
-      if not requestedFrame or minimized:
-        # Only repaint when necessary
-        when not defined(emscripten):
-          sleep(16)
+      if minimized or not (requestedFrame or (tickMain != nil and requestedTick)):
         return
-      requestedFrame = false
       preInput()
-      if tickMain != nil:
+      if tickMain != nil and requestedTick:
+        requestedTick = false
         preTick()
         tickMain()
         postTick()
-      drawAndSwap()
+      if requestedFrame:
+        requestedFrame = false
+        drawAndSwap()
       postInput()
 
     of RepaintOnFrame:
@@ -247,13 +248,13 @@ proc onSetKey(
         textBox.delete(shift)
       of LETTER_C: # copy
         if ctrl:
-          base.window.setClipboardString(textBox.copy())
+          base.window.setClipboardString(textBox.copy().cstring)
       of LETTER_V: # paste
         if ctrl:
           textBox.paste($base.window.getClipboardString())
       of LETTER_X: # cut
         if ctrl:
-          base.window.setClipboardString(textBox.cut())
+          base.window.setClipboardString(textBox.cut().cstring)
       of LETTER_A: # select all
         if ctrl:
           textBox.selectAll()
@@ -302,7 +303,7 @@ proc onSetCharCallback(window: staticglfw.Window, character: cuint) {.cdecl.} =
     keyboard.state = KeyState.Press
     keyboard.keyString = Rune(character).toUTF8()
 
-proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
+proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode, hints: openArray[array[0 .. 1, int]]) =
   if init() == 0:
     quit("Failed to intialize GLFW.")
 
@@ -316,6 +317,8 @@ proc start*(openglVersion: (int, int), msaa: MSAA, mainLoopMode: MainLoopMode) =
   windowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
   windowHint(CONTEXT_VERSION_MAJOR, openglVersion[0].cint)
   windowHint(CONTEXT_VERSION_MINOR, openglVersion[1].cint)
+
+  for hint in hints: windowHint(hint[0].cint, hint[1].cint)
 
   if fullscreen:
     let

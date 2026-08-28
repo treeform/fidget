@@ -39,6 +39,7 @@ computeTextLayout = proc(node: Node) =
     hAlignMode(node.textStyle.textAlignHorizontal),
     vAlignMode(node.textStyle.textAlignVertical),
     clip = false,
+    wrap = false,
     boundsMin = boundsMin,
     boundsMax = boundsMax
   )
@@ -48,6 +49,9 @@ computeTextLayout = proc(node: Node) =
 proc refresh*() =
   ## Request the screen be redrawn
   requestedFrame = true
+
+proc doTick*() =
+  requestedTick = true
 
 proc focus*(keyboard: Keyboard, node: Node) =
   if keyboard.focusNode != node:
@@ -67,7 +71,7 @@ proc focus*(keyboard: Keyboard, node: Node) =
       hAlignMode(node.textStyle.textAlignHorizontal),
       vAlignMode(node.textStyle.textAlignVertical),
       node.multiline,
-      worldWrap = true,
+      worldWrap = node.multiline,
     )
     textBox.editable = node.editableText
     textBox.scrollable = true
@@ -193,7 +197,7 @@ proc drawText(node: Node) =
 
     let
       glyphOffset = glyphOffsets[hashFill]
-      charPos = vec2(pos.rect.x + glyphOffset.x, pos.rect.y + glyphOffset.y)
+      charPos = pos.rect.xy + glyphOffset
 
     if node.strokeWeight > 0 and node.stroke.a > 0:
       ctx.drawImage(
@@ -247,7 +251,11 @@ proc draw*(node: Node) =
       ctx.fillRoundedRect(rect(
         0, 0,
         node.screenBox.w, node.screenBox.h
-      ), rgba(255, 0, 0, 255).color, node.cornerRadius[0])
+      ), rgba(255, 0, 0, 255).color,
+        node.cornerRadius[0],
+        node.cornerRadius[1],
+        node.cornerRadius[2],
+        node.cornerRadius[3])
     else:
       ctx.fillRect(rect(
         0, 0,
@@ -264,7 +272,11 @@ proc draw*(node: Node) =
           ctx.fillRoundedRect(rect(
             0, 0,
             node.screenBox.w, node.screenBox.h
-          ), node.fill, node.cornerRadius[0])
+          ), node.fill, 
+            node.cornerRadius[0],
+            node.cornerRadius[1],
+            node.cornerRadius[2],
+            node.cornerRadius[3])
         else:
           ctx.fillRect(rect(
             0, 0,
@@ -275,11 +287,18 @@ proc draw*(node: Node) =
       ctx.strokeRoundedRect(rect(
         0, 0,
         node.screenBox.w, node.screenBox.h
-      ), node.stroke, node.strokeWeight, node.cornerRadius[0])
+      ), node.stroke, node.strokeWeight,
+        node.cornerRadius[0],
+        node.cornerRadius[1],
+        node.cornerRadius[2],
+        node.cornerRadius[3])
 
     if node.imageName != "":
       let path = dataDir / node.imageName
-      ctx.drawImage(path, size = vec2(node.screenBox.w, node.screenBox.h))
+      ctx.drawImage(
+        path,
+        color = color(1, 1, 1, node.transparency),
+        size = vec2(node.screenBox.w, node.screenBox.h))
 
   ctx.restoreTransform()
 
@@ -298,11 +317,12 @@ proc setupFidget(
   msaa: MSAA,
   mainLoopMode: MainLoopMode,
   pixelate: bool,
-  forcePixelScale: float32
+  forcePixelScale: float32,
+  windowHints: openArray[array[0 .. 1, int]]
 ) =
   pixelScale = forcePixelScale
 
-  base.start(openglVersion, msaa, mainLoopMode)
+  base.start(openglVersion, msaa, mainLoopMode, windowHints)
   setWindowTitle(windowTitle)
   ctx = newContext(pixelate = pixelate, pixelScale = pixelScale)
   requestedFrame = true
@@ -388,7 +408,8 @@ proc startFidget*(
   msaa = msaaDisabled,
   mainLoopMode: MainLoopMode = RepaintOnEvent,
   pixelate = false,
-  pixelScale = 1.0
+  pixelScale = 1.0,
+  windowHints: openArray[array[0 .. 1, int]] = []
 ) =
   ## Starts Fidget UI library
   common.fullscreen = fullscreen
@@ -397,7 +418,7 @@ proc startFidget*(
   drawMain = draw
   tickMain = tick
   loadMain = load
-  setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale)
+  setupFidget(openglVersion, msaa, mainLoopMode, pixelate, pixelScale, windowHints)
   mouse.pixelScale = pixelScale
   when defined(emscripten):
     # Emscripten can't block so it will call this callback instead.
