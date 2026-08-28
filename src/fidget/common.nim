@@ -229,6 +229,9 @@ var
   ## Used for HttpCalls
   httpCalls*: Table[string, HttpCall]
 
+  # UI Scale
+  uiScale*: float32 = 1.0
+
 proc newUId*(): string =
   # Returns next numerical unique id.
   inc lastUId
@@ -491,3 +494,8 @@ proc computeScreenBox*(parent, node: Node) =
     node.screenBox = node.box + parent.screenBox
   for n in node.nodes:
     computeScreenBox(node, n)
+
+template getScaled*(node, box: untyped): untyped =
+  node.`box`/uiScale
+
+

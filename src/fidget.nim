@@ -222,9 +222,9 @@ proc font*(
 ) =
   ## Sets the font.
   current.textStyle.fontFamily = fontFamily
-  current.textStyle.fontSize = fontSize
-  current.textStyle.fontWeight = fontWeight
-  current.textStyle.lineHeight = lineHeight
+  current.textStyle.fontSize = common.uiScale*fontSize
+  current.textStyle.fontWeight = common.uiScale*fontWeight
+  current.textStyle.lineHeight = if lineHeight != 0.0: common.uiScale*lineHeight else: common.uiScale*fontSize
   current.textStyle.textAlignHorizontal = textAlignHorizontal
   current.textStyle.textAlignVertical = textAlignVertical
 
@@ -234,15 +234,15 @@ proc fontFamily*(fontFamily: string) =
 
 proc fontSize*(fontSize: float32) =
   ## Sets the font size in pixels.
-  current.textStyle.fontSize = fontSize
+  current.textStyle.fontSize = fontSize*3.0
 
 proc fontWeight*(fontWeight: float32) =
   ## Sets the font weight.
-  current.textStyle.fontWeight = fontWeight
+  current.textStyle.fontWeight = 3*fontWeight
 
 proc lineHeight*(lineHeight: float32) =
   ## Sets the font size.
-  current.textStyle.lineHeight = lineHeight
+  current.textStyle.lineHeight = 3*lineHeight
 
 proc textAlign*(textAlignHorizontal: HAlign, textAlignVertical: VAlign) =
   ## Sets the horizontal and vertical alignment.
@@ -268,17 +268,17 @@ proc image*(imageName: string) =
 
 proc orgBox*(x, y, w, h: int|float32|float32) =
   ## Sets the box dimensions of the original element for constraints.
-  current.orgBox.x = float32 x
-  current.orgBox.y = float32 y
-  current.orgBox.w = float32 w
-  current.orgBox.h = float32 h
+  current.orgBox.x = common.uiScale * float32 x
+  current.orgBox.y = common.uiScale * float32 y
+  current.orgBox.w = common.uiScale * float32 w
+  current.orgBox.h = common.uiScale * float32 h
 
 proc box*(x, y, w, h: float32) =
   ## Sets the box dimensions.
-  current.box.x = x
-  current.box.y = y
-  current.box.w = w
-  current.box.h = h
+  current.box.x = common.uiScale*x
+  current.box.y = common.uiScale*y
+  current.box.w = common.uiScale*w
+  current.box.h = common.uiScale*h
 
 proc box*(
   x: int|float32|float64,
@@ -341,7 +341,7 @@ proc zLevel*(zLevel: int) =
 
 proc cornerRadius*(a, b, c, d: float32) =
   ## Sets all radius of all 4 corners.
-  current.cornerRadius = (a, b, c, d)
+  current.cornerRadius = (3*a, 3*b, 3*c, 3*d)
 
 proc cornerRadius*(radius: float32) =
   ## Sets all radius of all 4 corners.

@@ -22,15 +22,15 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
 proc drawMain() =
 
   group "pad":
-    box 100, 100, parent.box.w - 200, parent.box.h - 200
+    box 100, 100, parent.getScaled(box).w - 200, parent.getScaled(box).h - 200
     font "IBM Plex Sans Regular", 20.0, 400.0, 25, hLeft, vTop
     fill "#F7F7F9"
     clipContent true
 
     text "input":
-      box 0, 0, parent.box.w, parent.box.h
+      box 0, 0, parent.getScaled(box).w, parent.getScaled(box).h
       fill "#000000"
       multiline true
       binding textValue
 
-startFidget(drawMain)
+startFidget(drawMain, uiScale=2)
