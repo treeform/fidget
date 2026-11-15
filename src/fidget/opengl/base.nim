@@ -191,7 +191,7 @@ proc glGetInteger*(what: GLenum): int =
   glGetIntegerv(what, val.addr)
   return val.int
 
-proc onResize(handle: staticglfw.Window, w, h: int32) {.cdecl.} =
+proc onResize(handle: staticglfw.Window, w, h: cint) {.cdecl.} =
   updateWindowSize()
   updateLoop(poll = false)
 
@@ -269,7 +269,7 @@ proc onSetKey(
       buttonRelease[key] = true
     buttonDown[key] = setKey
 
-proc onScroll(window: staticglfw.Window, xoffset, yoffset: float64) {.cdecl.} =
+proc onScroll(window: staticglfw.Window, xoffset, yoffset: cdouble) {.cdecl.} =
   requestedFrame = true
   if keyboard.focusNode != nil:
     textBox.scrollBy(-yoffset * 50)
